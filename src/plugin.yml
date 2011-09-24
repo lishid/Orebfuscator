@@ -1,19 +1,12 @@
-name: OpenInv
-main: lishid.openinv.OpenInv
-version: 1.4.3
+name: Orebfuscator
+main: lishid.orebfuscator.Orebfuscator
+version: 0.9.0
 author: lishid
 description: >
-             This plugin allows you to open another player's inventory as a chest
+             This plugin obfuscates data that is sent to players to prevent x-ray.
 commands:
-  openinv:
-    description: Open a player's inventory
+  ofc:
+    description: Manage Orebfuscator.
     usage: |
-           /<command> <Player>
-  searchinv:
-    description: Search and list players having a specific item
-    usage: |
-           /<command> <Item> [MinAmount] - Item can be the Item ID or the CraftBukkit Item Name, MinAmount is the minimum amount to be considered.
-  toggleopeninv:
-    description: Toggle the stick openinv
-    usage: |
-           /<command> [check] - Checks whether stick openinv is enabled
+           /<command> engine <1|2> - Set engine mode to 1 or 2
+           /<command> reload - Reload from config file
