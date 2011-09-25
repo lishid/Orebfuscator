@@ -28,13 +28,16 @@ public class Orebfuscator extends JavaPlugin {
     	OrebfuscatorConfig.Load(this.getConfiguration());
         
         //Hook events
+		pm.registerEvent(Event.Type.PLAYER_JOIN, this.playerListener, Event.Priority.Monitor, this);
+		pm.registerEvent(Event.Type.PLAYER_QUIT, this.playerListener, Event.Priority.Monitor, this);
 		pm.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Monitor, this);
 		pm.registerEvent(Event.Type.BLOCK_DAMAGE, this.blockListener, Event.Priority.Monitor, this);
+		pm.registerEvent(Event.Type.BLOCK_PHYSICS, this.blockListener, Event.Priority.Monitor, this);
 		pm.registerEvent(Event.Type.ENTITY_EXPLODE, this.entityListener, Event.Priority.Monitor, this);
 
-		pm.registerEvent(Event.Type.PLAYER_INTERACT, this.playerListener, Event.Priority.Monitor, this);
-		pm.registerEvent(Event.Type.BLOCK_IGNITE, this.blockListener, Event.Priority.Monitor, this);
-		pm.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Monitor, this);
+		//pm.registerEvent(Event.Type.PLAYER_INTERACT, this.playerListener, Event.Priority.Monitor, this);
+		//pm.registerEvent(Event.Type.BLOCK_IGNITE, this.blockListener, Event.Priority.Monitor, this);
+		//pm.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Monitor, this);
 		
 		
 		//Spout events
@@ -42,6 +45,7 @@ public class Orebfuscator extends JavaPlugin {
 		{
 			System.out.println("[Orebfuscator] Error loading, Spout is found but OrebfuscatorSpoutBridge is not found.");
 			pm.disablePlugin(this);
+			return;
 		}
 		else if(pm.getPlugin("Spout") != null)
 		{
@@ -57,7 +61,7 @@ public class Orebfuscator extends JavaPlugin {
 		
 		//Output
         PluginDescriptionFile pdfFile = this.getDescription();
-        System.out.println("[Orebfuscator] version " + pdfFile.getVersion() + " enabled!" );
+        System.out.println("[Orebfuscator] version " + pdfFile.getVersion() + " initialization complete!" );
         
         getCommand("ofc").setExecutor(new OrebfuscatorCommandExecutor(this));
     }

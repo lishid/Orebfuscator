@@ -17,7 +17,7 @@ public class OrebfuscatorEntityListener extends EntityListener{
 	@Override
 	public void onEntityExplode(EntityExplodeEvent event)
 	{
-		if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnExplosion())
+		if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnExplosion() || !OrebfuscatorConfig.Enabled())
 			return;
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		

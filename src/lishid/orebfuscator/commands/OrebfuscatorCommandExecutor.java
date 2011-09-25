@@ -17,7 +17,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
     }
     
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    	if (!PermissionRelay.hasPermission((Player) sender, "Orebfuscator.admin")) {
+    	if ((sender instanceof Player) && !PermissionRelay.hasPermission((Player) sender, "Orebfuscator.admin")) {
             sender.sendMessage(ChatColor.RED + "You do not have permissions.");
             return true;
         }
@@ -42,17 +42,32 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 			if(engine != 1 && engine != 2)
 			{
 	    		sender.sendMessage(args[1] + " is not a valid EngineMode!");
+	    		return true;
 			}
 			else
 			{
 	    		OrebfuscatorConfig.SetEngineMode(engine);
 	    		sender.sendMessage("Orebfuscator is now using engine " + engine);
+	    		return true;
 			}
     	}
     	
     	if(args[0].equalsIgnoreCase("reload"))
     	{
     		OrebfuscatorConfig.Reload();
+    		sender.sendMessage("[Orebfuscator] reload complete.");
+    	}
+    	
+    	if(args[0].equalsIgnoreCase("enable"))
+    	{
+    		OrebfuscatorConfig.SetEnabled(true);
+    		sender.sendMessage("[Orebfuscator] enabled.");
+    	}
+    	
+    	if(args[0].equalsIgnoreCase("disable"))
+    	{
+    		OrebfuscatorConfig.SetEnabled(false);
+    		sender.sendMessage("[Orebfuscator] disabled.");
     	}
     	
     	return true;
