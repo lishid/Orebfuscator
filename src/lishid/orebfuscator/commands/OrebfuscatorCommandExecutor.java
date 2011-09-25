@@ -70,6 +70,13 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
     		sender.sendMessage("[Orebfuscator] disabled.");
     	}
     	
+    	if(args[0].equalsIgnoreCase("status"))
+    	{
+    		sender.sendMessage("[Orebfuscator] showing status:");
+    		sender.sendMessage("[Orebfuscator] Plugin is: " + (OrebfuscatorConfig.Enabled()?"Enabled":"Disabled"));
+    		sender.sendMessage("[Orebfuscator] EngineMode: " + OrebfuscatorConfig.EngineMode());
+    	}
+    	
     	return true;
     }
 }
