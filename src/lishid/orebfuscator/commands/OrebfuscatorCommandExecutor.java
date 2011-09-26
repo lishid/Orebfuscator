@@ -2,6 +2,7 @@ package lishid.orebfuscator.commands;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.utils.OrebfuscatorCalculationThread;
 import lishid.orebfuscator.utils.PermissionRelay;
 
 import org.bukkit.ChatColor;
@@ -52,6 +53,27 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 			}
     	}
     	
+    	if(args[0].equalsIgnoreCase("threads") && args.length > 1)
+    	{
+    		int threads = OrebfuscatorConfig.EngineMode();
+			try 
+			{
+				threads = new Integer(args[1]);
+			}
+			catch (NumberFormatException e) 
+			{
+	    		sender.sendMessage(args[1] + " is not a number!");
+	    		return true;
+			}
+			if(OrebfuscatorCalculationThread.isRunning())
+			{
+				OrebfuscatorCalculationThread.startThread();
+			}
+    		OrebfuscatorConfig.SetProcessingThreads(threads);
+    		sender.sendMessage("[Orebfuscator] Processing Threads set to: " + threads);
+    		return true;
+    	}
+    	
     	if(args[0].equalsIgnoreCase("reload"))
     	{
     		OrebfuscatorConfig.Reload();
@@ -75,6 +97,8 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
     		sender.sendMessage("[Orebfuscator] Orebfuscator status:");
     		sender.sendMessage("[Orebfuscator] Plugin is: " + (OrebfuscatorConfig.Enabled()?"Enabled":"Disabled"));
     		sender.sendMessage("[Orebfuscator] EngineMode: " + OrebfuscatorConfig.EngineMode());
+    		sender.sendMessage("[Orebfuscator] Executing Threads: " + OrebfuscatorCalculationThread.getThreads());
+    		sender.sendMessage("[Orebfuscator] Processing Threads Max: " + OrebfuscatorConfig.ProcessingThreads());
     	}
     	
     	return true;

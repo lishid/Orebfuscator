@@ -340,6 +340,9 @@ public class Calculations
             	}
             }
         }
+        
+        //Memory fix
+        info = null;
 	}
 
 	public static void LightingUpdate(Block block, boolean skipCheck)

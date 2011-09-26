@@ -17,6 +17,7 @@ public class OrebfuscatorConfig {
 	private static int EngineMode;
 	private static int UpdateRadius;
 	private static int InitialRadius;
+	private static int ProcessingThreads;
 	private static boolean UpdateOnBreak;
 	private static boolean UpdateOnDamage;
 	private static boolean UpdateOnPhysics;
@@ -41,6 +42,13 @@ public class OrebfuscatorConfig {
 	public static int InitialRadius()
 	{
 		return InitialRadius;
+	}
+	
+	public static int ProcessingThreads()
+	{
+		if(ProcessingThreads < 0)
+			return 1;
+		return ProcessingThreads;
 	}
 	
 	public static boolean UpdateOnBreak()
@@ -149,6 +157,12 @@ public class OrebfuscatorConfig {
 		InitialRadius = data;
 	}
 	
+	public static void SetProcessingThreads(int data)
+	{
+		SetData("Integers.ProcessingThreads", data);
+		ProcessingThreads = data;
+	}
+	
 	public static void SetUpdateOnBreak(boolean data)
 	{
 		SetData("Booleans.UpdateOnBreak", data);
@@ -250,6 +264,7 @@ public class OrebfuscatorConfig {
 			InitialRadius = 4;
 			System.out.println("[Orebfuscator] InitialRadius must be less than 5.");
 		}
+		ProcessingThreads = GetInt("Integers.ProcessingThreads", 1);
 		UpdateOnBreak = GetBoolean("Booleans.UpdateOnBreak", true);
 		UpdateOnDamage = GetBoolean("Booleans.UpdateOnDamage", true);
 		UpdateOnPhysics = GetBoolean("Booleans.UpdateOnPhysics", true);

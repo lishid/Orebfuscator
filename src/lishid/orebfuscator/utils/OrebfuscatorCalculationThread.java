@@ -1,56 +1,57 @@
 package lishid.orebfuscator.utils;
 
+import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.atomic.AtomicBoolean;
+
+import lishid.orebfuscator.OrebfuscatorConfig;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import net.minecraft.server.Packet51MapChunk;
 
 public class OrebfuscatorCalculationThread extends Thread implements Runnable
 {
-	private static final int QUEUE_CAPACITY = 1024 * 10; // how many packets can be queued before the main thread blocks
-
-	private static final OrebfuscatorCalculationThread instance = new OrebfuscatorCalculationThread();
-	private static Thread thread = null;
-	private static boolean runs = false;
-	private final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<ObfuscatedPlayerPacket>(QUEUE_CAPACITY);
-	private final AtomicBoolean kill = new AtomicBoolean(false);
-
+	private boolean kill = false;
+	private int ProcessedThread = 0;
+	//Global
+	private static final int QUEUE_CAPACITY = 1024 * 10;
+	private static ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList<OrebfuscatorCalculationThread>();
+	private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<ObfuscatedPlayerPacket>(QUEUE_CAPACITY);
+	
+	public static int getThreads()
+	{
+		return threads.size();
+	}
+	
 	public static boolean isRunning()
 	{
-		return runs;
+		return threads.size() == OrebfuscatorConfig.ProcessingThreads();
 	}
 	
 	public static void startThread() {
-		if (!runs) {
-			runs = true;
-			thread = new Thread(instance);
-			thread.start();
+		int extra = threads.size() - OrebfuscatorConfig.ProcessingThreads();
+		if (extra > 0) {
+			for(int i = extra; i > 0; i--)
+			{
+				threads.get(i-1).kill = true;
+				threads.remove(i-1);
+			}
 		}
-	}
-
-	public static void endThread() {
-		instance.kill.set(true);
-		if (thread != null) {
-			thread.interrupt();
-		}
-		try {
-			thread.join();
-		} catch (InterruptedException ie) {
-		}
-		thread = null;
-		while(!instance.queue.isEmpty()) {
-			instance.handle();
+		else if (extra < 0) {
+			for(int i = 0; i < -extra; i++)
+			{
+				OrebfuscatorCalculationThread thread = new OrebfuscatorCalculationThread();
+				thread.start();
+				threads.add(thread);
+			}
 		}
 	}
 	
-	// consumer thread
 	public void run() {
-		while (thread != null && !thread.isInterrupted() && !kill.get()) {
+		while (!this.isInterrupted() && !kill) {
 			try {
 				handle();
 			} catch (Exception e) {
-				e.printStackTrace(); // print & ignore
+				e.printStackTrace();
 			}
 		}
 	}
@@ -59,6 +60,7 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 		try {
 			ObfuscatedPlayerPacket packet = queue.take();
 			Calculations.Obfuscate(packet.packet, packet.player);
+			ProcessedThread++;
 		}catch(Exception e){e.printStackTrace();}
 	}
 
@@ -67,7 +69,7 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 		while(true)
 		{
 			try {
-				instance.queue.put(new ObfuscatedPlayerPacket(player, packet));
+				queue.put(new ObfuscatedPlayerPacket(player, packet));
 				return;
 			} catch (InterruptedException e) {
 				e.printStackTrace();

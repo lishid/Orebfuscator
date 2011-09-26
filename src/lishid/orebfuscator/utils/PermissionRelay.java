@@ -24,7 +24,7 @@ public class PermissionRelay {
 	public static boolean hasPermission(Player player, String permission)
 	{
 		if (handler == null) {
-			return player.isOp();
+			return player.isOp() ? true : player.hasPermission(permission);
         }else{
         	return handler.has(player, permission);
         }
