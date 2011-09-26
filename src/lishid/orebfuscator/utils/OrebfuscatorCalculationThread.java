@@ -1,23 +1,21 @@
 package lishid.orebfuscator.utils;
 
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
-
-import java.util.LinkedList;
-import java.util.Queue;
-
 import net.minecraft.server.Packet51MapChunk;
 
 public class OrebfuscatorCalculationThread extends Thread implements Runnable
 {
-	//private static final int QUEUE_CAPACITY = 1024 * 10; // how many packets can be queued before the main thread blocks
-	
+	private static final int QUEUE_CAPACITY = 1024 * 10; // how many packets can be queued before the main thread blocks
+
 	private static final OrebfuscatorCalculationThread instance = new OrebfuscatorCalculationThread();
-	private static int TotalPackets = 0;
 	private static Thread thread = null;
 	private static boolean runs = false;
-	
+	private final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<ObfuscatedPlayerPacket>(QUEUE_CAPACITY);
+	private final AtomicBoolean kill = new AtomicBoolean(false);
+
 	public static boolean isRunning()
 	{
 		return runs;
@@ -41,24 +39,14 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 		} catch (InterruptedException ie) {
 		}
 		thread = null;
+		while(!instance.queue.isEmpty()) {
+			instance.handle();
+		}
 	}
 	
-	private final Queue<ObfuscatedPlayer> queue = new LinkedList<ObfuscatedPlayer>();
-	private final AtomicBoolean kill = new AtomicBoolean(false);
-
+	// consumer thread
 	public void run() {
 		while (thread != null && !thread.isInterrupted() && !kill.get()) {
-			if(TotalPackets == 0)
-			{
-				synchronized(queue)
-				{
-					try {
-						queue.wait();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
 			try {
 				handle();
 			} catch (Exception e) {
@@ -66,50 +54,24 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 			}
 		}
 	}
-
+	
 	private void handle() {
 		try {
-			if(queue.size() > 0)
-			{
-				ObfuscatedPlayer player;
-				synchronized(queue)
-				{
-					player = queue.poll();
-				}
-				if(player.packetQueue.size() > 0)
-				{
-					Calculations.Obfuscate(player.packetQueue.poll(), player.player);
-					TotalPackets--;
-				}
-				if(player.player.isOnline())
-				{
-					synchronized(queue)
-					{
-						queue.add(player);
-					}
-				}
-			}
+			ObfuscatedPlayerPacket packet = queue.take();
+			Calculations.Obfuscate(packet.packet, packet.player);
 		}catch(Exception e){e.printStackTrace();}
 	}
 
 	public static void Queue(Packet51MapChunk packet, CraftPlayer player)
 	{
-		TotalPackets++;
-		synchronized(instance.queue)
+		while(true)
 		{
-			for(ObfuscatedPlayer playerQueue : instance.queue)
-			{
-				if(playerQueue.player == player)
-				{
-					playerQueue.EnQueue(packet);
-					instance.queue.notify();
-					return;
-				}
+			try {
+				instance.queue.put(new ObfuscatedPlayerPacket(player, packet));
+				return;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-			ObfuscatedPlayer playerQueue = new ObfuscatedPlayer(player);
-			playerQueue.EnQueue(packet);
-			instance.queue.add(playerQueue);
-			instance.queue.notify();
 		}
 	}
 }

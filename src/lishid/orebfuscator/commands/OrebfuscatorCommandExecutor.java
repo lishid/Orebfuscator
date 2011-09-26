@@ -47,7 +47,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 			else
 			{
 	    		OrebfuscatorConfig.SetEngineMode(engine);
-	    		sender.sendMessage("Orebfuscator is now using engine " + engine);
+	    		sender.sendMessage("[Orebfuscator] Engine set to: " + engine);
 	    		return true;
 			}
     	}
@@ -55,24 +55,24 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
     	if(args[0].equalsIgnoreCase("reload"))
     	{
     		OrebfuscatorConfig.Reload();
-    		sender.sendMessage("[Orebfuscator] reload complete.");
+    		sender.sendMessage("[Orebfuscator] Reload complete.");
     	}
     	
     	if(args[0].equalsIgnoreCase("enable"))
     	{
     		OrebfuscatorConfig.SetEnabled(true);
-    		sender.sendMessage("[Orebfuscator] enabled.");
+    		sender.sendMessage("[Orebfuscator] Enabled.");
     	}
     	
     	if(args[0].equalsIgnoreCase("disable"))
     	{
     		OrebfuscatorConfig.SetEnabled(false);
-    		sender.sendMessage("[Orebfuscator] disabled.");
+    		sender.sendMessage("[Orebfuscator] Disabled.");
     	}
     	
     	if(args[0].equalsIgnoreCase("status"))
     	{
-    		sender.sendMessage("[Orebfuscator] showing status:");
+    		sender.sendMessage("[Orebfuscator] Orebfuscator status:");
     		sender.sendMessage("[Orebfuscator] Plugin is: " + (OrebfuscatorConfig.Enabled()?"Enabled":"Disabled"));
     		sender.sendMessage("[Orebfuscator] EngineMode: " + OrebfuscatorConfig.EngineMode());
     	}

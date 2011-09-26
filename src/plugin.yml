@@ -1,7 +1,6 @@
-<<<<<<< HEAD
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 0.9.2
+version: 0.9.3
 author: lishid
 description: >
              This plugin obfuscates data that is sent to players to prevent x-ray.
@@ -13,20 +12,4 @@ commands:
            /<command> reload - Reload from config file
            /<command> enable
            /<command> disable
-=======
-name: Orebfuscator
-main: lishid.orebfuscator.Orebfuscator
-version: 0.9.2
-author: lishid
-description: >
-             This plugin obfuscates data that is sent to players to prevent x-ray.
-commands:
-  ofc:
-    description: Manage Orebfuscator.
-    usage: |
-           /<command> engine <1|2> - Set engine mode to 1 or 2
-           /<command> reload - Reload from config file
-           /<command> enable
-           /<command> disable
->>>>>>> f2a74dba45cffa3cfa52db44f62e029351ddccac
            /<command> status - Show status of Orebfuscator
