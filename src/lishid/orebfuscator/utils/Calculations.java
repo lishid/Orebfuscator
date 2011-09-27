@@ -2,8 +2,8 @@ package lishid.orebfuscator.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
@@ -27,8 +27,8 @@ public class Calculations
         		OrebfuscatorConfig.isTransparent((byte)block.getTypeId()))
         	return;
         
-        ArrayList<Block> blocks = Calculations.GetAjacentBlocks(block.getWorld(),
-        		new ArrayList<Block>(), block, OrebfuscatorConfig.UpdateRadius());
+        HashSet<Block> blocks = Calculations.GetAjacentBlocks(block.getWorld(),
+        		new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius());
         
         for(Block nearbyBlock : blocks)
         {
@@ -36,11 +36,8 @@ public class Calculations
         }
 	}
 	
-	public static ArrayList <Block> GetAjacentBlocks(World world, ArrayList <Block> allBlocks, Block block, int countdown)
+	public static HashSet<Block> GetAjacentBlocks(World world, HashSet<Block> allBlocks, Block block, int countdown)
 	{
-		if (allBlocks == null)
-			allBlocks = new ArrayList <Block> ();
-		
 		AddBlockCheck(allBlocks, block);
 		
 		if (countdown == 0)
@@ -56,11 +53,10 @@ public class Calculations
 		return allBlocks;
 	}
 
-	public static void AddBlockCheck(ArrayList <Block> allBlocks, Block block)
+	public static void AddBlockCheck(HashSet<Block> allBlocks, Block block)
 	{
 		if (block == null) return;
-		if (!allBlocks.contains(block) && 
-				(OrebfuscatorConfig.isObfuscated((byte)block.getTypeId()) 
+		if ((OrebfuscatorConfig.isObfuscated((byte)block.getTypeId()) 
 				|| OrebfuscatorConfig.isDarknessObfuscated((byte)block.getTypeId())))
 		{
 			allBlocks.add(block);
@@ -71,7 +67,7 @@ public class Calculations
 	{
 		if (block == null) return;
 
-        ArrayList<CraftPlayer> players = new ArrayList<CraftPlayer>();
+        HashSet<CraftPlayer> players = new HashSet<CraftPlayer>();
         for (Player player : block.getWorld().getPlayers()) {
             if ((Math.abs(player.getLocation().getX() - block.getX()) < 176) &&
             		(Math.abs(player.getLocation().getZ() - block.getZ()) < 176)) {
@@ -140,7 +136,7 @@ public class Calculations
 		{
 			if(CheckID(IDPool, (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ - 1))) return true;
 		}
-
+		
 		if(GetAjacentBlocksTypeID(info, IDPool, index + 1, x, y + 1, z, countdown - 1)) return true;
 		if(GetAjacentBlocksTypeID(info, IDPool, index - 1, x, y - 1, z, countdown - 1)) return true;
 		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1)) return true;
@@ -153,7 +149,7 @@ public class Calculations
 	
 	private static boolean CheckID(HashSet<Byte> IDPool, byte id)
 	{
-		if(IDPool.contains(id))
+		if(IDPool.contains((int)id))
 			return false;
 		if(OrebfuscatorConfig.isTransparent(id))
 			return true;
@@ -264,6 +260,31 @@ public class Calculations
 			}
 		}
 		
+		if(Orebfuscator.usingSpout)
+		{
+			//Compression
+			Deflater deflater = new Deflater();
+			byte[] deflateBuffer = new byte[82020];
+	
+		    int dataSize = packet.rawData.length;
+		    if (deflateBuffer.length < dataSize + 100) {
+		      deflateBuffer = new byte[dataSize + 100];
+		    }
+	
+		    deflater.reset();
+		    deflater.setLevel(dataSize < 20480 ? 1 : 6);
+		    deflater.setInput(packet.rawData);
+		    deflater.finish();
+		    int size = deflater.deflate(deflateBuffer);
+		    if (size == 0) {
+		      size = deflater.deflate(deflateBuffer);
+		    }
+	
+		    packet.g = new byte[size];
+		    packet.h = size;
+		    System.arraycopy(deflateBuffer, 0, packet.g, 0, size);	
+		}
+		
 		//Send it
 		handler.sendPacket(packet);
 		
@@ -315,5 +336,9 @@ public class Calculations
 			e.printStackTrace();
 		}
 		return "";
+	}
+	
+	public int getIndex(int x, int y, int z) {
+		return (x & 0xF) << 11 | (z & 0xF) << 7 | (y & 0x7F);
 	}
 }

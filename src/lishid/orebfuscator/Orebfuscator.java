@@ -43,6 +43,7 @@ public class Orebfuscator extends JavaPlugin {
 		//Spout events
 		if(pm.getPlugin("Spout") != null && pm.getPlugin("OrebfuscatorSpoutBridge") == null)
 		{
+			//SpoutManager.getPacketManager().addListenerUncompressedChunk(new PacketListener(this));
 			System.out.println("[Orebfuscator] Error loading, Spout is found but OrebfuscatorSpoutBridge is not found.");
 			pm.disablePlugin(this);
 			return;

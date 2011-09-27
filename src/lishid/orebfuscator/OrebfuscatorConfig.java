@@ -8,15 +8,16 @@ import org.bukkit.util.config.Configuration;
 
 public class OrebfuscatorConfig {
 	private static Configuration config;
-	private static Byte[] TransparentBlocks = {};
-	private static Byte[] ObfuscateBlocks = {};
-	private static Byte[] DarknessObfuscateBlocks = {};
-	private static Byte[] LightEmissionBlocks = {};
-	private static Byte[] RandomBlocks = {};
+	private static byte[] TransparentBlocks = {};
+	private static byte[] ObfuscateBlocks = {};
+	private static byte[] DarknessObfuscateBlocks = {};
+	private static byte[] LightEmissionBlocks = {};
+	private static byte[] RandomBlocks = {};
 	private static final Random randomGenerator = new Random();
 	private static int EngineMode;
 	private static int UpdateRadius;
 	private static int InitialRadius;
+	private static int MemoryFlushInterval;
 	private static int ProcessingThreads;
 	private static boolean UpdateOnBreak;
 	private static boolean UpdateOnDamage;
@@ -44,6 +45,11 @@ public class OrebfuscatorConfig {
 		if(InitialRadius < 1)
 			return 1;
 		return InitialRadius;
+	}
+	
+	public static int MemoryFlushInterval()
+	{
+		return MemoryFlushInterval;
 	}
 	
 	public static int ProcessingThreads()
@@ -159,6 +165,12 @@ public class OrebfuscatorConfig {
 		InitialRadius = data;
 	}
 	
+	public static void MemoryFlushInterval(int data)
+	{
+		SetData("Integers.MemoryFlushInterval", data);
+		MemoryFlushInterval = data;
+	}
+	
 	public static void SetProcessingThreads(int data)
 	{
 		SetData("Integers.ProcessingThreads", data);
@@ -240,9 +252,9 @@ public class OrebfuscatorConfig {
     	config.save();
 	}
 	
-	private static Byte[] IntListToByteArray(List<Integer> list)
+	private static byte[] IntListToByteArray(List<Integer> list)
 	{
-		Byte[] byteArray = new Byte[list.size()];
+		byte[] byteArray = new byte[list.size()];
 	    for (int i=0; i < byteArray.length; i++)
 	    {
 	    	byteArray[i] = (byte)(int)list.get(i);
@@ -266,6 +278,7 @@ public class OrebfuscatorConfig {
 			InitialRadius = 4;
 			System.out.println("[Orebfuscator] InitialRadius must be less than 5.");
 		}
+		MemoryFlushInterval = GetInt("Integers.MemoryFlushInterval", 10);
 		ProcessingThreads = GetInt("Integers.ProcessingThreads", 1);
 		UpdateOnBreak = GetBoolean("Booleans.UpdateOnBreak", true);
 		UpdateOnDamage = GetBoolean("Booleans.UpdateOnDamage", true);
