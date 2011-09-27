@@ -1,5 +1,6 @@
 package lishid.orebfuscator.utils;
 
+//import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -11,7 +12,9 @@ import net.minecraft.server.Packet51MapChunk;
 public class OrebfuscatorCalculationThread extends Thread implements Runnable
 {
 	private boolean kill = false;
-	private int ProcessedThread = 0;
+//	private int ThreadNumber = 0;
+//	private long CPUUsage = 0;
+//	private int packetsProcessed = 0;
 	//Global
 	private static final int QUEUE_CAPACITY = 1024 * 10;
 	private static ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList<OrebfuscatorCalculationThread>();
@@ -42,6 +45,7 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 				OrebfuscatorCalculationThread thread = new OrebfuscatorCalculationThread();
 				thread.start();
 				threads.add(thread);
+//				thread.ThreadNumber = threads.size();
 			}
 		}
 	}
@@ -53,6 +57,12 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			try{
+//				CPUUsage = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
+//				packetsProcessed++;
+				
+//				System.out.println("Thread #" + ThreadNumber + ": " + CPUUsage/packetsProcessed);
+			}catch(Exception e){}
 		}
 	}
 	
@@ -60,7 +70,6 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 		try {
 			ObfuscatedPlayerPacket packet = queue.take();
 			Calculations.Obfuscate(packet.packet, packet.player);
-			ProcessedThread++;
 		}catch(Exception e){e.printStackTrace();}
 	}
 

@@ -33,9 +33,9 @@ public class OrebfuscatorPlayerListener extends PlayerListener
 	@Override
 	public void onPlayerQuit(final PlayerQuitEvent event)
 	{
-		if(OrebfuscatorBlockListener.playerLog.containsKey(event.getPlayer()))
+		if(OrebfuscatorBlockListener.blockLog.containsKey(event.getPlayer().getName()))
 		{
-			OrebfuscatorBlockListener.playerLog.remove(event.getPlayer());
+			OrebfuscatorBlockListener.blockLog.remove(event.getPlayer().getName());
 		}
 	}
 	
