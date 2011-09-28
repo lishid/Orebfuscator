@@ -1,4 +1,6 @@
-package lishid.orebfuscator;
+package lishid.orebfuscator.utils;
+
+import gnu.trove.set.hash.TByteHashSet;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,10 +10,10 @@ import org.bukkit.util.config.Configuration;
 
 public class OrebfuscatorConfig {
 	private static Configuration config;
-	private static byte[] TransparentBlocks = {};
-	private static byte[] ObfuscateBlocks = {};
-	private static byte[] DarknessObfuscateBlocks = {};
-	private static byte[] LightEmissionBlocks = {};
+	private static TByteHashSet TransparentBlocks = new TByteHashSet();
+	private static TByteHashSet ObfuscateBlocks = new TByteHashSet();
+	private static TByteHashSet DarknessObfuscateBlocks = new TByteHashSet();
+	private static TByteHashSet LightEmissionBlocks = new TByteHashSet();
 	private static byte[] RandomBlocks = {};
 	private static final Random randomGenerator = new Random();
 	private static int EngineMode;
@@ -104,10 +106,8 @@ public class OrebfuscatorConfig {
 	    if (id == 0) return true;
 	    if (id == -127) return false;
 	    
-	    for (byte i : TransparentBlocks) {
-	      if (id == i)
-	    	  return true;
-	    }
+	    if(TransparentBlocks.contains(id))
+	    	return true;
 	    return false;
 	}
 	
@@ -115,28 +115,22 @@ public class OrebfuscatorConfig {
 	{
 	    if (id == 1) return true;
 
-	    for (byte i : ObfuscateBlocks) {
-	      if (id == i)
-	    	  return true;
-	    }
+	    if(ObfuscateBlocks.contains(id))
+	    	return true;
 	    return false;
 	}
 	
 	public static boolean isDarknessObfuscated(byte id)
 	{
-	    for (byte i : DarknessObfuscateBlocks) {
-	      if (id == i)
-	    	  return true;
-	    }
+	    if(DarknessObfuscateBlocks.contains(id))
+	    	return true;
 	    return false;
 	}
 	
 	public static boolean emitsLight(byte id)
 	{
-	    for (byte i : LightEmissionBlocks) {
-	      if (id == i)
-	    	  return true;
-	    }
+	    if(LightEmissionBlocks.contains(id))
+	    	return true;
 	    return false;
 	}
 	
@@ -262,6 +256,16 @@ public class OrebfuscatorConfig {
 	    return byteArray;
 	}
 	
+	private static TByteHashSet IntListToTByteHashSet(List<Integer> list)
+	{
+		TByteHashSet bytes = new TByteHashSet();
+	    for (int i=0; i < list.size(); i++)
+	    {
+	    	bytes.add((byte)(int)list.get(i));
+	    }
+	    return bytes;
+	}
+	
 	public static void Load(Configuration config)
 	{
 		OrebfuscatorConfig.config = config;
@@ -288,10 +292,10 @@ public class OrebfuscatorConfig {
 		NoObfuscationForOps = GetBoolean("Booleans.NoObfuscationForOps", true);
 		NoObfuscationForPermission = GetBoolean("Booleans.NoObfuscationForPermission", true);
 		Enabled = GetBoolean("Booleans.Enabled", true);
-		TransparentBlocks = IntListToByteArray(GetIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[]{6,8,9,10,11,18,20,26,27,28,30,31,32,34,37,38,39,40,44,50,51,52,53,54,55,59,63,64,65,66,67,68,69,70,71,72,75,76,77,78,79,81,83,85,90,92,93,94,96,101,102,104,105,106,107,108,109,111,113,114,115})));
-		ObfuscateBlocks = IntListToByteArray(GetIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74})));
-		DarknessObfuscateBlocks = IntListToByteArray(GetIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[]{48,52})));
-		LightEmissionBlocks = IntListToByteArray(GetIntList("Lists.LightEmissionBlocks", Arrays.asList(new Integer[]{10,11,50,51,62,74,76,89,90,91,94})));
+		TransparentBlocks = IntListToTByteHashSet(GetIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[]{6,8,9,10,11,18,20,26,27,28,30,31,32,34,37,38,39,40,44,50,51,52,53,54,55,59,63,64,65,66,67,68,69,70,71,72,75,76,77,78,79,81,83,85,90,92,93,94,96,101,102,104,105,106,107,108,109,111,113,114,115})));
+		ObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74})));
+		DarknessObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[]{48,52})));
+		LightEmissionBlocks = IntListToTByteHashSet(GetIntList("Lists.LightEmissionBlocks", Arrays.asList(new Integer[]{10,11,50,51,62,74,76,89,90,91,94})));
 		RandomBlocks = IntListToByteArray(GetIntList("Lists.RandomBlocks", Arrays.asList(new Integer[]{14,15,16,21,56,73})));
 		config.save();
 	}
