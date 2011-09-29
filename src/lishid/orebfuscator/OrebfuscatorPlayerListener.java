@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.OrbfuscatorNetServerHandler;
+import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.NetworkManager;

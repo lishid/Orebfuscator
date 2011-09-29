@@ -1,12 +1,13 @@
 package lishid.orebfuscator.utils;
 
+import gnu.trove.set.hash.TByteHashSet;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
-import lishid.orebfuscator.OrebfuscatorConfig;
 
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
@@ -80,76 +81,57 @@ public class Calculations
         }
 	}
 	
-	public static boolean GetAjacentBlocksTypeID(BlockInfo info, HashSet<Byte> IDPool, int index, int x, int y, int z, int countdown)
+	public static boolean GetAjacentBlocksTypeID(BlockInfo info, TByteHashSet IDPool, int index, int x, int y, int z, int countdown)
 	{
+		byte id = 0;
+		
+		if(y > 126)
+			return true;
+		
+		if(y < info.sizeY && 
+			y >= 0 && 
+			x < info.sizeX && 
+			x >= 0 && 
+			z < info.sizeZ && 
+			z >= 0 &&
+			index > 0 &&
+			info.original.length > index)
+		{
+			id = info.original[index];
+		}
+		else
+		{
+			if(info.startY >= 0)
+			{
+				id = (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ);
+			}
+		}
+		
+		if(CheckID(IDPool, id))
+			return true;
+		
 		if (countdown == 0)
 			return false;
 		
-		if (y < info.sizeY - 1)
-		{
-			if(CheckID(IDPool, info.original[index + 1])) return true;
-		}
-		else
-		{
-			if(CheckID(IDPool, (byte)info.world.getTypeId(x + info.startX, y + info.startY + 1, z + info.startZ))) return true;
-		}
-		
-		if (y > 0)
-		{
-			if(CheckID(IDPool, info.original[index - 1])) return true;
-		}
-		else
-		{
-			if(CheckID(IDPool, (byte)info.world.getTypeId(x + info.startX, y + info.startY - 1, z + info.startZ))) return true;
-		}
-		
-		if (x < info.sizeX - 1)
-		{
-			if(CheckID(IDPool, info.original[index + info.sizeY * info.sizeZ])) return true;
-		}
-		else
-		{
-			if(CheckID(IDPool, (byte)info.world.getTypeId(x + info.startX + 1, y + info.startY, z + info.startZ))) return true;
-		}
-		if (x > 0)
-		{
-			if(CheckID(IDPool, info.original[index - info.sizeY * info.sizeZ])) return true;
-		}
-		else
-		{
-			if(CheckID(IDPool, (byte)info.world.getTypeId(x + info.startX - 1, y + info.startY, z + info.startZ))) return true;
-		}
-		
-		if (z < info.sizeZ - 1)
-		{
-			if(CheckID(IDPool, info.original[index + info.sizeY])) return true;
-		}
-		else
-		{
-			if(CheckID(IDPool, (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ + 1))) return true;
-		}
-		if (z > 0)
-		{
-			if(CheckID(IDPool, info.original[index - info.sizeY])) return true;
-		}
-		else
-		{
-			if(CheckID(IDPool, (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ - 1))) return true;
-		}
-		
-		if(GetAjacentBlocksTypeID(info, IDPool, index + 1, x, y + 1, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index - 1, x, y - 1, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY, x, y, z + 1, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY, x, y, z - 1, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index + 1, x, y + 1, z, countdown - 1))
+			return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index - 1, x, y - 1, z, countdown - 1))
+			return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1)) 
+			return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1))
+			return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY, x, y, z + 1, countdown - 1))
+			return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY, x, y, z - 1, countdown - 1))
+			return true;
 		
 		return false;
 	}
 	
-	private static boolean CheckID(HashSet<Byte> IDPool, byte id)
+	private static boolean CheckID(TByteHashSet IDPool, byte id)
 	{
-		if(IDPool.contains((int)id))
+		if(IDPool.contains(id))
 			return false;
 		if(OrebfuscatorConfig.isTransparent(id))
 			return true;
@@ -160,9 +142,7 @@ public class Calculations
 	public static boolean GetAjacentBlocksHaveLight(BlockInfo info, int index, int x, int y, int z, int countdown)
 	{
 		if(info.world.getLightLevel(x + info.startX, y + info.startY, z + info.startZ) > 0)
-		{
 			return true;
-		}
 		
 		if (countdown == 0)
 			return false;
@@ -201,6 +181,8 @@ public class Calculations
 		info.sizeX = packet.d;
 		info.sizeY = packet.e;
 		info.sizeZ = packet.f;
+		
+		TByteHashSet blockList = new TByteHashSet();
 
 		if(((!OrebfuscatorConfig.NoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) &&
 				(!OrebfuscatorConfig.NoObfuscationForOps() || !((Player)player).isOp()) &&
@@ -220,16 +202,15 @@ public class Calculations
 					{
 						for (int y = 0; y < info.sizeY; y++)
 						{
-							//Get block index
-							index++;
 							
 							boolean Obfuscate = false;
+							blockList.clear();
 							
 							//Check if the block belongs to obfuscated blocks
 							if(OrebfuscatorConfig.isObfuscated(info.original[index]))
 							{
 								//Get all block IDs nearby
-								Obfuscate = !GetAjacentBlocksTypeID(info, new HashSet<Byte>(),index, x, y, z, OrebfuscatorConfig.InitialRadius());
+								Obfuscate = !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
 							}
 							
 							if (!Obfuscate && OrebfuscatorConfig.DarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(info.original[index]))
@@ -254,36 +235,36 @@ public class Calculations
 									packet.rawData[index] = OrebfuscatorConfig.GenerateRandomBlock();
 								}
 							}
+
+							//Increment index
+							index++;
 						}
 					}
 				}
 			}
 		}
 		
-		if(Orebfuscator.usingSpout)
-		{
-			//Compression
-			Deflater deflater = new Deflater();
-			byte[] deflateBuffer = new byte[82020];
-	
-		    int dataSize = packet.rawData.length;
-		    if (deflateBuffer.length < dataSize + 100) {
-		      deflateBuffer = new byte[dataSize + 100];
-		    }
-	
-		    deflater.reset();
-		    deflater.setLevel(dataSize < 20480 ? 1 : 6);
-		    deflater.setInput(packet.rawData);
-		    deflater.finish();
-		    int size = deflater.deflate(deflateBuffer);
-		    if (size == 0) {
-		      size = deflater.deflate(deflateBuffer);
-		    }
-	
-		    packet.g = new byte[size];
-		    packet.h = size;
-		    System.arraycopy(deflateBuffer, 0, packet.g, 0, size);	
-		}
+		//Compression
+		Deflater deflater = new Deflater();
+		byte[] deflateBuffer = new byte[82020];
+
+	    int dataSize = packet.rawData.length;
+	    if (deflateBuffer.length < dataSize + 100) {
+	      deflateBuffer = new byte[dataSize + 100];
+	    }
+
+	    deflater.reset();
+	    deflater.setLevel(dataSize < 20480 ? 1 : 6);
+	    deflater.setInput(packet.rawData);
+	    deflater.finish();
+	    int size = deflater.deflate(deflateBuffer);
+	    if (size == 0) {
+	      size = deflater.deflate(deflateBuffer);
+	    }
+
+	    packet.g = new byte[size];
+	    packet.h = size;
+	    System.arraycopy(deflateBuffer, 0, packet.g, 0, size);
 		
 		//Send it
 		handler.sendPacket(packet);

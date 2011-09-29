@@ -2,6 +2,7 @@
 package lishid.orebfuscator;
 
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
+import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import lishid.orebfuscator.utils.PermissionRelay;
 
 import org.bukkit.plugin.PluginDescriptionFile;

@@ -3,6 +3,7 @@ package lishid.orebfuscator;
 import java.util.HashMap;
 
 import lishid.orebfuscator.utils.Calculations;
+import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
 import org.bukkit.block.Block;
 import org.bukkit.event.block.*;
@@ -24,7 +25,7 @@ public class OrebfuscatorBlockListener extends BlockListener {
     
     @Override
     public void onBlockDamage(BlockDamageEvent event) {
-        if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnDamage())
+    	if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnDamage())
         	return;
         
 		if(blockLog.containsKey(event.getPlayer().getName()) && blockLog.get(event.getPlayer().getName()).equals(event.getBlock()))

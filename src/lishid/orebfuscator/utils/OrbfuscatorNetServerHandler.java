@@ -20,9 +20,9 @@ public class OrbfuscatorNetServerHandler extends NetServerHandler {
         	if(packet.k)
         	{
             	//Obfuscate packet
-        		if(!OrebfuscatorCalculationThread.isRunning())
+        		if(!OrebfuscatorCalculationThread.CheckThreads())
         		{
-        			OrebfuscatorCalculationThread.startThread();
+        			OrebfuscatorCalculationThread.SyncThreads();
         		}
         		OrebfuscatorCalculationThread.Queue((Packet51MapChunk)packet, this.getPlayer());
         	}

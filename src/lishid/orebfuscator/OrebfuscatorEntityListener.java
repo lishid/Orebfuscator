@@ -1,6 +1,7 @@
 package lishid.orebfuscator;
 
 import lishid.orebfuscator.utils.Calculations;
+import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
 import org.bukkit.block.Block;
 import org.bukkit.event.entity.*;

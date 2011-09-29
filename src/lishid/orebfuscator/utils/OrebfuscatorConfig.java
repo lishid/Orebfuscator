@@ -19,7 +19,6 @@ public class OrebfuscatorConfig {
 	private static int EngineMode;
 	private static int UpdateRadius;
 	private static int InitialRadius;
-	private static int MemoryFlushInterval;
 	private static int ProcessingThreads;
 	private static boolean UpdateOnBreak;
 	private static boolean UpdateOnDamage;
@@ -31,7 +30,6 @@ public class OrebfuscatorConfig {
 	private static boolean Enabled;
 	
 	//Get
-	
 	public static int EngineMode()
 	{
 		return EngineMode;
@@ -47,11 +45,6 @@ public class OrebfuscatorConfig {
 		if(InitialRadius < 1)
 			return 1;
 		return InitialRadius;
-	}
-	
-	public static int MemoryFlushInterval()
-	{
-		return MemoryFlushInterval;
 	}
 	
 	public static int ProcessingThreads()
@@ -104,7 +97,6 @@ public class OrebfuscatorConfig {
 	public static boolean isTransparent(byte id)
 	{
 	    if (id == 0) return true;
-	    if (id == -127) return false;
 	    
 	    if(TransparentBlocks.contains(id))
 	    	return true;
@@ -159,12 +151,6 @@ public class OrebfuscatorConfig {
 		InitialRadius = data;
 	}
 	
-	public static void MemoryFlushInterval(int data)
-	{
-		SetData("Integers.MemoryFlushInterval", data);
-		MemoryFlushInterval = data;
-	}
-	
 	public static void SetProcessingThreads(int data)
 	{
 		SetData("Integers.ProcessingThreads", data);
@@ -183,7 +169,7 @@ public class OrebfuscatorConfig {
 		UpdateOnDamage = data;
 	}
 	
-	public static void UpdateOnPhysics(boolean data)
+	public static void SetUpdateOnPhysics(boolean data)
 	{
 		SetData("Booleans.UpdateOnPhysics", data);
 		UpdateOnPhysics = data;
@@ -282,7 +268,6 @@ public class OrebfuscatorConfig {
 			InitialRadius = 4;
 			System.out.println("[Orebfuscator] InitialRadius must be less than 5.");
 		}
-		MemoryFlushInterval = GetInt("Integers.MemoryFlushInterval", 10);
 		ProcessingThreads = GetInt("Integers.ProcessingThreads", 1);
 		UpdateOnBreak = GetBoolean("Booleans.UpdateOnBreak", true);
 		UpdateOnDamage = GetBoolean("Booleans.UpdateOnDamage", true);
@@ -296,7 +281,7 @@ public class OrebfuscatorConfig {
 		ObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74})));
 		DarknessObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[]{48,52})));
 		LightEmissionBlocks = IntListToTByteHashSet(GetIntList("Lists.LightEmissionBlocks", Arrays.asList(new Integer[]{10,11,50,51,62,74,76,89,90,91,94})));
-		RandomBlocks = IntListToByteArray(GetIntList("Lists.RandomBlocks", Arrays.asList(new Integer[]{14,15,16,21,56,73})));
+		RandomBlocks = IntListToByteArray(GetIntList("Lists.RandomBlocks", Arrays.asList(new Integer[]{5,14,15,16,21,48,56,73})));
 		config.save();
 	}
 	

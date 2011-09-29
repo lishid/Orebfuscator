@@ -4,7 +4,6 @@ package lishid.orebfuscator.utils;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import lishid.orebfuscator.OrebfuscatorConfig;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import net.minecraft.server.Packet51MapChunk;
@@ -12,9 +11,6 @@ import net.minecraft.server.Packet51MapChunk;
 public class OrebfuscatorCalculationThread extends Thread implements Runnable
 {
 	private boolean kill = false;
-//	private int ThreadNumber = 0;
-//	private long CPUUsage = 0;
-//	private int packetsProcessed = 0;
 	//Global
 	private static final int QUEUE_CAPACITY = 1024 * 10;
 	private static ArrayList<OrebfuscatorCalculationThread> threads = new ArrayList<OrebfuscatorCalculationThread>();
@@ -25,12 +21,14 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 		return threads.size();
 	}
 	
-	public static boolean isRunning()
+	public static boolean CheckThreads()
 	{
 		return threads.size() == OrebfuscatorConfig.ProcessingThreads();
 	}
 	
-	public static void startThread() {
+	public static void SyncThreads() {
+		if(threads.size() == OrebfuscatorConfig.ProcessingThreads())
+			return;
 		int extra = threads.size() - OrebfuscatorConfig.ProcessingThreads();
 		if (extra > 0) {
 			for(int i = extra; i > 0; i--)
@@ -44,8 +42,8 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 			{
 				OrebfuscatorCalculationThread thread = new OrebfuscatorCalculationThread();
 				thread.start();
+				thread.setName("Orebfuscator Calculation Thread");
 				threads.add(thread);
-//				thread.ThreadNumber = threads.size();
 			}
 		}
 	}
@@ -54,15 +52,7 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 		while (!this.isInterrupted() && !kill) {
 			try {
 				handle();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			try{
-//				CPUUsage = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime();
-//				packetsProcessed++;
-				
-//				System.out.println("Thread #" + ThreadNumber + ": " + CPUUsage/packetsProcessed);
-			}catch(Exception e){}
+			} catch (Exception e) {e.printStackTrace();}
 		}
 	}
 	
@@ -80,9 +70,7 @@ public class OrebfuscatorCalculationThread extends Thread implements Runnable
 			try {
 				queue.put(new ObfuscatedPlayerPacket(player, packet));
 				return;
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {e.printStackTrace();}
 		}
 	}
 }
