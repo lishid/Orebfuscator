@@ -1,6 +1,6 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 0.9.9
+version: 1.0.0
 author: lishid
 description: >
              This plugin obfuscates data that is sent to players to prevent x-ray.
@@ -17,5 +17,6 @@ commands:
            /<command> <enable/disable> <updatephysics|updateexplosion>
            /<command> <enable/disable> <darknesshide> - no light obfuscate
            /<command> <enable/disable> <op|perms> - op/permissions
+           /<command> <enable/disable> world <worldname>
            /<command> reload - Reload from config file
            /<command> status - Show status of Orebfuscator
