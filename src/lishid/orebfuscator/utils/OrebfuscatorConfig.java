@@ -44,6 +44,8 @@ public class OrebfuscatorConfig {
 	
 	public static int InitialRadius()
 	{
+	 	if(InitialRadius < 0)
+	 	 	 return 0;
 		return InitialRadius;
 	}
 	

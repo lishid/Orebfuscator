@@ -204,16 +204,28 @@ public class Calculations
 							boolean Obfuscate = false;
 							blockList.clear();
 							
+							
 							//Check if the block belongs to obfuscated blocks
 							if(OrebfuscatorConfig.isObfuscated(info.original[index]))
 							{
-								//Get all block IDs nearby
-								Obfuscate = !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
+								if(OrebfuscatorConfig.InitialRadius() == 0)
+								{
+									Obfuscate = true;
+								}
+								else
+								{
+									//Get all block IDs nearby
+									Obfuscate = !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
+								}
 							}
 							
 							if (!Obfuscate && OrebfuscatorConfig.DarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(info.original[index]))
 							{
-								if(!GetAjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.InitialRadius()))
+								if(OrebfuscatorConfig.InitialRadius() == 0)
+								{
+									Obfuscate = true;
+								}
+								else if(!GetAjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.InitialRadius()))
 								{
 									Obfuscate = true;
 								}
