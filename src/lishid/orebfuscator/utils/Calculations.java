@@ -2,6 +2,7 @@ package lishid.orebfuscator.utils;
 
 import gnu.trove.set.hash.TByteHashSet;
 
+import java.lang.reflect.Field;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
@@ -10,11 +11,13 @@ import java.util.zip.Deflater;
 import lishid.orebfuscator.Orebfuscator;
 
 import net.minecraft.server.NetServerHandler;
+import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.TileEntity;
 
 import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -22,6 +25,14 @@ import org.bukkit.entity.Player;
 
 public class Calculations
 {
+    private final static int CHUNK_SIZE = 16 * 128 * 16 * 5 / 2;
+    private final static int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
+    private final static int DEFLATE_LEVEL_CHUNKS = 6;
+    private final static int DEFLATE_LEVEL_PARTS = 1;
+    
+	private static Deflater deflater = new Deflater();
+    private static byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
+	
 	public static void UpdateBlocksNearby(Block block)
 	{
         if (!OrebfuscatorConfig.Enabled() || 
@@ -30,6 +41,8 @@ public class Calculations
         
         HashSet<Block> blocks = Calculations.GetAjacentBlocks(block.getWorld(),
         		new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius());
+        
+        Calculations.UpdateBlock(block);
         
         for(Block nearbyBlock : blocks)
         {
@@ -106,36 +119,26 @@ public class Calculations
 				id = (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ);
 			}
 		}
-		
-		if(CheckID(IDPool, id))
+
+		if(!IDPool.contains(id) && OrebfuscatorConfig.isTransparent(id))
+		{
 			return true;
+		}
+		else if(!IDPool.contains(id))
+		{
+			IDPool.add(id);
+		}
 		
 		if (countdown == 0)
 			return false;
 		
-		if(GetAjacentBlocksTypeID(info, IDPool, index + 1, x, y + 1, z, countdown - 1))
-			return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index - 1, x, y - 1, z, countdown - 1))
-			return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1)) 
-			return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1))
-			return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY, x, y, z + 1, countdown - 1))
-			return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY, x, y, z - 1, countdown - 1))
-			return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index + 1, x, y + 1, z, countdown - 1))	return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index - 1, x, y - 1, z, countdown - 1))	return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index + info.sizeY, x, y, z + 1, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, index - info.sizeY, x, y, z - 1, countdown - 1)) return true;
 		
-		return false;
-	}
-	
-	private static boolean CheckID(TByteHashSet IDPool, byte id)
-	{
-		if(IDPool.contains(id))
-			return false;
-		if(OrebfuscatorConfig.isTransparent(id))
-			return true;
-		IDPool.add(id);
 		return false;
 	}
 	
@@ -147,18 +150,12 @@ public class Calculations
 		if (countdown == 0)
 			return false;
 
-		if(GetAjacentBlocksHaveLight(info, index + 1, x, y + 1, z, countdown - 1))
-			return true;
-		if(GetAjacentBlocksHaveLight(info, index - 1, x, y - 1, z, countdown - 1))
-			return true;
-		if(GetAjacentBlocksHaveLight(info, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1))
-			return true;
-		if(GetAjacentBlocksHaveLight(info, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1))
-			return true;
-		if(GetAjacentBlocksHaveLight(info, index + info.sizeY, x, y, z + 1, countdown - 1))
-			return true;
-		if(GetAjacentBlocksHaveLight(info, index - info.sizeY, x, y, z - 1, countdown - 1))
-			return true;
+		if(GetAjacentBlocksHaveLight(info, index + 1, x, y + 1, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, index - 1, x, y - 1, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, index + info.sizeY * info.sizeZ, x + 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, index - info.sizeY * info.sizeZ, x - 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, index + info.sizeY, x, y, z + 1, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, index - info.sizeY, x, y, z - 1, countdown - 1)) return true;
 			
 		return false;
 	}
@@ -183,8 +180,10 @@ public class Calculations
 		info.sizeZ = packet.f;
 		
 		TByteHashSet blockList = new TByteHashSet();
-
-		if(((!OrebfuscatorConfig.NoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) &&
+		
+		if(info.world.getWorld().getEnvironment() == Environment.NORMAL &&
+			!OrebfuscatorConfig.worldDisabled(info.world.getServer().getName()) &&
+				((!OrebfuscatorConfig.NoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) &&
 				(!OrebfuscatorConfig.NoObfuscationForOps() || !((Player)player).isOp()) &&
 				OrebfuscatorConfig.Enabled()))
 		{
@@ -202,7 +201,6 @@ public class Calculations
 					{
 						for (int y = 0; y < info.sizeY; y++)
 						{
-							
 							boolean Obfuscate = false;
 							blockList.clear();
 							
@@ -245,29 +243,34 @@ public class Calculations
 		}
 		
 		//Compression
-		Deflater deflater = new Deflater();
-		byte[] deflateBuffer = new byte[82020];
+        int dataSize = packet.rawData.length;
+        if (deflateBuffer.length < dataSize + 100) {
+            deflateBuffer = new byte[dataSize + 100];
+        }
 
-	    int dataSize = packet.rawData.length;
-	    if (deflateBuffer.length < dataSize + 100) {
-	      deflateBuffer = new byte[dataSize + 100];
-	    }
+        deflater.reset();
+        deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
+        deflater.setInput(packet.rawData);
+        deflater.finish();
+        int size = deflater.deflate(deflateBuffer);
+        if (size == 0) {
+            size = deflater.deflate(deflateBuffer);
+        }
 
-	    deflater.reset();
-	    deflater.setLevel(dataSize < 20480 ? 1 : 6);
-	    deflater.setInput(packet.rawData);
-	    deflater.finish();
-	    int size = deflater.deflate(deflateBuffer);
-	    if (size == 0) {
-	      size = deflater.deflate(deflateBuffer);
-	    }
-
-	    packet.g = new byte[size];
-	    packet.h = size;
-	    System.arraycopy(deflateBuffer, 0, packet.g, 0, size);
+        // copy compressed data to packet
+        packet.g = new byte[size];
+        packet.h = size;
+        System.arraycopy(deflateBuffer, 0, packet.g, 0, size);
 		
 		//Send it
-		handler.sendPacket(packet);
+        while(!GetNetworkManagerQueue(handler.networkManager, 1048576 - 2*(18 + packet.h)))
+        {
+        	try
+        	{
+        		Thread.sleep(5);
+        	}catch(Exception e){}
+        }
+		handler.networkManager.queue(packet);
 		
 		//Send packets for sign changes
 		Object[] list = info.world.getTileEntities(info.startX, info.startY, info.startZ, info.startX + info.sizeX, info.startY + info.sizeY, info.startZ + info.sizeZ).toArray();
@@ -282,10 +285,22 @@ public class Calculations
             }
         }
 	}
+	
+	public static boolean GetNetworkManagerQueue(NetworkManager networkManager, int number)
+	{
+		try {
+	        Field p = networkManager.getClass().getDeclaredField("x");
+			p.setAccessible(true);
+			return (Integer.parseInt(p.get(networkManager).toString()) < number);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 
 	public static void LightingUpdate(Block block, boolean skipCheck)
-	{
-		if(OrebfuscatorConfig.emitsLight((byte)block.getTypeId()) || skipCheck)
+	{/*
+		if(skipCheck || OrebfuscatorConfig.emitsLight((byte)block.getTypeId()))
 		{
 		    int x = block.getWorld().getChunkAt(block.getLocation()).getX();
 		    int z = block.getWorld().getChunkAt(block.getLocation()).getZ();
@@ -298,7 +313,7 @@ public class Calculations
 		    block.getWorld().refreshChunk(x-1, z);
 		    block.getWorld().refreshChunk(x-1, z+1);
 		    block.getWorld().refreshChunk(x-1, z-1);
-		}
+		}*/
 	}
 	
 	public static String MD5(byte[] data)

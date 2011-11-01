@@ -17,21 +17,12 @@ public class OrbfuscatorNetServerHandler extends NetServerHandler {
     public void sendPacket(Packet packet) {
         if (packet instanceof Packet51MapChunk)
         {
-        	if(packet.k)
-        	{
-            	//Obfuscate packet
-        		if(!OrebfuscatorCalculationThread.CheckThreads())
-        		{
-        			OrebfuscatorCalculationThread.SyncThreads();
-        		}
-        		OrebfuscatorCalculationThread.Queue((Packet51MapChunk)packet, this.getPlayer());
-        	}
-        	else
-        	{
-        		//Packet already obfuscated
-        		packet.k = true;
-            	super.sendPacket(packet);
-        	}
+        	//Obfuscate packet
+    		if(!OrebfuscatorCalculationThread.CheckThreads())
+    		{
+    			OrebfuscatorCalculationThread.SyncThreads();
+    		}
+    		OrebfuscatorCalculationThread.Queue((Packet51MapChunk)packet, this.getPlayer());
         }
         else
         {

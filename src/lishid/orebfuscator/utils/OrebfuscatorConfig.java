@@ -2,8 +2,9 @@ package lishid.orebfuscator.utils;
 
 import gnu.trove.set.hash.TByteHashSet;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.bukkit.util.config.Configuration;
@@ -15,6 +16,7 @@ public class OrebfuscatorConfig {
 	private static TByteHashSet DarknessObfuscateBlocks = new TByteHashSet();
 	private static TByteHashSet LightEmissionBlocks = new TByteHashSet();
 	private static byte[] RandomBlocks = {};
+	private static List<String> DisabledWorlds = new ArrayList<String>();
 	private static final Random randomGenerator = new Random();
 	private static int EngineMode;
 	private static int UpdateRadius;
@@ -42,8 +44,6 @@ public class OrebfuscatorConfig {
 	
 	public static int InitialRadius()
 	{
-		if(InitialRadius < 1)
-			return 1;
 		return InitialRadius;
 	}
 	
@@ -118,12 +118,29 @@ public class OrebfuscatorConfig {
 	    	return true;
 	    return false;
 	}
-	
+
 	public static boolean emitsLight(byte id)
 	{
 	    if(LightEmissionBlocks.contains(id))
 	    	return true;
 	    return false;
+	}
+	
+	public static boolean worldDisabled(String name)
+	{
+	    if(DisabledWorlds.contains(name.toLowerCase()))
+	    	return true;
+	    return false;
+	}
+	
+	public static String disabledWorlds()
+	{
+		String retval = "";
+		for(String world : DisabledWorlds)
+		{
+			retval += world + ", ";
+		}
+		return retval.substring(0, retval.length() - 2);
 	}
 	
 	public static byte GenerateRandomBlock()
@@ -205,6 +222,19 @@ public class OrebfuscatorConfig {
 		Enabled = data;
 	}
 	
+	public static void SetDisabledWorlds(String name, boolean data)
+	{
+		if(!data)
+		{
+			DisabledWorlds.remove(name);
+		}
+		else
+		{
+			DisabledWorlds.add(name);
+		}
+		SetData("Lists.DisabledWorlds", DisabledWorlds);
+	}
+	
 	private static boolean GetBoolean(String path, boolean defaultData)
 	{
 		if(config.getProperty(path) == null)
@@ -224,6 +254,13 @@ public class OrebfuscatorConfig {
 		if(config.getProperty(path) == null)
 			SetData(path, defaultData);
 		return (List<Integer>) config.getIntList(path, defaultData);
+	}
+	
+	private static List<String> GetStringList(String path, List<String> defaultData)
+	{
+		if(config.getProperty(path) == null)
+			SetData(path, defaultData);
+		return (List<String>) config.getStringList(path, defaultData);
 	}
 	
 	private static void SetData(String path, Object data)
@@ -282,6 +319,7 @@ public class OrebfuscatorConfig {
 		DarknessObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[]{48,52})));
 		LightEmissionBlocks = IntListToTByteHashSet(GetIntList("Lists.LightEmissionBlocks", Arrays.asList(new Integer[]{10,11,50,51,62,74,76,89,90,91,94})));
 		RandomBlocks = IntListToByteArray(GetIntList("Lists.RandomBlocks", Arrays.asList(new Integer[]{5,14,15,16,21,48,56,73})));
+		DisabledWorlds = GetStringList("Lists.DisabledWorlds", DisabledWorlds);
 		config.save();
 	}
 	
