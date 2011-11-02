@@ -72,12 +72,11 @@ public class OrebfuscatorPlayerListener extends PlayerListener
 		if (!(cp.getHandle().netServerHandler.getClass().equals(OrbfuscatorNetServerHandler.class))) {
 			NetServerHandler oldHandler = cp.getHandle().netServerHandler;
 			Location loc = player.getLocation();
-			OrbfuscatorNetServerHandler handler = new OrbfuscatorNetServerHandler(server.getHandle().server, cp.getHandle().netServerHandler.networkManager, cp.getHandle());
+			OrbfuscatorNetServerHandler handler = new OrbfuscatorNetServerHandler(server.getHandle().server, oldHandler);
 			handler.a(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 			cp.getHandle().netServerHandler = handler;
 			NetworkManager nm = cp.getHandle().netServerHandler.networkManager;
 			setNetServerHandler(nm, handler);
-			oldHandler.disconnected = true;
 			((CraftServer)player.getServer()).getServer().networkListenThread.a(handler);
 		}
 	}

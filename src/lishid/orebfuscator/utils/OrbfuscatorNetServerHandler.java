@@ -1,18 +1,18 @@
 package lishid.orebfuscator.utils;
 
-import net.minecraft.server.EntityPlayer;
+import org.bukkit.craftbukkit.NetServerHandlerProxy;
+
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.NetServerHandler;
-import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 
-public class OrbfuscatorNetServerHandler extends NetServerHandler {
-	public OrbfuscatorNetServerHandler(MinecraftServer minecraftserver, NetworkManager networkmanager, EntityPlayer entityplayer)
-	{
-		super(minecraftserver, networkmanager, entityplayer);
-	}
+public class OrbfuscatorNetServerHandler extends NetServerHandlerProxy {
 	
+	public OrbfuscatorNetServerHandler(MinecraftServer minecraftserver, NetServerHandler instance) {
+		super(minecraftserver, instance);
+	}
+
 	@Override
     public void sendPacket(Packet packet) {
         if (packet instanceof Packet51MapChunk)
