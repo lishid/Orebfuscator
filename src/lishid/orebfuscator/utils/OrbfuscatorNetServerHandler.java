@@ -1,6 +1,5 @@
 package lishid.orebfuscator.utils;
 
-import org.bukkit.craftbukkit.NetServerHandlerProxy;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.NetServerHandler;
