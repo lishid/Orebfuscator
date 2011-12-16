@@ -11,6 +11,7 @@ import net.minecraft.server.NetworkManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -43,13 +44,25 @@ public class OrebfuscatorPlayerListener extends PlayerListener
 	@Override
 	public void onPlayerInteract(PlayerInteractEvent event)
 	{
-		if(event.isCancelled() || !OrebfuscatorConfig.DarknessHideBlocks() || !OrebfuscatorConfig.Enabled() || 
-				event.useInteractedBlock() == Result.DENY || event.getAction()!=Action.RIGHT_CLICK_BLOCK)
+		if( event.getAction() != Action.RIGHT_CLICK_BLOCK ||
+				event.isCancelled() || event.useInteractedBlock() == Result.DENY || 
+				!OrebfuscatorConfig.Enabled() || !OrebfuscatorConfig.UpdateOnHoe())
 			return;
-		if(event.getMaterial().getId() == 10 || 
+		
+		if(event.getItem() != null && event.getItem().getType() != null && 
+				((event.getItem().getType() == Material.WOOD_HOE)
+						|| (event.getItem().getType() == Material.IRON_HOE) 
+						|| (event.getItem().getType() == Material.GOLD_HOE)
+						|| (event.getItem().getType() == Material.DIAMOND_HOE)) && 
+				(event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS))
+		{
+			Calculations.UpdateBlocksNearby(event.getClickedBlock());
+		}
+		
+		/*if(event.getMaterial().getId() == 10 || 
 				event.getMaterial().getId() == 11 || 
 				event.getMaterial().getId() == 327)
-			Calculations.LightingUpdate(event.getClickedBlock(), true);
+			Calculations.LightingUpdate(event.getClickedBlock(), true);*/
 	}
 	
 	public void TryUpdateNetServerHandler(Player player)
@@ -60,7 +73,7 @@ public class OrebfuscatorPlayerListener extends PlayerListener
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Orebfuscator] Error updating NerServerHandler.");
+			System.out.println("[Orebfuscator] Error updating NetServerHandler.");
 			e.printStackTrace();
 		}
 	}
@@ -83,16 +96,19 @@ public class OrebfuscatorPlayerListener extends PlayerListener
 	
 	public void setNetServerHandler(NetworkManager nm, NetServerHandler nsh) {
 		try {
-			Field p = nm.getClass().getDeclaredField("p");
+			Field p = NetworkManager.class.getDeclaredField("p");
 			p.setAccessible(true);
 			p.set(nm, nsh);
 		} catch (NoSuchFieldException e) {
+			System.out.println("[Orebfuscator] Error updating NetServerHandler.");
 			e.printStackTrace();
 			return;
 		} catch (IllegalArgumentException e) {
+			System.out.println("[Orebfuscator] Error updating NetServerHandler.");
 			e.printStackTrace();
 			return;
 		} catch (IllegalAccessException e) {
+			System.out.println("[Orebfuscator] Error updating NetServerHandler.");
 			e.printStackTrace();
 			return;
 		}

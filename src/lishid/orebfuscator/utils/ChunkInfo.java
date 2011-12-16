@@ -2,7 +2,7 @@ package lishid.orebfuscator.utils;
 
 import net.minecraft.server.WorldServer;
 
-public class BlockInfo {
+public class ChunkInfo {
 	int totalSize;
 	int sizeX;
 	int sizeY;
@@ -11,5 +11,5 @@ public class BlockInfo {
 	int startY;
 	int startZ;
 	WorldServer world;
-	byte[] original;
+	byte[] data;
 }

@@ -10,25 +10,27 @@ import java.util.Random;
 import lishid.orebfuscator.Orebfuscator;
 
 public class OrebfuscatorConfig {
-	private static TByteHashSet TransparentBlocks = new TByteHashSet();
-	private static TByteHashSet ObfuscateBlocks = new TByteHashSet();
-	private static TByteHashSet DarknessObfuscateBlocks = new TByteHashSet();
-	private static TByteHashSet LightEmissionBlocks = new TByteHashSet();
-	private static byte[] RandomBlocks = {};
+	private static TByteHashSet TransparentBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{6,8,9,10,11,18,20,26,27,28,30,31,32,34,37,38,39,40,44,50,51,52,53,54,55,59,63,64,65,66,67,68,69,70,71,72,75,76,77,78,79,81,83,85,90,92,93,94,96,101,102,104,105,106,107,108,109,111,113,114,115}));
+	private static TByteHashSet ObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74}));
+	private static TByteHashSet DarknessObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{48,52}));
+	private static TByteHashSet LightEmissionBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{10,11,50,51,62,74,76,89,90,91,94}));
+	private static byte[] RandomBlocks = {5,14,15,16,21,48,56,73};
 	private static List<String> DisabledWorlds = new ArrayList<String>();
 	private static final Random randomGenerator = new Random();
-	private static int EngineMode;
-	private static int UpdateRadius;
-	private static int InitialRadius;
-	private static int ProcessingThreads;
-	private static boolean UpdateOnBreak;
-	private static boolean UpdateOnDamage;
-	private static boolean UpdateOnPhysics;
-	private static boolean UpdateOnExplosion;
-	private static boolean DarknessHideBlocks;
-	private static boolean NoObfuscationForOps;
-	private static boolean NoObfuscationForPermission;
-	private static boolean Enabled;
+	private static int EngineMode = 2;
+	private static int UpdateRadius = 2;
+	private static int InitialRadius = 1;
+	private static int ProcessingThreads = 1;
+	private static boolean UpdateOnBreak = true;
+	private static boolean UpdateOnDamage = true;
+	private static boolean UpdateOnPhysics = true;
+	private static boolean UpdateOnExplosion = true;
+	private static boolean UpdateOnHoe = true;
+	private static boolean DarknessHideBlocks = true;
+	private static boolean NoObfuscationForOps = true;
+	private static boolean NoObfuscationForPermission = true;
+	private static boolean UseCache = true;
+	private static boolean Enabled = true;
 	
 	//Get
 	public static int EngineMode()
@@ -50,7 +52,7 @@ public class OrebfuscatorConfig {
 	
 	public static int ProcessingThreads()
 	{
-		if(ProcessingThreads < 0)
+		if(ProcessingThreads <= 0)
 			return 1;
 		return ProcessingThreads;
 	}
@@ -75,6 +77,11 @@ public class OrebfuscatorConfig {
 		return UpdateOnExplosion;
 	}
 	
+	public static boolean UpdateOnHoe()
+	{
+		return UpdateOnHoe;
+	}
+	
 	public static boolean DarknessHideBlocks()
 	{
 		return DarknessHideBlocks;
@@ -88,6 +95,11 @@ public class OrebfuscatorConfig {
 	public static boolean NoObfuscationForPermission()
 	{
 		return NoObfuscationForPermission;
+	}
+	
+	public static boolean UseCache()
+	{
+		return UseCache;
 	}
 	
 	public static boolean Enabled()
@@ -129,8 +141,11 @@ public class OrebfuscatorConfig {
 	
 	public static boolean worldDisabled(String name)
 	{
-	    if(DisabledWorlds.contains(name.toLowerCase()))
-	    	return true;
+		for(String world : DisabledWorlds)
+		{
+			if(world.equalsIgnoreCase(name))
+				return true;
+		}
 	    return false;
 	}
 	
@@ -199,6 +214,12 @@ public class OrebfuscatorConfig {
 		UpdateOnExplosion = data;
 	}
 	
+	public static void SetUpdateOnHoe(boolean data)
+	{
+		SetData("Booleans.UpdateOnHoe", data);
+		UpdateOnHoe = data;
+	}
+	
 	public static void SetDarknessHideBlocks(boolean data)
 	{
 		SetData("Booleans.DarknessHideBlocks", data);
@@ -215,6 +236,12 @@ public class OrebfuscatorConfig {
 	{
 		SetData("Booleans.NoObfuscationForPermission", data);
 		NoObfuscationForPermission = data;
+	}
+	
+	public static void SetUseCache(boolean data)
+	{
+		SetData("Booleans.UseCache", data);
+		UseCache = data;
 	}
 	
 	public static void SetEnabled(boolean data)
@@ -250,26 +277,26 @@ public class OrebfuscatorConfig {
 		return Orebfuscator.mainPlugin.getConfig().getInt(path, defaultData);
 	}
 	
-	@SuppressWarnings("unchecked")
 	private static List<Integer> GetIntList(String path, List<Integer> defaultData)
 	{
 		if(Orebfuscator.mainPlugin.getConfig().get(path) == null)
 			SetData(path, defaultData);
-		return (List<Integer>) Orebfuscator.mainPlugin.getConfig().getIntegerList(path);
+		return Orebfuscator.mainPlugin.getConfig().getIntegerList(path);
 	}
 	
-	@SuppressWarnings("unchecked")
 	private static List<String> GetStringList(String path, List<String> defaultData)
 	{
 		if(Orebfuscator.mainPlugin.getConfig().get(path) == null)
 			SetData(path, defaultData);
-		return (List<String>) Orebfuscator.mainPlugin.getConfig().getStringList(path);
+		return Orebfuscator.mainPlugin.getConfig().getStringList(path);
 	}
 	
 	private static void SetData(String path, Object data)
 	{
-		Orebfuscator.mainPlugin.getConfig().set(path, data);
-    	Save();
+		try{
+			Orebfuscator.mainPlugin.getConfig().set(path, data);
+	    	Save();
+		}catch(Exception e){}
 	}
 	
 	private static byte[] IntListToByteArray(List<Integer> list)
@@ -294,28 +321,30 @@ public class OrebfuscatorConfig {
 	
 	public static void Load()
 	{
-		EngineMode = GetInt("Integers.EngineMode", 2);
+		EngineMode = GetInt("Integers.EngineMode", EngineMode);
 		if(EngineMode != 1 && EngineMode != 2)
 		{
 			EngineMode = 1;
 			System.out.println("[Orebfuscator] EngineMode must be 1 or 2.");
 		}
-		UpdateRadius = GetInt("Integers.UpdateRadius", 2);
-		InitialRadius = GetInt("Integers.InitialRadius", 1);
+		UpdateRadius = GetInt("Integers.UpdateRadius", UpdateRadius);
+		InitialRadius = GetInt("Integers.InitialRadius", InitialRadius);
 		if(InitialRadius > 4)
 		{
 			InitialRadius = 4;
 			System.out.println("[Orebfuscator] InitialRadius must be less than 5.");
 		}
-		ProcessingThreads = GetInt("Integers.ProcessingThreads", 1);
-		UpdateOnBreak = GetBoolean("Booleans.UpdateOnBreak", true);
-		UpdateOnDamage = GetBoolean("Booleans.UpdateOnDamage", true);
-		UpdateOnPhysics = GetBoolean("Booleans.UpdateOnPhysics", true);
-		UpdateOnExplosion = GetBoolean("Booleans.UpdateOnExplosion", true);
-		DarknessHideBlocks = GetBoolean("Booleans.DarknessHideBlocks", true);
-		NoObfuscationForOps = GetBoolean("Booleans.NoObfuscationForOps", true);
-		NoObfuscationForPermission = GetBoolean("Booleans.NoObfuscationForPermission", true);
-		Enabled = GetBoolean("Booleans.Enabled", true);
+		ProcessingThreads = GetInt("Integers.ProcessingThreads", ProcessingThreads);
+		UpdateOnBreak = GetBoolean("Booleans.UpdateOnBreak", UpdateOnBreak);
+		UpdateOnDamage = GetBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
+		UpdateOnPhysics = GetBoolean("Booleans.UpdateOnPhysics", UpdateOnPhysics);
+		UpdateOnExplosion = GetBoolean("Booleans.UpdateOnExplosion", UpdateOnExplosion);
+		UpdateOnHoe = GetBoolean("Booleans.UpdateOnHoe", UpdateOnHoe);
+		DarknessHideBlocks = GetBoolean("Booleans.DarknessHideBlocks", DarknessHideBlocks);
+		NoObfuscationForOps = GetBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
+		NoObfuscationForPermission = GetBoolean("Booleans.NoObfuscationForPermission", NoObfuscationForPermission);
+		UseCache = GetBoolean("Booleans.UseCache", UseCache);
+		Enabled = GetBoolean("Booleans.Enabled", Enabled);
 		TransparentBlocks = IntListToTByteHashSet(GetIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[]{6,8,9,10,11,18,20,26,27,28,30,31,32,34,37,38,39,40,44,50,51,52,53,54,55,59,63,64,65,66,67,68,69,70,71,72,75,76,77,78,79,81,83,85,90,92,93,94,96,101,102,104,105,106,107,108,109,111,113,114,115})));
 		ObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74})));
 		DarknessObfuscateBlocks = IntListToTByteHashSet(GetIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[]{48,52})));

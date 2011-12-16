@@ -2,13 +2,11 @@ package lishid.orebfuscator.utils;
 
 import gnu.trove.set.hash.TByteHashSet;
 
+import java.io.File;
 import java.lang.reflect.Field;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
+import java.util.zip.CRC32;
 import java.util.zip.Deflater;
-
-import lishid.orebfuscator.Orebfuscator;
 
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.NetworkManager;
@@ -16,10 +14,12 @@ import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.TileEntity;
 
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
@@ -80,21 +80,10 @@ public class Calculations
 	public static void UpdateBlock(Block block)
 	{
 		if (block == null) return;
-
-        HashSet<CraftPlayer> players = new HashSet<CraftPlayer>();
-        for (Player player : block.getWorld().getPlayers()) {
-            if ((Math.abs(player.getLocation().getX() - block.getX()) < 176) &&
-            		(Math.abs(player.getLocation().getZ() - block.getZ()) < 176)) {
-            	players.add((CraftPlayer) player);
-            }
-        }
-        
-        for (CraftPlayer player : players) {
-            player.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
-        }
+		((CraftWorld) block.getWorld()).getHandle().notify(block.getX(), block.getY(), block.getZ());
 	}
 	
-	public static boolean GetAjacentBlocksTypeID(BlockInfo info, TByteHashSet IDPool, int index, int x, int y, int z, int countdown)
+	public static boolean GetAjacentBlocksTypeID(ChunkInfo info, TByteHashSet IDPool, int index, int x, int y, int z, int countdown)
 	{
 		byte id = 0;
 		
@@ -108,9 +97,9 @@ public class Calculations
 			z < info.sizeZ && 
 			z >= 0 &&
 			index > 0 &&
-			info.original.length > index)
+			info.data.length > index)
 		{
-			id = info.original[index];
+			id = info.data[index];
 		}
 		else
 		{
@@ -142,7 +131,7 @@ public class Calculations
 		return false;
 	}
 	
-	public static boolean GetAjacentBlocksHaveLight(BlockInfo info, int index, int x, int y, int z, int countdown)
+	public static boolean GetAjacentBlocksHaveLight(ChunkInfo info, int index, int x, int y, int z, int countdown)
 	{
 		if(info.world.getLightLevel(x + info.startX, y + info.startY, z + info.startZ) > 0)
 			return true;
@@ -163,14 +152,8 @@ public class Calculations
 	public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player)
 	{
 		NetServerHandler handler = player.getHandle().netServerHandler;
-		if(!Orebfuscator.usingSpout)
-		{
-			packet.l = false;
-		}
 		
-		//String hash = MD5(packet.rawData);
-		
-		BlockInfo info = new BlockInfo();
+		ChunkInfo info = new ChunkInfo();
 		info.world = player.getHandle().world.getWorld().getHandle();
 		info.startX = packet.a;
 		info.startY = packet.b;
@@ -179,79 +162,19 @@ public class Calculations
 		info.sizeY = packet.e;
 		info.sizeZ = packet.f;
 		
-		TByteHashSet blockList = new TByteHashSet();
-		
+		//Obfuscate
 		if(info.world.getWorld().getEnvironment() == Environment.NORMAL &&
 			!OrebfuscatorConfig.worldDisabled(info.world.getServer().getName()) &&
 				((!OrebfuscatorConfig.NoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) &&
 				(!OrebfuscatorConfig.NoObfuscationForOps() || !((Player)player).isOp()) &&
 				OrebfuscatorConfig.Enabled()))
 		{
-			info.original = new byte[packet.rawData.length];
-			System.arraycopy(packet.rawData, 0, info.original, 0, packet.rawData.length);
-			
-			if (info.sizeY > 1)
-			{
-				int index = 0;
-				//For every block
-				for (int x = 0; x < info.sizeX; x++)
-				{
-					for (int z = 0; z < info.sizeZ; z++)
-					{
-						for (int y = 0; y < info.sizeY; y++)
-						{
-							boolean Obfuscate = false;
-							blockList.clear();
-							
-							
-							//Check if the block belongs to obfuscated blocks
-							if(OrebfuscatorConfig.isObfuscated(info.original[index]))
-							{
-								if(OrebfuscatorConfig.InitialRadius() == 0)
-								{
-									Obfuscate = true;
-								}
-								else
-								{
-									//Get all block IDs nearby
-									Obfuscate = !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
-								}
-							}
-							
-							if (!Obfuscate && OrebfuscatorConfig.DarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(info.original[index]))
-							{
-								if(OrebfuscatorConfig.InitialRadius() == 0)
-								{
-									Obfuscate = true;
-								}
-								else if(!GetAjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.InitialRadius()))
-								{
-									Obfuscate = true;
-								}
-							}
-							
-							if(Obfuscate)
-							{
-								//Hide this block
-								if(OrebfuscatorConfig.EngineMode() == 1)
-								{
-									//Engine mode 1, replace with stone
-									packet.rawData[index] = 1;
-								}
-								else if(OrebfuscatorConfig.EngineMode() == 2)
-								{
-									//Ending mode 2, replace with random block
-									packet.rawData[index] = OrebfuscatorConfig.GenerateRandomBlock();
-								}
-							}
-
-							//Increment index
-							index++;
-						}
-					}
-				}
-			}
+			info.data = packet.rawData;
+			packet.rawData = Obfuscate(info);
 		}
+		
+		//Free memory
+		info.data = null;
 		
 		//Compression
         int dataSize = packet.rawData.length;
@@ -274,16 +197,15 @@ public class Calculations
         System.arraycopy(deflateBuffer, 0, packet.g, 0, size);
 		
 		//Send it
-        while(!GetNetworkManagerQueue(handler.networkManager, 1048576 - 2*(18 + packet.h)))
+        /*
+        if(info.sizeX == 16 && info.sizeY == 128 && info.sizeZ == 16)
         {
-        	try
-        	{
-        		Thread.sleep(5);
-        	}catch(Exception e){}
-        }
+        	System.out.println(info.startX + "-" + info.startZ + " " + (info.startX >> 4) + "-" + (info.startZ >> 4));
+        	handler.networkManager.queue(new Packet50PreChunk(info.startX >> 4, info.startZ >> 4, true));
+        }*/
 		handler.networkManager.queue(packet);
 		
-		//Send packets for sign changes
+		//Send TileEntities
 		Object[] list = info.world.getTileEntities(info.startX, info.startY, info.startZ, info.startX + info.sizeX, info.startY + info.sizeY, info.startZ + info.sizeZ).toArray();
         for (int i = 0; i < list.length; ++i) {
         	TileEntity tileentity = (TileEntity) list[i];
@@ -295,6 +217,107 @@ public class Calculations
             	}
             }
         }
+	}
+	
+	public static byte[] Obfuscate(ChunkInfo info)
+	{
+		boolean useCache = false;
+		OrbfuscatedChunkCache cache = new OrbfuscatedChunkCache(new File(new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache"), info.world.getWorld().getName()), info.startX, info.startZ);
+		long hash = Hash(info.data);
+		TByteHashSet blockList = new TByteHashSet();
+		boolean Obfuscate = false;
+		byte[] modifiable = new byte[info.data.length];
+		System.arraycopy(info.data, 0, modifiable, 0, info.data.length);
+
+		//Caching
+		if(info.sizeX == 16 && info.sizeY == 128 && info.sizeZ == 16 && OrebfuscatorConfig.UseCache())
+		{
+			useCache = true;
+			OrbfuscatedChunkCache result = cache.Read();
+			if(result != null && hash == cache.hash)
+			{
+				//Hash match, do not obfuscate
+				System.arraycopy(cache.data, 0, modifiable, 0, 32768);
+				return modifiable;
+			}
+			/*
+			if(result == null)
+				System.out.println("Cache not found.");
+			else
+				System.out.println("Cache found but hash does not match: " + cache.hash + " " + hash);*/
+		}
+		
+		//Calculating
+		if (info.sizeY > 1)
+		{
+			int index = 0;
+			//For every block
+			for (int x = 0; x < info.sizeX; x++)
+			{
+				for (int z = 0; z < info.sizeZ; z++)
+				{
+					for (int y = 0; y < info.sizeY; y++)
+					{
+						Obfuscate = false;
+						blockList.clear();
+						
+						//Check if the block belongs to obfuscated blocks
+						if(OrebfuscatorConfig.isObfuscated(info.data[index]))
+						{
+							if(OrebfuscatorConfig.InitialRadius() == 0)
+							{
+								Obfuscate = true;
+							}
+							else
+							{
+								//Get all block IDs nearby
+								Obfuscate = !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
+							}
+						}
+						
+						if (!Obfuscate && OrebfuscatorConfig.DarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(info.data[index]))
+						{
+							if(OrebfuscatorConfig.InitialRadius() == 0)
+							{
+								Obfuscate = true;
+							}
+							else if(!GetAjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.InitialRadius()))
+							{
+								Obfuscate = true;
+							}
+						}
+						
+						if(Obfuscate)
+						{
+							//Hide this block
+							if(OrebfuscatorConfig.EngineMode() == 1)
+							{
+								//Engine mode 1, replace with stone
+								modifiable[index] = 1;
+							}
+							else if(OrebfuscatorConfig.EngineMode() == 2)
+							{
+								//Ending mode 2, replace with random block
+								modifiable[index] = OrebfuscatorConfig.GenerateRandomBlock();
+							}
+						}
+
+						//Increment index
+						index++;
+					}
+				}
+			}
+		}
+		
+		if(useCache)
+		{
+			//Save cache
+			cache.hash = hash;
+			cache.data = new byte[32768];
+			System.arraycopy(modifiable, 0, cache.data, 0, 32768);
+			cache.Write();
+		}
+		return modifiable;
 	}
 	
 	public static boolean GetNetworkManagerQueue(NetworkManager networkManager, int number)
@@ -327,22 +350,13 @@ public class Calculations
 		}*/
 	}
 	
-	public static String MD5(byte[] data)
+	public static long Hash(byte[] data)
 	{
-		try{
-			MessageDigest algorithm = MessageDigest.getInstance("MD5");
-			algorithm.reset();
-			algorithm.update(data);
-			byte messageDigest[] = algorithm.digest();
-			StringBuffer hexString = new StringBuffer();
-			for (int i=0;i<messageDigest.length;i++) {
-				hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
-			}
-			return hexString.toString();
-		}catch(NoSuchAlgorithmException e){
-			e.printStackTrace();
-		}
-		return "";
+		CRC32 crc = new CRC32();
+		crc.reset();
+		crc.update(data);
+		long hash = crc.getValue();
+		return hash;
 	}
 	
 	public int getIndex(int x, int y, int z) {

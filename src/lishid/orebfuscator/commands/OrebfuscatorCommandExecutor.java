@@ -1,23 +1,19 @@
 package lishid.orebfuscator.commands;
 
-import lishid.orebfuscator.Orebfuscator;
+import java.io.File;
 import lishid.orebfuscator.utils.OrebfuscatorCalculationThread;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import lishid.orebfuscator.utils.PermissionRelay;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class OrebfuscatorCommandExecutor implements CommandExecutor {
-    //private final Orebfuscator plugin;
-    public OrebfuscatorCommandExecutor(Orebfuscator plugin) {
-        //this.plugin = plugin;
-    }
+public class OrebfuscatorCommandExecutor {
     
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	if ((sender instanceof Player) && !PermissionRelay.hasPermission((Player) sender, "Orebfuscator.admin")) {
             sender.sendMessage(ChatColor.RED + "You do not have permissions.");
             return true;
@@ -166,6 +162,11 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 					OrebfuscatorConfig.SetDisabledWorlds(args[2], !data);
 		    		sender.sendMessage("[Orebfuscator] World \""+args[2]+"\" obfuscation "+(data?"enabled":"disabled")+".");
 				}
+				else if(args[1].equalsIgnoreCase("cache"))
+				{
+					OrebfuscatorConfig.SetUseCache(data);
+		    		sender.sendMessage("[Orebfuscator] Cache "+(data?"enabled":"disabled")+".");
+				}
 			}
     	}
     	
@@ -182,9 +183,37 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
     		sender.sendMessage("[Orebfuscator] EngineMode: " + OrebfuscatorConfig.EngineMode());
     		sender.sendMessage("[Orebfuscator] Executing Threads: " + OrebfuscatorCalculationThread.getThreads());
     		sender.sendMessage("[Orebfuscator] Processing Threads Max: " + OrebfuscatorConfig.ProcessingThreads());
+    		sender.sendMessage("[Orebfuscator] Caching: " + (OrebfuscatorConfig.UseCache()?"Enabled":"Disabled"));
     		sender.sendMessage("[Orebfuscator] Disabled worlds: " + OrebfuscatorConfig.disabledWorlds());
     	}
     	
+    	if(args[0].equalsIgnoreCase("clearcache"))
+    	{
+    		File dir = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
+    		try {
+    			DeleteDir(dir);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+    		sender.sendMessage("[Orebfuscator] Cache cleared.");
+    	}
+    	
     	return true;
+    }
+    
+    private static void DeleteDir(File dir)
+    {
+    	try{
+    		
+	    	if (!dir.exists())
+	    		return;
+	    	
+	        if (dir.isDirectory())
+	            for (File f : dir.listFiles())
+	                DeleteDir(f);
+	        
+	        dir.delete();
+	        
+        }catch(Exception e){}
     }
 }

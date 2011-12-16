@@ -5,6 +5,7 @@ import java.util.HashMap;
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.block.*;
 
@@ -42,8 +43,26 @@ public class OrebfuscatorBlockListener extends BlockListener {
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnPhysics())
         	return;
-
+        if(event.getBlock().getType() != Material.SAND && event.getBlock().getType() != Material.GRAVEL)
+        	return;
+        if(!applyphysics(event.getBlock()))
+        	return;
         Calculations.UpdateBlocksNearby(event.getBlock());
+    }
+    
+    private boolean applyphysics(Block block)
+    {
+        int l = block.getWorld().getBlockTypeIdAt(block.getX(), block.getY() - 1, block.getZ());
+
+        if (l == 0) {
+            return true;
+        } else if (l == net.minecraft.server.Block.FIRE.id) {
+            return true;
+        } else {
+        	net.minecraft.server.Material material = net.minecraft.server.Block.byId[l].material;
+
+            return material == net.minecraft.server.Material.WATER ? true : material == net.minecraft.server.Material.LAVA;
+        }
     }
 
     @Override
