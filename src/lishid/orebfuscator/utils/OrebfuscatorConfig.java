@@ -17,7 +17,7 @@ public class OrebfuscatorConfig {
 	private static byte[] RandomBlocks = {5,14,15,16,21,48,56,73};
 	private static List<String> DisabledWorlds = new ArrayList<String>();
 	private static final Random randomGenerator = new Random();
-	private static int EngineMode = 2;
+	private static int EngineMode = 3;
 	private static int UpdateRadius = 2;
 	private static int InitialRadius = 1;
 	private static int ProcessingThreads = 1;
@@ -52,9 +52,11 @@ public class OrebfuscatorConfig {
 	
 	public static int ProcessingThreads()
 	{
+		return 1;
+		/*
 		if(ProcessingThreads <= 0)
 			return 1;
-		return ProcessingThreads;
+		return ProcessingThreads;*/
 	}
 	
 	public static boolean UpdateOnBreak()
@@ -163,6 +165,13 @@ public class OrebfuscatorConfig {
 	{
 		return RandomBlocks[randomGenerator.nextInt(RandomBlocks.length)];
 	}
+	
+	public static byte[] GetRandomBlocks()
+	{
+		return RandomBlocks;
+	}
+	
+	
 	
 	//Set
 
@@ -322,10 +331,10 @@ public class OrebfuscatorConfig {
 	public static void Load()
 	{
 		EngineMode = GetInt("Integers.EngineMode", EngineMode);
-		if(EngineMode != 1 && EngineMode != 2)
+		if(EngineMode != 1 && EngineMode != 2 && EngineMode != 3)
 		{
-			EngineMode = 1;
-			System.out.println("[Orebfuscator] EngineMode must be 1 or 2.");
+			EngineMode = 3;
+			System.out.println("[Orebfuscator] EngineMode must be 1, 2 or 3.");
 		}
 		UpdateRadius = GetInt("Integers.UpdateRadius", UpdateRadius);
 		InitialRadius = GetInt("Integers.InitialRadius", InitialRadius);

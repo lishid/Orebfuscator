@@ -40,11 +40,6 @@ public class Orebfuscator extends JavaPlugin {
 		pm.registerEvent(Event.Type.ENTITY_EXPLODE, this.entityListener, Event.Priority.Monitor, this);
 		pm.registerEvent(Event.Type.PLAYER_INTERACT, this.playerListener, Event.Priority.Monitor, this);
 
-		//pm.registerEvent(Event.Type.PLAYER_INTERACT, this.playerListener, Event.Priority.Monitor, this);
-		//pm.registerEvent(Event.Type.BLOCK_IGNITE, this.blockListener, Event.Priority.Monitor, this);
-		//pm.registerEvent(Event.Type.BLOCK_PLACE, this.blockListener, Event.Priority.Monitor, this);
-		
-
 		//Spout events
 		if(pm.getPlugin("Spout") != null && pm.getPlugin("OrebfuscatorSpoutBridge") == null)
 		{
@@ -64,11 +59,27 @@ public class Orebfuscator extends JavaPlugin {
 			System.out.println("[Orebfuscator] Spout not found, using Non-Spout mode.");
 		}
     	OrebfuscatorConfig.Load();
+    	//log();
 		
 		//Output
         PluginDescriptionFile pdfFile = this.getDescription();
         System.out.println("[Orebfuscator] version " + pdfFile.getVersion() + " initialization complete!" );
     }
+	/*
+	public static void log()
+	{
+		try{
+			System.out.println("Requested: " + Calculations.ChunksRequested + " Calculated: " + Calculations.ChunksCalculated + " Incomplete: " + Calculations.ChunksIncomplete);
+			Calculations.ChunksRequested = 0;
+			Calculations.ChunksCalculated = 0;
+			Calculations.ChunksIncomplete = 0;
+			Orebfuscator.mainPlugin.getServer().getScheduler().scheduleSyncDelayedTask(Orebfuscator.mainPlugin, new Runnable() {
+			    public void run() {
+			    	log();
+			    }
+			}, 40L);
+		}catch(Exception e){}
+	}*/
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

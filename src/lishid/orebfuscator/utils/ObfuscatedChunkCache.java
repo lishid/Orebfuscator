@@ -7,14 +7,14 @@ import java.io.FileOutputStream;
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
 
-public class OrbfuscatedChunkCache {
+public class ObfuscatedChunkCache {
 	File path;
 	public long hash;
 	int x;
 	int z;
-	public byte[] data;
+	public byte[] data = new byte[1];
 	
-	OrbfuscatedChunkCache(File file, int x, int z)
+	ObfuscatedChunkCache(File file, int x, int z)
 	{
 		this.x = x;
 		this.z = z;
@@ -22,7 +22,7 @@ public class OrbfuscatedChunkCache {
 		file.mkdirs();
 	}
 
-	public OrbfuscatedChunkCache Read() {
+	public ObfuscatedChunkCache Read() {
         try {
         	File file = getFile(x, z);
         	if ((file != null) && (file.exists())) {
@@ -38,7 +38,7 @@ public class OrbfuscatedChunkCache {
 	            return this;
         	}
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 	    return null;
 	}
@@ -46,7 +46,7 @@ public class OrbfuscatedChunkCache {
 	public void Write() {
 		try {
         	File file = getFile(x, z);
-			File tempFile = new File(path, "tmp.dat");
+			File tempFile = new File(path, "tmp." + Integer.toString(x) + "." + Integer.toString(z) + ".dat");
 			
 		    FileOutputStream stream = new FileOutputStream(tempFile);
 		    NBTTagCompound nbt1 = new NBTTagCompound();
@@ -66,7 +66,7 @@ public class OrbfuscatedChunkCache {
 		    }
 		    tempFile.renameTo(file);
 		} catch (Exception e) {
-		    e.printStackTrace();
+		    //e.printStackTrace();
 		}
 	}
 	

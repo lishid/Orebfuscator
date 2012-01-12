@@ -64,19 +64,4 @@ public class OrebfuscatorBlockListener extends BlockListener {
             return material == net.minecraft.server.Material.WATER ? true : material == net.minecraft.server.Material.LAVA;
         }
     }
-
-    @Override
-    public void onBlockPlace(BlockPlaceEvent event)
-    {
-        if (event.isCancelled() || !OrebfuscatorConfig.DarknessHideBlocks() || !OrebfuscatorConfig.Enabled())
-        	return;
-		Calculations.LightingUpdate(event.getBlock(), false);
-    }
-    @Override
-    public void onBlockIgnite(BlockIgniteEvent event)
-    {
-        if (event.isCancelled() || !OrebfuscatorConfig.DarknessHideBlocks() || !OrebfuscatorConfig.Enabled())
-        	return;
-		Calculations.LightingUpdate(event.getBlock(), true);
-    }
 }

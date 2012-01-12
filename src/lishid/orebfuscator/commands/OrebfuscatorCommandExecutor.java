@@ -1,19 +1,59 @@
 package lishid.orebfuscator.commands;
 
 import java.io.File;
+
+import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.utils.OrebfuscatorCalculationThread;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import lishid.orebfuscator.utils.PermissionRelay;
 
+import net.minecraft.server.ChunkCoordIntPair;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 public class OrebfuscatorCommandExecutor {
-    
-    public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    @SuppressWarnings("unchecked")
+	public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    	if (command.getName().equalsIgnoreCase("chunk"))
+    	{
+    	    int r = 2;
+    	    if (args.length > 0)
+    	    {
+    	        try
+    	        {
+    	            r = new Integer(args[0]);
+    	        }
+    	        catch (NumberFormatException e)
+    	        {
+    	            sender.sendMessage(args[0] + " is not a number!");
+    	            return true;
+    	        }
+    	        if (r < 1) r = 1;
+    	        if (r > 10) r = 10;
+    	    }
+
+    	    Player player = (Player) sender;
+    	    Chunk chunk = player.getWorld().getChunkAt(player.getLocation());
+    	    int x = chunk.getX();
+    	    int z = chunk.getZ();
+    	    for (int i = x - r; i <= x + r; i++)
+    	    {
+    	        for (int j = z - r; j <= z + r; j++)
+    	        {
+    	            ChunkCoordIntPair location = new ChunkCoordIntPair(i, j);
+    	            ((CraftPlayer) player).getHandle().chunkCoordIntPairQueue.add(location);
+    	        }
+    	    }
+
+    	    return true;
+    	}
+    	
     	if ((sender instanceof Player) && !PermissionRelay.hasPermission((Player) sender, "Orebfuscator.admin")) {
             sender.sendMessage(ChatColor.RED + "You do not have permissions.");
             return true;
@@ -36,7 +76,7 @@ public class OrebfuscatorCommandExecutor {
 	    		sender.sendMessage(args[1] + " is not a number!");
 	    		return true;
 			}
-			if(engine != 1 && engine != 2)
+			if(engine != 1 && engine != 2 && engine != 3)
 			{
 	    		sender.sendMessage(args[1] + " is not a valid EngineMode!");
 	    		return true;
@@ -181,9 +221,18 @@ public class OrebfuscatorCommandExecutor {
     		sender.sendMessage("[Orebfuscator] Orebfuscator status:");
     		sender.sendMessage("[Orebfuscator] Plugin is: " + (OrebfuscatorConfig.Enabled()?"Enabled":"Disabled"));
     		sender.sendMessage("[Orebfuscator] EngineMode: " + OrebfuscatorConfig.EngineMode());
-    		sender.sendMessage("[Orebfuscator] Executing Threads: " + OrebfuscatorCalculationThread.getThreads());
+    		
+    		if(Orebfuscator.usingSpout)
+        		sender.sendMessage("[Orebfuscator] Executing Threads: Using Spout");
+    		else
+    			sender.sendMessage("[Orebfuscator] Executing Threads: " + OrebfuscatorCalculationThread.getThreads());
     		sender.sendMessage("[Orebfuscator] Processing Threads Max: " + OrebfuscatorConfig.ProcessingThreads());
+
     		sender.sendMessage("[Orebfuscator] Caching: " + (OrebfuscatorConfig.UseCache()?"Enabled":"Disabled"));
+
+    		sender.sendMessage("[Orebfuscator] Initial Obfuscation Radius: " + OrebfuscatorConfig.InitialRadius());
+    		sender.sendMessage("[Orebfuscator] Update Radius: " + OrebfuscatorConfig.UpdateRadius());
+    		
     		sender.sendMessage("[Orebfuscator] Disabled worlds: " + OrebfuscatorConfig.disabledWorlds());
     	}
     	

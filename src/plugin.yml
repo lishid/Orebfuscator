@@ -1,6 +1,6 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.2.1
+version: 1.2.7
 author: lishid
 softdepend: [Spout, Orebfuscator]
 description: >
@@ -9,17 +9,21 @@ commands:
   ofc:
     description: Manage Orebfuscator.
     usage: |
-           /<command> engine <1/2> - Set engine mode to 1 or 2
+           /<command> engine <1/2/3> - Set engine mode to 1, 2, or 3
            /<command> threads - Set number of processing threads allowed
            /<command> updateradius - Set block update radius
            /<command> initialradius - Set initial obfuscation radius
            /<command> <enable/disable> - enable/disable ore obfuscation
            /<command> <enable/disable> <updatebreak|updatedamage>
            /<command> <enable/disable> <updatephysics|updateexplosion>
-           /<command> <enable/disable> <darknesshide> - no light obfuscate
+           /<command> <enable/disable> <darknesshide> - light obfuscate
            /<command> <enable/disable> <op|perms> - op/permissions
            /<command> <enable/disable> cache - chunk caching
            /<command> <enable/disable> world <worldname>
            /<command> clearcache - Clear all cache
            /<command> reload - Reload from config file
            /<command> status - Show status of Orebfuscator
+  chunk:
+    description: Send missing chunks.
+    usage: |
+           /<command> [radius=2] Send the chunks within a radius
