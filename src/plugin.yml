@@ -1,29 +1,32 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.2.7
+version: 1.3.1-test4
 author: lishid
-softdepend: [Spout, Orebfuscator]
+softdepend: [Spout, ChunkScrambler]
+load: startup
 description: >
-             This plugin obfuscates data that is sent to players to prevent x-ray.
+             This plugin obfuscates chunk packets that is sent to players to prevent x-ray.
 commands:
   ofc:
     description: Manage Orebfuscator.
     usage: |
-           /<command> engine <1/2/3> - Set engine mode to 1, 2, or 3
-           /<command> threads - Set number of processing threads allowed
-           /<command> updateradius - Set block update radius
-           /<command> initialradius - Set initial obfuscation radius
-           /<command> <enable/disable> - enable/disable ore obfuscation
+           /<command> engine <1/2> - Set engine mode to 1 or 2
+           /<command> initialradius [number] - Set block initial radius
+           /<command> updateradius [number] - Set block update radius
+           /<command> threads [number] - Set allowed processing threads
+           /<command> <enable/disable> - Change the state of the plugin
            /<command> <enable/disable> <updatebreak|updatedamage>
            /<command> <enable/disable> <updatephysics|updateexplosion>
-           /<command> <enable/disable> <darknesshide> - light obfuscate
-           /<command> <enable/disable> <op|perms> - op/permissions
-           /<command> <enable/disable> cache - chunk caching
+           /<command> <enable/disable> <darknesshide> - DarknessObfuscate
+           /<command> <enable/disable> <op|perms> - OPs/Permissions
+           /<command> <enable/disable> updatethread - Toggle update thread
+           /<command> <enable/disable> cache - Chunk caching
+           /<command> <enable/disable> verbose - Verbose mode
            /<command> <enable/disable> world <worldname>
-           /<command> clearcache - Clear all cache
            /<command> reload - Reload from config file
            /<command> status - Show status of Orebfuscator
+           /<command> clearcache - Clear all cache
   chunk:
-    description: Send missing chunks.
+    description: Re-send chunks.
     usage: |
-           /<command> [radius=2] Send the chunks within a radius
+           /<command> [radius=2] Send the chunks within a specific radius

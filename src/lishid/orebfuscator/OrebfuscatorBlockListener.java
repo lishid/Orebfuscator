@@ -2,52 +2,49 @@ package lishid.orebfuscator;
 
 import java.util.HashMap;
 
-import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
+import lishid.orebfuscator.utils.OrebfuscatorThreadUpdate;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.event.block.*;
 
 public class OrebfuscatorBlockListener extends BlockListener {
-	public static HashMap<String, Block> blockLog = new HashMap<String, Block>();
-    Orebfuscator plugin;
-    public OrebfuscatorBlockListener(Orebfuscator plugin) {
-        this.plugin = plugin;
-    }
+	public static HashMap<Player, Block> blockLog = new HashMap<Player, Block>();
     
     @Override
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnBreak())
+        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnBreak())
         	return;
         
-        Calculations.UpdateBlocksNearby(event.getBlock());
+        OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }
     
     @Override
     public void onBlockDamage(BlockDamageEvent event) {
-    	if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnDamage())
+    	if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnDamage())
         	return;
         
-		if(blockLog.containsKey(event.getPlayer().getName()) && blockLog.get(event.getPlayer().getName()).equals(event.getBlock()))
+		if(blockLog.containsKey(event.getPlayer()) && blockLog.get(event.getPlayer()).equals(event.getBlock()))
 		{
 			return;
 		}
 		
-		blockLog.put(event.getPlayer().getName(), event.getBlock());
+		blockLog.put(event.getPlayer(), event.getBlock());
 
-        Calculations.UpdateBlocksNearby(event.getBlock());
+		OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }
     
     @Override
     public void onBlockPhysics(BlockPhysicsEvent event) {
-        if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnPhysics())
+        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnPhysics())
         	return;
         if(event.getBlock().getType() != Material.SAND && event.getBlock().getType() != Material.GRAVEL)
         	return;
         if(!applyphysics(event.getBlock()))
         	return;
-        Calculations.UpdateBlocksNearby(event.getBlock());
+        OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }
     
     private boolean applyphysics(Block block)
@@ -60,7 +57,6 @@ public class OrebfuscatorBlockListener extends BlockListener {
             return true;
         } else {
         	net.minecraft.server.Material material = net.minecraft.server.Block.byId[l].material;
-
             return material == net.minecraft.server.Material.WATER ? true : material == net.minecraft.server.Material.LAVA;
         }
     }

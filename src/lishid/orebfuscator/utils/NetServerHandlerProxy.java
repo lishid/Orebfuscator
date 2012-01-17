@@ -28,7 +28,7 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
     }
 
     private void init(){
-        a = NetServerHandler.a;
+        a = Logger.getLogger("Minecraft");
         networkManager = nshInstance.networkManager;
         disconnected = nshInstance.disconnected;
         player = nshInstance.player;
@@ -48,11 +48,6 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
     public void disconnect(String s) {
         nshInstance.disconnect(s);
         this.disconnected = nshInstance.disconnected;
-    }
-
-    @Override
-    public void a(Packet27PlayerInput packet27playerinput) {
-    	nshInstance.a(packet27playerinput);
     }
 
     @Override
@@ -127,8 +122,8 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
     }
 
     @Override
-    public int b() {
-        return nshInstance.b();
+    public int lowPriorityCount() {
+        return nshInstance.lowPriorityCount();
     }
 
     @Override

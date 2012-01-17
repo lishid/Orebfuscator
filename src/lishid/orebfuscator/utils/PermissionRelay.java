@@ -1,11 +1,11 @@
 package lishid.orebfuscator.utils;
 
+import lishid.orebfuscator.Orebfuscator;
+
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
-
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
-
 
 public class PermissionRelay {
     public static PermissionHandler handler;
@@ -16,7 +16,7 @@ public class PermissionRelay {
             if (pm.getPlugin("Permissions") != null) {
             	handler = ((Permissions) pm.getPlugin("Permissions")).getHandler();
             } else {
-                //log.info("Permission system not detected, defaulting to OP");
+                Orebfuscator.log("Permission system not detected, defaulting to OP");
             }
         }
     }

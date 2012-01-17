@@ -4,12 +4,18 @@ import gnu.trove.set.hash.TByteHashSet;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 
+import lishid.orebfuscator.Orebfuscator;
+import lishid.orebfuscator.cache.ObfuscatedChunkCache;
+
+import net.minecraft.server.Chunk;
 import net.minecraft.server.NetServerHandler;
-import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.TileEntity;
@@ -31,24 +37,34 @@ public class Calculations
     
 	private static Deflater deflater = new Deflater();
     private static byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
-    /*
+    
     public static int ChunksCalculated = 0;
-    public static int ChunksRequested = 0;
-    public static int ChunksIncomplete = 0;
-    */
+    
 	public static void UpdateBlocksNearby(Block block)
 	{
-        if (!OrebfuscatorConfig.Enabled() || 
-        		OrebfuscatorConfig.isTransparent((byte)block.getTypeId()))
-        	return;
-        
-        HashSet<Block> blocks = Calculations.GetAjacentBlocks(block.getWorld(),
-        		new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius());
-        
+        HashSet<Block> blocks = Calculations.GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius());
+
 		HashSet<CraftPlayer> players = new HashSet<CraftPlayer>();
-        for (Player player : block.getWorld().getPlayers()) {
-            if ((Math.abs(player.getLocation().getX() - block.getX()) < 176) &&
-            		(Math.abs(player.getLocation().getZ() - block.getZ()) < 176)) {
+		
+		List<Player> playerList = new ArrayList<Player>();
+
+        while(true)
+        {
+            try
+            {
+            	playerList = block.getWorld().getPlayers();
+            	break;
+            }
+            catch(Exception e)
+            { }
+        }
+		
+        for (Player player : playerList) {
+        	double dx = Math.abs(player.getLocation().getX() - block.getX());
+        	double dz = Math.abs(player.getLocation().getZ() - block.getZ());
+        	double dist = Bukkit.getServer().getViewDistance() * 16;
+            if (dx < dist && dz < dist)
+            {
             	players.add((CraftPlayer) player);
             }
         }
@@ -89,14 +105,65 @@ public class Calculations
 	public static void UpdateBlock(Block block, HashSet<CraftPlayer> players)
 	{
 		if (block == null) return;
-		//((CraftWorld) block.getWorld()).getHandle().notify(block.getX(), block.getY(), block.getZ());
         
         for (CraftPlayer player : players) {
             player.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
-            TileEntity e = player.getHandle().world.getTileEntity(block.getX(), block.getY(), block.getZ());
-            if(e != null)
+            
+            TileEntity te;
+            while(true)
             {
-            	Packet p = e.k();
+	            try
+	            {
+	            	te = player.getHandle().world.getTileEntity(block.getX(), block.getY(), block.getZ());
+	            	break;
+	            }
+	            catch(Exception e)
+	            {
+		            try
+		            {
+		                net.minecraft.server.World world = player.getHandle().world;
+		                
+		                Chunk chunk = world.getChunkAt(block.getX() >> 4, block.getZ() >> 4);
+		
+		                if (chunk == null) {
+		                    return;
+		                } else {
+		                    TileEntity tileentity = chunk.d(block.getX() & 15, block.getY(), block.getZ() & 15);
+		                    
+		                    if (tileentity == null) {
+		                    	Field M = World.class.getDeclaredField("M");
+		                    	M.setAccessible(true);
+		                    	
+		                    	@SuppressWarnings("rawtypes")
+								List m = (List)M.get(world);
+			                    synchronized(m)
+			                    {
+			                        @SuppressWarnings("rawtypes")
+									Iterator iterator = m.iterator();
+			
+			                        while (iterator.hasNext()) {
+			                            TileEntity tileentity1 = (TileEntity) iterator.next();
+			
+			                            if (!tileentity1.l() && tileentity1.x == block.getX() && tileentity1.y == block.getY() && tileentity1.z == block.getZ()) {
+			                                tileentity = tileentity1;
+			                                break;
+			                            }
+			                        }
+			                    }
+		                    }
+		
+		                    te = tileentity;
+		                }
+		                
+		                break;
+		            }
+		            catch(Exception e2) { }
+	            }
+            }
+    		
+            if(te != null)
+            {
+            	Packet p = te.k();
             	if(p != null)
             		player.getHandle().netServerHandler.sendPacket(p);
             }
@@ -110,14 +177,10 @@ public class Calculations
 		if(y > 126)
 			return true;
 		
-		if(y < info.sizeY && 
-			y >= 0 && 
-			x < info.sizeX && 
-			x >= 0 && 
-			z < info.sizeZ && 
-			z >= 0 &&
-			index > 0 &&
-			info.data.length > index)
+		if(y < info.sizeY &&  y >= 0 && 
+			x < info.sizeX &&  x >= 0 && 
+			z < info.sizeZ &&  z >= 0 &&
+			index > 0 && info.data.length > index)
 		{
 			id = info.data[index];
 		}
@@ -176,8 +239,8 @@ public class Calculations
 
 	public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, boolean sendTileEntities)
 	{
-		NetServerHandler handler = player.getHandle().netServerHandler;
-		if(handler.disconnected || handler.networkManager == null)
+		NetServerHandler nsh = player.getHandle().netServerHandler;
+		if(nsh == null || nsh.disconnected || nsh.networkManager == null)
 			return;
 		
 		ChunkInfo info = new ChunkInfo();
@@ -188,24 +251,17 @@ public class Calculations
 		info.sizeX = packet.d;
 		info.sizeY = packet.e;
 		info.sizeZ = packet.f;
-		/*
-		//Info
-		System.out.println("Current thread: " + Thread.currentThread().getName());
-		ChunksRequested++;
-		if(!(info.sizeX == 16 && info.sizeY == 128 && info.sizeZ == 16))
-		{
-			ChunksIncomplete++;
-		}
-		*/
+		
 		//Obfuscate
-		if(info.world.getWorld().getEnvironment() == Environment.NORMAL && //Normal environment = overworld
-			!OrebfuscatorConfig.worldDisabled(info.world.getWorld().getName()) && //World not disabled
-				((!OrebfuscatorConfig.NoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) && //Player does not have permission
-				(!OrebfuscatorConfig.NoObfuscationForOps() || !((Player)player).isOp()) && //Player is not op
-				OrebfuscatorConfig.Enabled())) //Plugin enabled
+		if(info.world.getWorld().getEnvironment() == Environment.NORMAL && //Environment.NORMAL = overworld
+			!OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && //World not disabled
+				((!OrebfuscatorConfig.getNoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) && //Player does not have permission
+				(!OrebfuscatorConfig.getNoObfuscationForOps() || !((Player)player).isOp()) && //Player is not op
+				OrebfuscatorConfig.getEnabled())) //Plugin enabled
 		{
 			info.data = packet.rawData;
-			packet.rawData = Obfuscate(info);
+			byte[] obfuscated = Obfuscate(info);
+			System.arraycopy(obfuscated, 0, packet.rawData, 0, obfuscated.length);
 		}
 		
 		//Free memory
@@ -218,7 +274,7 @@ public class Calculations
 	        if (deflateBuffer.length < dataSize + 100) {
 	            deflateBuffer = new byte[dataSize + 100];
 	        }
-	
+
 	        deflater.reset();
 	        deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
 	        deflater.setInput(packet.rawData);
@@ -227,16 +283,17 @@ public class Calculations
 	        if (size == 0) {
 	            size = deflater.deflate(deflateBuffer);
 	        }
-	
+        	
 	        // copy compressed data to packet
-	        packet.g = new byte[size];
-	        packet.h = size;
-	        System.arraycopy(deflateBuffer, 0, packet.g, 0, size);
+	        packet.buffer = new byte[size];
+	        packet.size = size;
+	        System.arraycopy(deflateBuffer, 0, packet.buffer, 0, size);
 			
 			//Send it
-			handler.networkManager.queue(packet);
+			nsh.networkManager.queue(packet);
 		}
 		
+		//Send tile entities if not using spout
 		if(sendTileEntities)
 		{
 			//Send TileEntities
@@ -247,7 +304,7 @@ public class Calculations
 	            	Packet p = tileentity.k();
 	            	if(p!=null)
 	            	{
-	            		handler.sendPacket(p);
+	            		nsh.sendPacket(p);
 	            	}
 	            }
 	        }
@@ -257,92 +314,126 @@ public class Calculations
 	public static byte[] Obfuscate(ChunkInfo info)
 	{
 		boolean useCache = false;
-		ObfuscatedChunkCache cache = new ObfuscatedChunkCache(new File(new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache"), info.world.getWorld().getName()), info.startX, info.startZ);
-		long hash = Hash(info.data);
+		File cacheFolder = new File(new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache"), info.world.getWorld().getName());
+		int chunkX = info.startX >> 4;
+		int chunkZ = info.startZ >> 4;
+		ObfuscatedChunkCache cache = new ObfuscatedChunkCache(cacheFolder, chunkX, chunkZ, OrebfuscatorConfig.getInitialRadius());
 		TByteHashSet blockList = new TByteHashSet();
 		int tmp = 0;
 		boolean Obfuscate = false;
-		byte[] modifiable = new byte[info.data.length];
-		System.arraycopy(info.data, 0, modifiable, 0, info.data.length);
+		int ChunkSize = info.sizeX * info.sizeY * info.sizeZ;
+		byte[] modifiable = new byte[ChunkSize];
+		System.arraycopy(info.data, 0, modifiable, 0, ChunkSize);
+		long hash = Hash(modifiable);
 
 		//Caching
-		if(info.sizeX == 16 && info.sizeY == 128 && info.sizeZ == 16 && OrebfuscatorConfig.UseCache())
+		if(info.sizeX == 16 && info.sizeY == 128 && info.sizeZ == 16 && OrebfuscatorConfig.getUseCache())
 		{
 			useCache = true;
-			ObfuscatedChunkCache result = cache.Read();
-			if(result != null && hash == cache.hash)
-			{
-				//Hash match, do not obfuscate
-				System.arraycopy(cache.data, 0, modifiable, 0, 32768);
-				return modifiable;
-			}
 			/*
-			if(result == null)
-				System.out.println("Cache not found.");
-			else
-				System.out.println("Cache found but hash does not match: " + cache.hash + " " + hash);*/
+			if(OrebfuscatorConfig.getVerboseMode())
+			{
+				if(result == null)
+					Orebfuscator.log("Cache not found.");
+			}*/
+			long storedHash = cache.getHash();
+			if(hash == storedHash)
+			{
+				byte[] data = cache.getData();
+				if(data != null && data.length == ChunkSize)
+				{
+					if(OrebfuscatorConfig.getVerboseMode())
+					{
+						Orebfuscator.log("Cache found.");
+					}
+					
+					//Hash match, use the cached data instead
+					System.arraycopy(data, 0, modifiable, 0, data.length);
+					//Skip calculations
+					return modifiable;
+				}
+			}/*
+			else if(storedHash != 0L)
+			{
+				if(OrebfuscatorConfig.getVerboseMode())
+				{
+					Orebfuscator.log("Cache hash does not match.");
+				}
+				//Hash does not match, invalidate nearby chunks
+				(new ObfuscatedChunkCache(cacheFolder, chunkX + 1, chunkZ, OrebfuscatorConfig.getInitialRadius())).Invalidate();
+				(new ObfuscatedChunkCache(cacheFolder, chunkX - 1, chunkZ, OrebfuscatorConfig.getInitialRadius())).Invalidate();
+				(new ObfuscatedChunkCache(cacheFolder, chunkX, chunkZ + 1, OrebfuscatorConfig.getInitialRadius())).Invalidate();
+				(new ObfuscatedChunkCache(cacheFolder, chunkX, chunkZ - 1, OrebfuscatorConfig.getInitialRadius())).Invalidate();
+			}*/
 		}
 		
-		//ChunksCalculated++;
+		if(OrebfuscatorConfig.getVerboseMode())
+		{
+			ChunksCalculated++;
+			Orebfuscator.log("Cache NOT found.");
+		}
 		
 		//Calculating
 		if (info.sizeY > 1)
 		{
+			//Index to keep track of blocks
 			int index = 0;
-			//For every block
+			
+			//Loop through blocks
 			for (int x = 0; x < info.sizeX; x++)
 			{
 				for (int z = 0; z < info.sizeZ; z++)
 				{
+					//Shuffle the random blocks
+					OrebfuscatorConfig.shuffleRandomBlocks();
+					
 					for (int y = 0; y < info.sizeY; y++)
 					{
+						//Initialize objects
 						Obfuscate = false;
 						blockList.clear();
-						
-						//Check if the block belongs to obfuscated blocks
+
+						//Check if the block should be obfuscated because of being behind stuff
 						if(OrebfuscatorConfig.isObfuscated(info.data[index]))
 						{
-							if(OrebfuscatorConfig.InitialRadius() == 0)
+							if(OrebfuscatorConfig.getInitialRadius() == 0)
 							{
+								//Obfuscate anyways
 								Obfuscate = true;
 							}
 							else
 							{
 								//Get all block IDs nearby
-								Obfuscate = !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.InitialRadius());
+								Obfuscate = !GetAjacentBlocksTypeID(info, blockList, index, x, y, z, OrebfuscatorConfig.getInitialRadius());
 							}
 						}
 						
-						if (!Obfuscate && OrebfuscatorConfig.DarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(info.data[index]))
+						//Check if the block should be obfuscated because of darkness
+						if (!Obfuscate && OrebfuscatorConfig.getDarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(info.data[index]))
 						{
-							if(OrebfuscatorConfig.InitialRadius() == 0)
+							if(OrebfuscatorConfig.getInitialRadius() == 0)
 							{
 								Obfuscate = true;
 							}
-							else if(!GetAjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.InitialRadius()))
+							else if(!GetAjacentBlocksHaveLight(info, index, x, y, z, OrebfuscatorConfig.getInitialRadius()))
 							{
 								Obfuscate = true;
 							}
 						}
 						
+						//If the block should be obfuscated
 						if(Obfuscate)
 						{
-							//Hide this block
-							if(OrebfuscatorConfig.EngineMode() == 1)
+							if(OrebfuscatorConfig.getEngineMode() == 1)
 							{
 								//Engine mode 1, replace with stone
 								modifiable[index] = 1;
 							}
-							else if(OrebfuscatorConfig.EngineMode() == 2)
+							else if(OrebfuscatorConfig.getEngineMode() == 2)
 							{
 								//Ending mode 2, replace with random block
-								modifiable[index] = OrebfuscatorConfig.GenerateRandomBlock();
-							}
-							else if(OrebfuscatorConfig.EngineMode() == 3)
-							{
-					            tmp = tmp % (OrebfuscatorConfig.GetRandomBlocks().length - 1) + 1;
-								//Ending mode 2, replace with random block
-								modifiable[index] = OrebfuscatorConfig.GetRandomBlocks()[tmp];
+					            tmp = tmp % (OrebfuscatorConfig.getRandomBlocks().size() - 1) + 1;
+								modifiable[index] = (byte)(int)OrebfuscatorConfig.getRandomBlocks().get(tmp);
 							}
 						}
 
@@ -353,45 +444,16 @@ public class Calculations
 			}
 		}
 		
+		//If cache is allowed
 		if(useCache)
 		{
 			//Save cache
-			cache.hash = hash;
-			cache.data = new byte[32768];
-			System.arraycopy(modifiable, 0, cache.data, 0, 32768);
-			cache.Write();
+			byte[] data = new byte[32768];
+			System.arraycopy(modifiable, 0, data, 0, 32768);
+			cache.initialRadius = OrebfuscatorConfig.getInitialRadius();
+			cache.Write(hash, data);
 		}
 		return modifiable;
-	}
-	
-	public static boolean GetNetworkManagerQueue(NetworkManager networkManager, int number)
-	{
-		try {
-	        Field p = networkManager.getClass().getDeclaredField("x");
-			p.setAccessible(true);
-			return (Integer.parseInt(p.get(networkManager).toString()) < number);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	public static void LightingUpdate(Block block, boolean skipCheck)
-	{/*
-		if(skipCheck || OrebfuscatorConfig.emitsLight((byte)block.getTypeId()))
-		{
-		    int x = block.getWorld().getChunkAt(block.getLocation()).getX();
-		    int z = block.getWorld().getChunkAt(block.getLocation()).getZ();
-		    block.getWorld().refreshChunk(x, z);
-		    block.getWorld().refreshChunk(x, z+1);
-		    block.getWorld().refreshChunk(x, z-1);
-		    block.getWorld().refreshChunk(x+1, z);
-		    block.getWorld().refreshChunk(x+1, z+1);
-		    block.getWorld().refreshChunk(x+1, z-1);
-		    block.getWorld().refreshChunk(x-1, z);
-		    block.getWorld().refreshChunk(x-1, z+1);
-		    block.getWorld().refreshChunk(x-1, z-1);
-		}*/
 	}
 	
 	public static long Hash(byte[] data)

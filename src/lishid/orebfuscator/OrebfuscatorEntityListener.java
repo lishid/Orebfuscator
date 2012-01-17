@@ -1,25 +1,20 @@
 package lishid.orebfuscator;
 
-import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
+import lishid.orebfuscator.utils.OrebfuscatorThreadUpdate;
 
 import org.bukkit.block.Block;
 import org.bukkit.event.entity.*;
 
 public class OrebfuscatorEntityListener extends EntityListener{
-	Orebfuscator plugin;
-	public OrebfuscatorEntityListener(Orebfuscator scrap) {
-		plugin = scrap;
-	}
-	
 	@Override
 	public void onEntityExplode(EntityExplodeEvent event)
 	{
-		if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnExplosion() || !OrebfuscatorConfig.Enabled())
+		if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnExplosion() || !OrebfuscatorConfig.getEnabled())
 			return;
 		
 		for (Block block : event.blockList()) {
-	        Calculations.UpdateBlocksNearby(block);
+			OrebfuscatorThreadUpdate.Queue(block);
 		}
 	}
 }

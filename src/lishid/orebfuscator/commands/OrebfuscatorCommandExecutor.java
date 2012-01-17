@@ -3,14 +3,14 @@ package lishid.orebfuscator.commands;
 import java.io.File;
 
 import lishid.orebfuscator.Orebfuscator;
-import lishid.orebfuscator.utils.OrebfuscatorCalculationThread;
+import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
+import lishid.orebfuscator.utils.OrebfuscatorThreadCalculation;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import lishid.orebfuscator.utils.PermissionRelay;
 
 import net.minecraft.server.ChunkCoordIntPair;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -31,7 +31,7 @@ public class OrebfuscatorCommandExecutor {
     	        }
     	        catch (NumberFormatException e)
     	        {
-    	            sender.sendMessage(args[0] + " is not a number!");
+    	            Orebfuscator.message(sender, args[0] + " is not a number!");
     	            return true;
     	        }
     	        if (r < 1) r = 1;
@@ -50,12 +50,12 @@ public class OrebfuscatorCommandExecutor {
     	            ((CraftPlayer) player).getHandle().chunkCoordIntPairQueue.add(location);
     	        }
     	    }
-
+    	    Orebfuscator.message(sender, "Chunks within a radius of " + r + " have been sent to you.");
     	    return true;
     	}
     	
     	if ((sender instanceof Player) && !PermissionRelay.hasPermission((Player) sender, "Orebfuscator.admin")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permissions.");
+            Orebfuscator.message(sender, "You do not have permissions.");
             return true;
         }
     	
@@ -66,81 +66,81 @@ public class OrebfuscatorCommandExecutor {
     	
     	if(args[0].equalsIgnoreCase("engine") && args.length > 1)
     	{
-    		int engine = OrebfuscatorConfig.EngineMode();
+    		int engine = OrebfuscatorConfig.getEngineMode();
 			try 
 			{
 				engine = new Integer(args[1]);
 			}
 			catch (NumberFormatException e) 
 			{
-	    		sender.sendMessage(args[1] + " is not a number!");
+	    		Orebfuscator.message(sender, args[1] + " is not a number!");
 	    		return true;
 			}
-			if(engine != 1 && engine != 2 && engine != 3)
+			if(engine != 1 && engine != 2)
 			{
-	    		sender.sendMessage(args[1] + " is not a valid EngineMode!");
+	    		Orebfuscator.message(sender, args[1] + " is not a valid EngineMode!");
 	    		return true;
 			}
 			else
 			{
-	    		OrebfuscatorConfig.SetEngineMode(engine);
-	    		sender.sendMessage("[Orebfuscator] Engine set to: " + engine);
+	    		OrebfuscatorConfig.setEngineMode(engine);
+	    		Orebfuscator.message(sender, "Engine set to: " + engine);
 	    		return true;
 			}
     	}
     	
     	if(args[0].equalsIgnoreCase("updateradius") && args.length > 1)
     	{
-    		int radius = OrebfuscatorConfig.UpdateRadius();
+    		int radius = OrebfuscatorConfig.getUpdateRadius();
 			try 
 			{
 				radius = new Integer(args[1]);
 			}
 			catch (NumberFormatException e) 
 			{
-	    		sender.sendMessage(args[1] + " is not a number!");
+	    		Orebfuscator.message(sender, args[1] + " is not a number!");
 	    		return true;
 			}
-    		OrebfuscatorConfig.SetUpdateRadius(radius);
-    		sender.sendMessage("[Orebfuscator] UpdateRadius set to: " + radius);
+    		OrebfuscatorConfig.setUpdateRadius(radius);
+    		Orebfuscator.message(sender, "UpdateRadius set to: " + OrebfuscatorConfig.getUpdateRadius());
     		return true;
     	}
     	
     	if(args[0].equalsIgnoreCase("initialradius") && args.length > 1)
     	{
-    		int radius = OrebfuscatorConfig.InitialRadius();
+    		int radius = OrebfuscatorConfig.getInitialRadius();
 			try 
 			{
 				radius = new Integer(args[1]);
 			}
 			catch (NumberFormatException e) 
 			{
-	    		sender.sendMessage(args[1] + " is not a number!");
+	    		Orebfuscator.message(sender, args[1] + " is not a number!");
 	    		return true;
 			}
-    		OrebfuscatorConfig.SetInitialRadius(radius);
-    		sender.sendMessage("[Orebfuscator] InitialRadius set to: " + radius);
+    		OrebfuscatorConfig.setInitialRadius(radius);
+    		Orebfuscator.message(sender, "InitialRadius set to: " + radius);
     		return true;
     	}
     	
     	if(args[0].equalsIgnoreCase("threads") && args.length > 1)
     	{
-    		int threads = OrebfuscatorConfig.ProcessingThreads();
+    		int threads = OrebfuscatorConfig.getProcessingThreads();
 			try 
 			{
 				threads = new Integer(args[1]);
 			}
 			catch (NumberFormatException e) 
 			{
-	    		sender.sendMessage(args[1] + " is not a number!");
+	    		Orebfuscator.message(sender, args[1] + " is not a number!");
 	    		return true;
 			}
-    		OrebfuscatorConfig.SetProcessingThreads(threads);
-			if(OrebfuscatorCalculationThread.CheckThreads())
+    		OrebfuscatorConfig.setProcessingThreads(threads);
+			if(OrebfuscatorThreadCalculation.CheckThreads())
 			{
-				OrebfuscatorCalculationThread.SyncThreads();
+				OrebfuscatorThreadCalculation.SyncThreads();
 			}
-    		sender.sendMessage("[Orebfuscator] Processing Threads set to: " + threads);
+    		Orebfuscator.message(sender, "Processing Threads set to: " + threads);
     		return true;
     	}
     	
@@ -150,101 +150,113 @@ public class OrebfuscatorCommandExecutor {
     		
 	    	if(args[0].equalsIgnoreCase("enable") && args.length == 1)
 	    	{
-	    		OrebfuscatorConfig.SetEnabled(true);
-	    		sender.sendMessage("[Orebfuscator] Enabled.");
+	    		OrebfuscatorConfig.setEnabled(true);
+	    		Orebfuscator.message(sender, "Enabled.");
 	    	}
 	    	
 	    	if(args[0].equalsIgnoreCase("disable") && args.length == 1)
 	    	{
-	    		OrebfuscatorConfig.SetEnabled(false);
-	    		sender.sendMessage("[Orebfuscator] Disabled.");
+	    		OrebfuscatorConfig.setEnabled(false);
+	    		Orebfuscator.message(sender, "Disabled.");
 	    	}
 
 			if(args.length > 1)
 			{
 				if(args[1].equalsIgnoreCase("updatebreak"))
 				{
-					OrebfuscatorConfig.SetUpdateOnBreak(data);
-		    		sender.sendMessage("[Orebfuscator] OnBlockBreak update "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setUpdateOnBreak(data);
+		    		Orebfuscator.message(sender, "OnBlockBreak update "+(data?"enabled":"disabled")+".");
 				}
 				else if(args[1].equalsIgnoreCase("updatedamage"))
 				{
-					OrebfuscatorConfig.SetUpdateOnDamage(data);
-		    		sender.sendMessage("[Orebfuscator] OnBlockDamage update "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setUpdateOnDamage(data);
+		    		Orebfuscator.message(sender, "OnBlockDamage update "+(data?"enabled":"disabled")+".");
 				}
 				else if(args[1].equalsIgnoreCase("updatephysics"))
 				{
-					OrebfuscatorConfig.SetUpdateOnPhysics(data);
-		    		sender.sendMessage("[Orebfuscator] OnBlockPhysics update "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setUpdateOnPhysics(data);
+		    		Orebfuscator.message(sender, "OnBlockPhysics update "+(data?"enabled":"disabled")+".");
 				}
 				else if(args[1].equalsIgnoreCase("updateexplosion"))
 				{
-					OrebfuscatorConfig.SetUpdateOnExplosion(data);
-		    		sender.sendMessage("[Orebfuscator] Creeper explosion update "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setUpdateOnExplosion(data);
+		    		Orebfuscator.message(sender, "OnCreeperExplosion update "+(data?"enabled":"disabled")+".");
+				}
+				else if(args[1].equalsIgnoreCase("updatethread"))
+				{
+					OrebfuscatorConfig.setUpdateThread(data);
+		    		Orebfuscator.message(sender, "Extra update thread "+(data?"enabled":"disabled. Updates will be processed in the main thread instead")+".");
 				}
 				else if(args[1].equalsIgnoreCase("darknesshide"))
 				{
-					OrebfuscatorConfig.SetDarknessHideBlocks(data);
-		    		sender.sendMessage("[Orebfuscator] Darkness obfuscation "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setDarknessHideBlocks(data);
+		    		Orebfuscator.message(sender, "Darkness obfuscation "+(data?"enabled":"disabled")+".");
 				}
 				else if(args[1].equalsIgnoreCase("op"))
 				{
-					OrebfuscatorConfig.SetNoObfuscationForOps(data);
-		    		sender.sendMessage("[Orebfuscator] OP's obfuscator "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setNoObfuscationForOps(data);
+		    		Orebfuscator.message(sender, "Ops No-Obfuscation "+(data?"enabled":"disabled")+".");
 				}
-				else if(args[1].equalsIgnoreCase("perms"))
+				else if(args[1].equalsIgnoreCase("perms") || args[1].equalsIgnoreCase("permissions"))
 				{
-					OrebfuscatorConfig.SetNoObfuscationForPermission(data);
-		    		sender.sendMessage("[Orebfuscator] Permissions obfuscator "+(data?"enabled":"disabled")+".");
-				}
-				else if(args[1].equalsIgnoreCase("world") && args.length > 2)
-				{
-					OrebfuscatorConfig.SetDisabledWorlds(args[2], !data);
-		    		sender.sendMessage("[Orebfuscator] World \""+args[2]+"\" obfuscation "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setNoObfuscationForPermission(data);
+		    		Orebfuscator.message(sender, "Permissions No-Obfuscation "+(data?"enabled":"disabled")+".");
 				}
 				else if(args[1].equalsIgnoreCase("cache"))
 				{
-					OrebfuscatorConfig.SetUseCache(data);
-		    		sender.sendMessage("[Orebfuscator] Cache "+(data?"enabled":"disabled")+".");
+					OrebfuscatorConfig.setUseCache(data);
+		    		Orebfuscator.message(sender, "Cache "+(data?"enabled":"disabled")+".");
+				}
+				else if(args[1].equalsIgnoreCase("verbose"))
+				{
+					OrebfuscatorConfig.setVerboseMode(data);
+					Orebfuscator.Verbose();
+		    		Orebfuscator.message(sender, "Verbose mode "+(data?"enabled":"disabled")+".");
+				}
+				else if(args[1].equalsIgnoreCase("world") && args.length > 2)
+				{
+					OrebfuscatorConfig.setDisabledWorlds(args[2], !data);
+		    		Orebfuscator.message(sender, "World \""+args[2]+"\" obfuscation "+(data?"enabled":"disabled")+".");
 				}
 			}
     	}
     	
     	if(args[0].equalsIgnoreCase("reload"))
     	{
-    		OrebfuscatorConfig.Reload();
-    		sender.sendMessage("[Orebfuscator] Reload complete.");
+    		OrebfuscatorConfig.reload();
+    		Orebfuscator.message(sender, "Reload complete.");
     	}
     	
     	if(args[0].equalsIgnoreCase("status"))
     	{
-    		sender.sendMessage("[Orebfuscator] Orebfuscator status:");
-    		sender.sendMessage("[Orebfuscator] Plugin is: " + (OrebfuscatorConfig.Enabled()?"Enabled":"Disabled"));
-    		sender.sendMessage("[Orebfuscator] EngineMode: " + OrebfuscatorConfig.EngineMode());
+    		Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.getEnabled()?"Enabled":"Disabled"));
+    		Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
     		
     		if(Orebfuscator.usingSpout)
-        		sender.sendMessage("[Orebfuscator] Executing Threads: Using Spout");
+        		Orebfuscator.message(sender, "Executing Threads: Using Spout");
     		else
-    			sender.sendMessage("[Orebfuscator] Executing Threads: " + OrebfuscatorCalculationThread.getThreads());
-    		sender.sendMessage("[Orebfuscator] Processing Threads Max: " + OrebfuscatorConfig.ProcessingThreads());
+    			Orebfuscator.message(sender, "Executing Threads: " + OrebfuscatorThreadCalculation.getThreads());
+    		Orebfuscator.message(sender, "Processing Threads Max: " + OrebfuscatorConfig.getProcessingThreads());
+    		Orebfuscator.message(sender, "Extra Update Thread: " + (OrebfuscatorConfig.getUpdateThread()?"Enabled":"Disabled"));
 
-    		sender.sendMessage("[Orebfuscator] Caching: " + (OrebfuscatorConfig.UseCache()?"Enabled":"Disabled"));
+    		Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache()?"Enabled":"Disabled"));
 
-    		sender.sendMessage("[Orebfuscator] Initial Obfuscation Radius: " + OrebfuscatorConfig.InitialRadius());
-    		sender.sendMessage("[Orebfuscator] Update Radius: " + OrebfuscatorConfig.UpdateRadius());
+    		Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
+    		Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());
     		
-    		sender.sendMessage("[Orebfuscator] Disabled worlds: " + OrebfuscatorConfig.disabledWorlds());
+    		String disabledWorlds = OrebfuscatorConfig.getDisabledWorlds();
+    		Orebfuscator.message(sender, "Disabled worlds: " + (disabledWorlds.equals("")?"None":disabledWorlds));
     	}
     	
     	if(args[0].equalsIgnoreCase("clearcache"))
     	{
+    		ObfuscatedRegionFileCache.clearCache();
     		File dir = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
     		try {
     			DeleteDir(dir);
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
-    		sender.sendMessage("[Orebfuscator] Cache cleared.");
+    		catch (Exception e) { Orebfuscator.log(e); }
+    		Orebfuscator.message(sender, "Cache cleared.");
     	}
     	
     	return true;
@@ -253,7 +265,6 @@ public class OrebfuscatorCommandExecutor {
     private static void DeleteDir(File dir)
     {
     	try{
-    		
 	    	if (!dir.exists())
 	    		return;
 	    	
@@ -262,7 +273,7 @@ public class OrebfuscatorCommandExecutor {
 	                DeleteDir(f);
 	        
 	        dir.delete();
-	        
-        }catch(Exception e){}
+        }
+    	catch (Exception e) { Orebfuscator.log(e); }
     }
 }
