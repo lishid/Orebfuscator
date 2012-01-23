@@ -14,7 +14,6 @@ import net.minecraft.server.Packet51MapChunk;
 
 public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 {
-	private static final Object syncObj = new Object();
 	private static final int QUEUE_CAPACITY = 1024 * 10;
 	private static ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
 	private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<ObfuscatedPlayerPacket>(QUEUE_CAPACITY);
@@ -29,29 +28,26 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 		return threads.size() == OrebfuscatorConfig.getProcessingThreads();
 	}
 	
-	public static void SyncThreads()
+	public static synchronized void SyncThreads()
 	{
-		synchronized(syncObj)
+		int extra = threads.size() - OrebfuscatorConfig.getProcessingThreads();
+		if (extra > 0)
 		{
-			int extra = threads.size() - OrebfuscatorConfig.getProcessingThreads();
-			if (extra > 0)
+			for(int i = extra; i > 0; i--)
 			{
-				for(int i = extra; i > 0; i--)
-				{
-					threads.get(i - 1).kill.set(true);
-					threads.remove(i - 1);
-				}
+				threads.get(i - 1).kill.set(true);
+				threads.remove(i - 1);
 			}
-			else if (extra < 0)
+		}
+		else if (extra < 0)
+		{
+			extra = -extra;
+			for(int i = 0; i < extra; i++)
 			{
-				extra = -extra;
-				for(int i = 0; i < extra; i++)
-				{
-					OrebfuscatorThreadCalculation thread = new OrebfuscatorThreadCalculation();
-					thread.setName("Orebfuscator Calculation Thread");
-					thread.start();
-					threads.add(thread);
-				}
+				OrebfuscatorThreadCalculation thread = new OrebfuscatorThreadCalculation();
+				thread.setName("Orebfuscator Calculation Thread");
+				thread.start();
+				threads.add(thread);
 			}
 		}
 	}
@@ -69,6 +65,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 	}
 
 	private AtomicBoolean kill = new AtomicBoolean(false);
+	private byte[] chunkBuffer = new byte[16 * 16 * 128];
 	
 	public void run() {
 		while (!this.isInterrupted() && !kill.get()) {
@@ -78,7 +75,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 				
 				try {
 					//Try to obfuscate and send the packet
-					Calculations.Obfuscate(packet.packet, packet.player, true, true);
+					Calculations.Obfuscate(packet.packet, packet.player, true, chunkBuffer);
 				}
 				catch (Exception e)
 				{

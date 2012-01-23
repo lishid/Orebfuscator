@@ -3,8 +3,9 @@ package lishid.orebfuscator.commands;
 import java.io.File;
 
 import lishid.orebfuscator.Orebfuscator;
+import lishid.orebfuscator.cache.ObfuscatedHashCache;
 import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
-import lishid.orebfuscator.utils.OrebfuscatorThreadCalculation;
+import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import lishid.orebfuscator.utils.PermissionRelay;
 
@@ -251,6 +252,7 @@ public class OrebfuscatorCommandExecutor {
     	if(args[0].equalsIgnoreCase("clearcache"))
     	{
     		ObfuscatedRegionFileCache.clearCache();
+    		ObfuscatedHashCache.clearCache();
     		File dir = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
     		try {
     			DeleteDir(dir);

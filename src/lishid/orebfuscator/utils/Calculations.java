@@ -3,10 +3,8 @@ package lishid.orebfuscator.utils;
 import gnu.trove.set.hash.TByteHashSet;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
@@ -14,7 +12,6 @@ import java.util.zip.Deflater;
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.cache.ObfuscatedChunkCache;
 
-import net.minecraft.server.Chunk;
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
@@ -27,6 +24,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.craftbukkit.CraftWorld;
 
 public class Calculations
 {
@@ -54,9 +52,7 @@ public class Calculations
             {
             	playerList = block.getWorld().getPlayers();
             	break;
-            }
-            catch(Exception e)
-            { }
+            } catch(Exception e) { } //ConcurrentModificationException
         }
 		
         for (Player player : playerList) {
@@ -105,67 +101,28 @@ public class Calculations
 	public static void UpdateBlock(Block block, HashSet<CraftPlayer> players)
 	{
 		if (block == null) return;
+		
+        Packet p = null;
+        while(true)
+        {
+            try
+            {
+            	TileEntity te = ((CraftWorld)block.getWorld()).getHandle().getTileEntity(block.getX(), block.getY(), block.getZ());
+            	if(te != null)
+            	{
+            		p = te.k();
+        		}
+            	break;
+            }
+            catch (Exception e) { } //ConcurrentModificationException
+        }
         
         for (CraftPlayer player : players) {
             player.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
             
-            TileEntity te;
-            while(true)
+            if(p != null)
             {
-	            try
-	            {
-	            	te = player.getHandle().world.getTileEntity(block.getX(), block.getY(), block.getZ());
-	            	break;
-	            }
-	            catch(Exception e)
-	            {
-		            try
-		            {
-		                net.minecraft.server.World world = player.getHandle().world;
-		                
-		                Chunk chunk = world.getChunkAt(block.getX() >> 4, block.getZ() >> 4);
-		
-		                if (chunk == null) {
-		                    return;
-		                } else {
-		                    TileEntity tileentity = chunk.d(block.getX() & 15, block.getY(), block.getZ() & 15);
-		                    
-		                    if (tileentity == null) {
-		                    	Field M = World.class.getDeclaredField("M");
-		                    	M.setAccessible(true);
-		                    	
-		                    	@SuppressWarnings("rawtypes")
-								List m = (List)M.get(world);
-			                    synchronized(m)
-			                    {
-			                        @SuppressWarnings("rawtypes")
-									Iterator iterator = m.iterator();
-			
-			                        while (iterator.hasNext()) {
-			                            TileEntity tileentity1 = (TileEntity) iterator.next();
-			
-			                            if (!tileentity1.l() && tileentity1.x == block.getX() && tileentity1.y == block.getY() && tileentity1.z == block.getZ()) {
-			                                tileentity = tileentity1;
-			                                break;
-			                            }
-			                        }
-			                    }
-		                    }
-		
-		                    te = tileentity;
-		                }
-		                
-		                break;
-		            }
-		            catch(Exception e2) { }
-	            }
-            }
-    		
-            if(te != null)
-            {
-            	Packet p = te.k();
-            	if(p != null)
-            		player.getHandle().netServerHandler.sendPacket(p);
+        		player.getHandle().netServerHandler.sendPacket(p);
             }
         }
 	}
@@ -186,10 +143,7 @@ public class Calculations
 		}
 		else
 		{
-			if(info.startY >= 0)
-			{
-				id = (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ);
-			}
+			id = (byte)info.world.getTypeId(x + info.startX, y + info.startY, z + info.startZ);
 		}
 
 		if(!IDPool.contains(id) && OrebfuscatorConfig.isTransparent(id))
@@ -231,13 +185,13 @@ public class Calculations
 			
 		return false;
 	}
-	
+	/*
 	public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player)
 	{
 		Obfuscate(packet, player, true, true);
-	}
+	}*/
 
-	public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, boolean sendTileEntities)
+	public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
 	{
 		NetServerHandler nsh = player.getHandle().netServerHandler;
 		if(nsh == null || nsh.disconnected || nsh.networkManager == null)
@@ -251,6 +205,8 @@ public class Calculations
 		info.sizeX = packet.d;
 		info.sizeY = packet.e;
 		info.sizeZ = packet.f;
+		info.chunkSize = info.sizeX * info.sizeY * info.sizeZ;
+		info.buffer = chunkBuffer;
 		
 		//Obfuscate
 		if(info.world.getWorld().getEnvironment() == Environment.NORMAL && //Environment.NORMAL = overworld
@@ -261,7 +217,7 @@ public class Calculations
 		{
 			info.data = packet.rawData;
 			byte[] obfuscated = Obfuscate(info);
-			System.arraycopy(obfuscated, 0, packet.rawData, 0, obfuscated.length);
+			System.arraycopy(obfuscated, 0, packet.rawData, 0, info.chunkSize);
 		}
 		
 		//Free memory
@@ -269,32 +225,37 @@ public class Calculations
 		
 		if(sendPacket)
 		{
-			//Compression
-	        int dataSize = packet.rawData.length;
-	        if (deflateBuffer.length < dataSize + 100) {
-	            deflateBuffer = new byte[dataSize + 100];
-	        }
-
-	        deflater.reset();
-	        deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
-	        deflater.setInput(packet.rawData);
-	        deflater.finish();
-	        int size = deflater.deflate(deflateBuffer);
-	        if (size == 0) {
-	            size = deflater.deflate(deflateBuffer);
-	        }
-        	
-	        // copy compressed data to packet
-	        packet.buffer = new byte[size];
-	        packet.size = size;
-	        System.arraycopy(deflateBuffer, 0, packet.buffer, 0, size);
+			try{
+				synchronized(deflateBuffer)
+				{
+					//Compression
+			        int dataSize = packet.rawData.length;
+			        if (deflateBuffer.length < dataSize + 100) {
+			            deflateBuffer = new byte[dataSize + 100];
+			        }
+			        
+			        deflater.reset();
+			        deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
+			        deflater.setInput(packet.rawData);
+			        deflater.finish();
+			        int size = deflater.deflate(deflateBuffer);
+			        if (size == 0) {
+			            size = deflater.deflate(deflateBuffer);
+			        }
+		        	
+			        // copy compressed data to packet
+			        packet.buffer = new byte[size];
+			        packet.size = size;
+			        System.arraycopy(deflateBuffer, 0, packet.buffer, 0, size);
+				}
+			} catch (Exception e) { Orebfuscator.log(e); }
 			
 			//Send it
 			nsh.networkManager.queue(packet);
 		}
 		
 		//Send tile entities if not using spout
-		if(sendTileEntities)
+		if(sendPacket)
 		{
 			//Send TileEntities
 			Object[] list = info.world.getTileEntities(info.startX, info.startY, info.startZ, info.startX + info.sizeX, info.startY + info.sizeY, info.startZ + info.sizeZ).toArray();
@@ -313,7 +274,6 @@ public class Calculations
 	
 	public static byte[] Obfuscate(ChunkInfo info)
 	{
-		boolean useCache = false;
 		File cacheFolder = new File(new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache"), info.world.getWorld().getName());
 		int chunkX = info.startX >> 4;
 		int chunkZ = info.startZ >> 4;
@@ -321,26 +281,22 @@ public class Calculations
 		TByteHashSet blockList = new TByteHashSet();
 		int tmp = 0;
 		boolean Obfuscate = false;
-		int ChunkSize = info.sizeX * info.sizeY * info.sizeZ;
-		byte[] modifiable = new byte[ChunkSize];
-		System.arraycopy(info.data, 0, modifiable, 0, ChunkSize);
-		long hash = Hash(modifiable);
+		boolean useCache = false;
+		if(info.chunkSize > info.buffer.length)
+			info.buffer = new byte[info.chunkSize];
+		System.arraycopy(info.data, 0, info.buffer, 0, info.chunkSize);
+		long hash = Hash(info.buffer);
 
 		//Caching
 		if(info.sizeX == 16 && info.sizeY == 128 && info.sizeZ == 16 && OrebfuscatorConfig.getUseCache())
 		{
 			useCache = true;
-			/*
-			if(OrebfuscatorConfig.getVerboseMode())
-			{
-				if(result == null)
-					Orebfuscator.log("Cache not found.");
-			}*/
+			
 			long storedHash = cache.getHash();
 			if(hash == storedHash)
 			{
 				byte[] data = cache.getData();
-				if(data != null && data.length == ChunkSize)
+				if(data != null && data.length == info.chunkSize)
 				{
 					if(OrebfuscatorConfig.getVerboseMode())
 					{
@@ -348,29 +304,17 @@ public class Calculations
 					}
 					
 					//Hash match, use the cached data instead
-					System.arraycopy(data, 0, modifiable, 0, data.length);
+					System.arraycopy(data, 0, info.buffer, 0, data.length);
 					//Skip calculations
-					return modifiable;
+					return info.buffer;
 				}
-			}/*
-			else if(storedHash != 0L)
-			{
-				if(OrebfuscatorConfig.getVerboseMode())
-				{
-					Orebfuscator.log("Cache hash does not match.");
-				}
-				//Hash does not match, invalidate nearby chunks
-				(new ObfuscatedChunkCache(cacheFolder, chunkX + 1, chunkZ, OrebfuscatorConfig.getInitialRadius())).Invalidate();
-				(new ObfuscatedChunkCache(cacheFolder, chunkX - 1, chunkZ, OrebfuscatorConfig.getInitialRadius())).Invalidate();
-				(new ObfuscatedChunkCache(cacheFolder, chunkX, chunkZ + 1, OrebfuscatorConfig.getInitialRadius())).Invalidate();
-				(new ObfuscatedChunkCache(cacheFolder, chunkX, chunkZ - 1, OrebfuscatorConfig.getInitialRadius())).Invalidate();
-			}*/
+			}
 		}
 		
 		if(OrebfuscatorConfig.getVerboseMode())
 		{
 			ChunksCalculated++;
-			Orebfuscator.log("Cache NOT found.");
+			Orebfuscator.log("Cache not found or incompatible.");
 		}
 		
 		//Calculating
@@ -427,13 +371,13 @@ public class Calculations
 							if(OrebfuscatorConfig.getEngineMode() == 1)
 							{
 								//Engine mode 1, replace with stone
-								modifiable[index] = 1;
+								info.buffer[index] = 1;
 							}
 							else if(OrebfuscatorConfig.getEngineMode() == 2)
 							{
 								//Ending mode 2, replace with random block
 					            tmp = tmp % (OrebfuscatorConfig.getRandomBlocks().size() - 1) + 1;
-								modifiable[index] = (byte)(int)OrebfuscatorConfig.getRandomBlocks().get(tmp);
+					            info.buffer[index] = (byte)(int)OrebfuscatorConfig.getRandomBlocks().get(tmp);
 							}
 						}
 
@@ -448,12 +392,11 @@ public class Calculations
 		if(useCache)
 		{
 			//Save cache
-			byte[] data = new byte[32768];
-			System.arraycopy(modifiable, 0, data, 0, 32768);
 			cache.initialRadius = OrebfuscatorConfig.getInitialRadius();
-			cache.Write(hash, data);
+			cache.Write(hash, info.buffer);
 		}
-		return modifiable;
+		
+		return info.buffer;
 	}
 	
 	public static long Hash(byte[] data)

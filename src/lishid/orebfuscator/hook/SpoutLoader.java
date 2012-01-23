@@ -12,6 +12,8 @@ import org.getspout.spoutapi.packet.standard.MCPacket;
 
 public class SpoutLoader {
 	
+	private static byte[] chunkBuffer = new byte[16 * 16 * 128];
+	
 	public static void InitializeSpout()
 	{
 		//Add spout listeners
@@ -25,7 +27,7 @@ public class SpoutLoader {
 				//Process the chunk
 				if(((MCCraftPacket)mcpacket).getPacket() instanceof Packet51MapChunk)
 				{
-					Calculations.Obfuscate((Packet51MapChunk)((MCCraftPacket)mcpacket).getPacket(), (CraftPlayer)player, false, false);
+					Calculations.Obfuscate((Packet51MapChunk)((MCCraftPacket)mcpacket).getPacket(), (CraftPlayer)player, false, chunkBuffer);
 				}
 				return true;
 			}

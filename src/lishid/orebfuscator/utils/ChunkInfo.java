@@ -10,6 +10,8 @@ public class ChunkInfo {
 	int startX;
 	int startY;
 	int startZ;
+	int chunkSize;
 	WorldServer world;
 	byte[] data;
+	byte[] buffer;
 }

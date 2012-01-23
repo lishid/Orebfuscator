@@ -1,12 +1,11 @@
-
 package lishid.orebfuscator;
 
 import java.util.logging.Logger;
 
-import lishid.chunkscrambler.ChunkScramblerWorldListener;
-import lishid.chunkscrambler.ScrambledWorldChunkManager;
+import lishid.orebfuscator.chunkscrambler.ChunkScramblerWorldListener;
+import lishid.orebfuscator.chunkscrambler.ScrambledWorldChunkManager;
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
-import lishid.orebfuscator.spout.SpoutLoader;
+import lishid.orebfuscator.hook.SpoutLoader;
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.Metrics;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;

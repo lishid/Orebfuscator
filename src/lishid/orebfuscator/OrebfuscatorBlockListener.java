@@ -2,8 +2,8 @@ package lishid.orebfuscator;
 
 import java.util.HashMap;
 
+import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
-import lishid.orebfuscator.utils.OrebfuscatorThreadUpdate;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;

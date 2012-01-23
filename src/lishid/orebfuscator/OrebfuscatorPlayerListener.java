@@ -1,8 +1,8 @@
 package lishid.orebfuscator;
 
-import lishid.orebfuscator.utils.OrebfuscatorNetServerHandler;
+import lishid.orebfuscator.hook.OrebfuscatorNetServerHandler;
+import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
-import lishid.orebfuscator.utils.OrebfuscatorThreadUpdate;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.CraftServer;
