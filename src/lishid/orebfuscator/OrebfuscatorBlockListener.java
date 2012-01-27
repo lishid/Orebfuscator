@@ -8,12 +8,15 @@ import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 
-public class OrebfuscatorBlockListener extends BlockListener {
+public class OrebfuscatorBlockListener implements Listener {
 	public static HashMap<Player, Block> blockLog = new HashMap<Player, Block>();
     
-    @Override
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
         if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnBreak())
         	return;
@@ -21,7 +24,7 @@ public class OrebfuscatorBlockListener extends BlockListener {
         OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }
     
-    @Override
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockDamage(BlockDamageEvent event) {
     	if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnDamage())
         	return;
@@ -36,7 +39,7 @@ public class OrebfuscatorBlockListener extends BlockListener {
 		OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }
     
-    @Override
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnPhysics())
         	return;

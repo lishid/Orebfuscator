@@ -3,13 +3,14 @@ package lishid.orebfuscator.chunkscrambler;
 import lishid.orebfuscator.Orebfuscator;
 
 import org.bukkit.World;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldInitEvent;
-import org.bukkit.event.world.WorldListener;
 
-public class ChunkScramblerWorldListener extends WorldListener{
+public class ChunkScramblerWorldListener implements Listener{
 	
-	public ChunkScramblerWorldListener() { }
-	
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onWorldInit(WorldInitEvent e)
 	{
 		World world = e.getWorld();

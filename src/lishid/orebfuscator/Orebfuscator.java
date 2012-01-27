@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import lishid.orebfuscator.chunkscrambler.ChunkScramblerWorldListener;
 import lishid.orebfuscator.chunkscrambler.ScrambledWorldChunkManager;
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
+import lishid.orebfuscator.hook.OrebfuscatorPlayerListenerHook;
 import lishid.orebfuscator.hook.SpoutLoader;
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.Metrics;
@@ -19,7 +20,6 @@ import org.bukkit.World.Environment;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftWorld;
-import org.bukkit.event.Event;
 
 /**
  * Anti X-RAY
@@ -42,6 +42,11 @@ public class Orebfuscator extends JavaPlugin {
      * Player listener
      */
 	private final OrebfuscatorPlayerListener playerListener = new OrebfuscatorPlayerListener();
+	
+	/**
+     * Player listener to hook to CB's NSH
+     */
+	private final OrebfuscatorPlayerListenerHook playerListenerHook = new OrebfuscatorPlayerListenerHook();
 	
 	/**
      * Logger for debugging.
@@ -78,18 +83,14 @@ public class Orebfuscator extends JavaPlugin {
     	OrebfuscatorConfig.load();
         
         //Orebfuscator events
-		pm.registerEvent(Event.Type.PLAYER_QUIT, this.playerListener, Event.Priority.Monitor, this);
-		pm.registerEvent(Event.Type.BLOCK_BREAK, this.blockListener, Event.Priority.Monitor, this);
-		pm.registerEvent(Event.Type.BLOCK_DAMAGE, this.blockListener, Event.Priority.Monitor, this);
-		pm.registerEvent(Event.Type.BLOCK_PHYSICS, this.blockListener, Event.Priority.Monitor, this);
-		pm.registerEvent(Event.Type.ENTITY_EXPLODE, this.entityListener, Event.Priority.Monitor, this);
-		pm.registerEvent(Event.Type.PLAYER_INTERACT, this.playerListener, Event.Priority.Monitor, this);
-		
+		pm.registerEvents(this.playerListener, this);
+		pm.registerEvents(this.entityListener, this);
+		pm.registerEvents(this.blockListener, this);
 		//Start ChunkScrambler
 		if(OrebfuscatorConfig.getUseChunkScrambler())
 		{
 			//ChunkScrambler events
-			pm.registerEvent(Event.Type.WORLD_INIT, new ChunkScramblerWorldListener(), Event.Priority.Highest, this);
+			pm.registerEvents(new ChunkScramblerWorldListener(), this);
 			for(World world : this.getServer().getWorlds())
 				ReplaceWorldChunkManager(world);
 			
@@ -124,7 +125,7 @@ public class Orebfuscator extends JavaPlugin {
 		else
 		{
 			//Non-spout method, use Player Join to replace NetServerHandler
-			pm.registerEvent(Event.Type.PLAYER_JOIN, this.playerListener, Event.Priority.Monitor, this);
+			pm.registerEvents(this.playerListenerHook, this);
 			Orebfuscator.log("Spout not found, using non-Spout mode.");
 		}
 		
