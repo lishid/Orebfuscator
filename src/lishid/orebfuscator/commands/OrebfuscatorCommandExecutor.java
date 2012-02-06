@@ -3,6 +3,7 @@ package lishid.orebfuscator.commands;
 import java.io.File;
 
 import lishid.orebfuscator.Orebfuscator;
+import lishid.orebfuscator.cache.ObfuscatedChunkCache;
 import lishid.orebfuscator.cache.ObfuscatedHashCache;
 import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
 import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
@@ -244,6 +245,7 @@ public class OrebfuscatorCommandExecutor {
 
     		Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
     		Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());
+    		Orebfuscator.message(sender, "MaxLoadedCacheFiles: " + OrebfuscatorConfig.getMaxLoadedCacheFiles());
     		
     		String disabledWorlds = OrebfuscatorConfig.getDisabledWorlds();
     		Orebfuscator.message(sender, "Disabled worlds: " + (disabledWorlds.equals("")?"None":disabledWorlds));
@@ -259,6 +261,21 @@ public class OrebfuscatorCommandExecutor {
 			}
     		catch (Exception e) { Orebfuscator.log(e); }
     		Orebfuscator.message(sender, "Cache cleared.");
+    	}
+    	
+    	if(args[0].equalsIgnoreCase("recache"))
+    	{
+    		if(!(sender instanceof Player))
+    		{
+        		Orebfuscator.message(sender, "You must execute this as a player");
+    			return true;
+    		}
+    		Player player = (Player) sender;
+    		
+    		File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), player.getWorld().getName());
+    		ObfuscatedChunkCache cache = new ObfuscatedChunkCache(cacheFolder, player.getLocation().getChunk().getX(), player.getLocation().getChunk().getZ(), OrebfuscatorConfig.getInitialRadius());
+    		cache.Invalidate();
+    		Orebfuscator.message(sender, "Chunk cache cleared. It will be re-calculated next time.");
     	}
     	
     	return true;

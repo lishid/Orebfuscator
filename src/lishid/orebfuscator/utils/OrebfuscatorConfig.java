@@ -2,11 +2,14 @@ package lishid.orebfuscator.utils;
 
 import gnu.trove.set.hash.TByteHashSet;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Random;
+
+import org.bukkit.Bukkit;
 
 import lishid.orebfuscator.Orebfuscator;
 
@@ -21,6 +24,7 @@ public class OrebfuscatorConfig {
 	private static int UpdateRadius = 2;
 	private static int InitialRadius = 1;
 	private static int ProcessingThreads = 1;
+	private static int MaxLoadedCacheFiles = 64;
 	private static long Seed = 0;
 	private static boolean UseChunkScrambler = true;
 	private static boolean UpdateOnBreak = true;
@@ -35,6 +39,13 @@ public class OrebfuscatorConfig {
 	private static boolean NoObfuscationForPermission = true;
 	private static boolean UseCache = true;
 	private static boolean Enabled = true;
+	private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
+	
+	//Other gets
+	public static File getCacheFolder()
+	{
+		return CacheFolder;
+	}
 	
 	//Get
 	public static int getEngineMode()
@@ -63,6 +74,15 @@ public class OrebfuscatorConfig {
 		if(ProcessingThreads > 4)
 			return 4;
 		return ProcessingThreads;
+	}
+	
+	public static int getMaxLoadedCacheFiles()
+	{
+		if(MaxLoadedCacheFiles <= 16)
+			return 16;
+		if(MaxLoadedCacheFiles > 128)
+			return 128;
+		return MaxLoadedCacheFiles;
 	}
 	
 	public static long getSeed()
@@ -192,7 +212,10 @@ public class OrebfuscatorConfig {
 	
 	public static void shuffleRandomBlocks()
 	{
-		Collections.shuffle(RandomBlocks);
+		synchronized(RandomBlocks)
+		{
+			Collections.shuffle(RandomBlocks);
+		}
 	}
 	
 	
@@ -221,6 +244,12 @@ public class OrebfuscatorConfig {
 	{
 		setData("Integers.ProcessingThreads", data);
 		ProcessingThreads = data;
+	}
+	
+	public static void setMaxLoadedCacheFiles(int data)
+	{
+		setData("Integers.MaxLoadedCacheFiles", data);
+		MaxLoadedCacheFiles = data;
 	}
 	
 	public static void setSeed(int data)
@@ -404,6 +433,7 @@ public class OrebfuscatorConfig {
 			System.out.println("[Orebfuscator] Warning, InitialRadius is 0. This will cause all exposed blocks to be obfuscated.");
 		}
 		ProcessingThreads = getInt("Integers.ProcessingThreads", ProcessingThreads);
+		MaxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles);
 		Seed = getLong("Integers.ScrambleSeed", Seed);
 		UseChunkScrambler = getBoolean("Booleans.UseChunkScrambler", UseChunkScrambler);
 		UpdateOnBreak = getBoolean("Booleans.UpdateOnBreak", UpdateOnBreak);
@@ -428,6 +458,7 @@ public class OrebfuscatorConfig {
 	
 	public static void reload()
 	{
+		Orebfuscator.instance.reloadConfig();
 		load();
 	}
 	

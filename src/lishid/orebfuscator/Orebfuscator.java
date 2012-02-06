@@ -98,7 +98,6 @@ public class Orebfuscator extends JavaPlugin {
 			if(pm.getPlugin("ChunkScrambler") != null)
 			{
 				Orebfuscator.log("ChunkScrambler is integrated into Orebfuscator now. You should remove ChunkScrambler.jar from the plugins folder.");
-				pm.disablePlugin(pm.getPlugin("ChunkScrambler"));
 			}
 			Orebfuscator.log("Integrated ChunkScrambled enabled!");
 		}
@@ -113,7 +112,7 @@ public class Orebfuscator extends JavaPlugin {
 		//Spout events
 		else if(pm.getPlugin("Spout") != null)
 		{
-			//Using Spout.
+			//Using Spout
 			try{
 				SpoutLoader.InitializeSpout();
 				usingSpout = true;
@@ -134,6 +133,7 @@ public class Orebfuscator extends JavaPlugin {
 		//Metrics
 		try
 		{
+			Orebfuscator.log("Statistics features enabling...");
 			metrics = new Metrics();
 			metrics.beginMeasuringPlugin(this);
 		}
@@ -145,10 +145,7 @@ public class Orebfuscator extends JavaPlugin {
     }
     
     @Override
-    public void onDisable() {
-    	//Save configurations
-    	OrebfuscatorConfig.save();
-    	
+    public void onDisable() {    	
     	//Output
         PluginDescriptionFile pdfFile = this.getDescription();
         log("Version " + pdfFile.getVersion() + " disabled!" );

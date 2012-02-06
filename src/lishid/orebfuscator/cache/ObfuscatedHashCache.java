@@ -1,5 +1,6 @@
 package lishid.orebfuscator.cache;
 
+import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import net.minecraft.server.*;
 
 import java.io.DataInputStream;
@@ -29,7 +30,7 @@ public class ObfuscatedHashCache {
             path.mkdirs();
         }
 
-        if (cachedHashRegionFiles.size() >= 128) {
+        if (cachedHashRegionFiles.size() >= OrebfuscatorConfig.getMaxLoadedCacheFiles()) {
             clearCache();
         }
 
