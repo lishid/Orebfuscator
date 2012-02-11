@@ -26,6 +26,7 @@ commands:
            /<command> reload - Reload from config file
            /<command> status - Show status of Orebfuscator
            /<command> clearcache - Clear all cache
+           /<command> recache - Clear the cache at current chunk
   chunk:
     description: Re-send chunks.
     usage: |

@@ -72,7 +72,7 @@ public class ObfuscatedChunkCache {
 	            return nbt.getByteArray("Data");
             }
         } catch (Exception e) {
-        	Orebfuscator.log("Error reading Orebfuscator Chunk cache hash: " + e.getMessage());
+        	Orebfuscator.log("Error reading Orebfuscator Chunk cache data: " + e.getMessage());
         }
 		
 		return null;

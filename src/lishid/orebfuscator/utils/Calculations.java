@@ -293,7 +293,7 @@ public class Calculations
 			useCache = true;
 			
 			long storedHash = cache.getHash();
-			if(hash == storedHash)
+			if(storedHash != 0L && hash == storedHash)
 			{
 				byte[] data = cache.getData();
 				if(data != null && data.length == info.chunkSize)
