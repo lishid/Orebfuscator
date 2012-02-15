@@ -1,5 +1,7 @@
 package lishid.orebfuscator.hook;
 
+import java.util.HashMap;
+
 import lishid.orebfuscator.utils.Calculations;
 import net.minecraft.server.Packet51MapChunk;
 
@@ -11,8 +13,8 @@ import org.getspout.spoutapi.packet.listener.PacketListener;
 import org.getspout.spoutapi.packet.standard.MCPacket;
 
 public class SpoutLoader {
-	
-	private static byte[] chunkBuffer = new byte[16 * 16 * 128];
+
+	private static HashMap<String, byte[]> chunkBuffers = new HashMap<String, byte[]>();
 	
 	public static void InitializeSpout()
 	{
@@ -27,10 +29,18 @@ public class SpoutLoader {
 				//Process the chunk
 				if(((MCCraftPacket)mcpacket).getPacket() instanceof Packet51MapChunk)
 				{
-					Calculations.Obfuscate((Packet51MapChunk)((MCCraftPacket)mcpacket).getPacket(), (CraftPlayer)player, false, chunkBuffer);
+					Calculations.Obfuscate((Packet51MapChunk)((MCCraftPacket)mcpacket).getPacket(), (CraftPlayer)player, false, getBuffer());
 				}
 				return true;
 			}
 		});
+	}
+	
+	private static byte[] getBuffer()
+	{
+		String thread = ((Long)Thread.currentThread().getId()).toString();
+		if(!chunkBuffers.containsKey(thread))
+			chunkBuffers.put(thread, new byte[16 * 16 * 128]);
+		return chunkBuffers.get(thread);
 	}
 }

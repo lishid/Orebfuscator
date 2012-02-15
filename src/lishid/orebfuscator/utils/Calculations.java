@@ -284,6 +284,8 @@ public class Calculations
 		boolean useCache = false;
 		if(info.chunkSize > info.buffer.length)
 			info.buffer = new byte[info.chunkSize];
+		else if(info.buffer.length > 16 * 16 * 128)
+			info.buffer = new byte[16 * 16 * 128];
 		System.arraycopy(info.data, 0, info.buffer, 0, info.chunkSize);
 		long hash = Hash(info.buffer);
 
@@ -309,12 +311,21 @@ public class Calculations
 					return info.buffer;
 				}
 			}
+			
+			if(OrebfuscatorConfig.getVerboseMode())
+			{
+				if(storedHash == 0L)
+					Orebfuscator.log("Cache not found.");
+				else if(hash != storedHash)
+					Orebfuscator.log("Cache hash does not match: " + hash + " " + storedHash);
+				else
+					Orebfuscator.log("Cache data inconsistent.");
+			}
 		}
 		
 		if(OrebfuscatorConfig.getVerboseMode())
 		{
 			ChunksCalculated++;
-			Orebfuscator.log("Cache not found or incompatible.");
 		}
 		
 		//Calculating
