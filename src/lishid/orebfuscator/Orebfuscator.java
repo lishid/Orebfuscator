@@ -1,5 +1,7 @@
 package lishid.orebfuscator;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 import lishid.orebfuscator.chunkscrambler.ChunkScramblerWorldListener;
@@ -20,6 +22,7 @@ import org.bukkit.World.Environment;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.entity.Player;
 
 /**
  * Anti X-RAY
@@ -72,6 +75,11 @@ public class Orebfuscator extends JavaPlugin {
      * Keep track of scheduled tasks
      */
 	private static int lastTask = -1;
+
+	/**
+     * List of players online
+     */
+	public static HashSet<Player> players = new HashSet<Player>();
 	
 	@Override
     public void onEnable() {
@@ -81,6 +89,11 @@ public class Orebfuscator extends JavaPlugin {
     	//Load configurations
     	instance = this;
     	OrebfuscatorConfig.load();
+		synchronized(Orebfuscator.players)
+		{
+			players.clear();
+	    	players.addAll(Arrays.asList(this.getServer().getOnlinePlayers()));
+		}
         
         //Orebfuscator events
 		pm.registerEvents(this.playerListener, this);
@@ -145,7 +158,12 @@ public class Orebfuscator extends JavaPlugin {
     }
     
     @Override
-    public void onDisable() {    	
+    public void onDisable() {
+		synchronized(Orebfuscator.players)
+		{
+	    	players.clear();
+		}
+		
     	//Output
         PluginDescriptionFile pdfFile = this.getDescription();
         log("Version " + pdfFile.getVersion() + " disabled!" );
@@ -203,7 +221,7 @@ public class Orebfuscator extends JavaPlugin {
      */
 	public static void log(Exception e)
 	{
-		logger.severe("[Orebfuscator] " + e.getMessage());
+		logger.severe("[OFC] " + e.getMessage());
 		e.printStackTrace();
 	}
 

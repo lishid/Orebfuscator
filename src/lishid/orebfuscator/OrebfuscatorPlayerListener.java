@@ -3,6 +3,7 @@ package lishid.orebfuscator;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Event.Result;
@@ -12,10 +13,31 @@ import org.bukkit.event.player.*;
 
 public class OrebfuscatorPlayerListener implements Listener
 {
-
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerJoin(final PlayerJoinEvent event)
+	{
+		Player player = event.getPlayer();
+		if(OrebfuscatorConfig.playerBypassOp(player))
+		{
+			Orebfuscator.message(player, "Orebfuscator bypassed because you are OP.");
+		}
+		else if(OrebfuscatorConfig.playerBypassPerms(player))
+		{
+			Orebfuscator.message(player, "Orebfuscator bypassed because you have permissions.");
+		}
+		synchronized(Orebfuscator.players)
+		{
+			Orebfuscator.players.add(player);
+		}
+	}
+	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerQuit(final PlayerQuitEvent event)
 	{
+		synchronized(Orebfuscator.players)
+		{
+			Orebfuscator.players.remove(event.getPlayer());
+		}
 		if(OrebfuscatorBlockListener.blockLog.containsKey(event.getPlayer()))
 		{
 			OrebfuscatorBlockListener.blockLog.remove(event.getPlayer());

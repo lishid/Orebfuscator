@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import lishid.orebfuscator.Orebfuscator;
 
@@ -465,5 +466,20 @@ public class OrebfuscatorConfig {
 	public static void save()
 	{
 		Orebfuscator.instance.saveConfig();
+	}
+	
+	public static boolean obfuscateForPlayer(Player player)
+	{
+		return !(playerBypassOp(player) || playerBypassPerms(player));
+	}
+	
+	public static boolean playerBypassOp(Player player)
+	{
+		return OrebfuscatorConfig.getNoObfuscationForOps() && player.isOp();
+	}
+	
+	public static boolean playerBypassPerms(Player player)
+	{
+		return OrebfuscatorConfig.getNoObfuscationForPermission() && PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate");
 	}
 }

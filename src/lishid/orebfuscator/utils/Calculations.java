@@ -44,22 +44,13 @@ public class Calculations
 
 		HashSet<CraftPlayer> players = new HashSet<CraftPlayer>();
 		
-		List<Player> playerList = new ArrayList<Player>();
-
-        while(true)
-        {
-            try
-            {
-            	playerList = block.getWorld().getPlayers();
-            	break;
-            } catch(Exception e) { } //ConcurrentModificationException
-        }
+		List<Player> playerList = getPlayers(block.getWorld());
 		
         for (Player player : playerList) {
-        	double dx = Math.abs(player.getLocation().getX() - block.getX());
-        	double dz = Math.abs(player.getLocation().getZ() - block.getZ());
-        	double dist = Bukkit.getServer().getViewDistance() * 16;
-            if (dx < dist && dz < dist)
+        	double dx = Math.abs(player.getLocation().getChunk().getX() - block.getChunk().getX());
+        	double dz = Math.abs(player.getLocation().getChunk().getZ() - block.getChunk().getZ());
+        	double dist = Bukkit.getServer().getViewDistance();
+            if (dx <= dist && dz <= dist)
             {
             	players.add((CraftPlayer) player);
             }
@@ -125,6 +116,23 @@ public class Calculations
         		player.getHandle().netServerHandler.sendPacket(p);
             }
         }
+	}
+	
+	public static List<Player> getPlayers(World world)
+	{
+		List<Player> players = new ArrayList<Player>();
+		
+		synchronized(Orebfuscator.players)
+		{
+			HashSet<Player> allPlayers = Orebfuscator.players;
+			for(Player p : allPlayers)
+			{
+				if(p.getWorld().getName().equals(world.getName()))
+					players.add(p);
+			}
+		}
+		
+		return players;
 	}
 	
 	public static boolean GetAjacentBlocksTypeID(ChunkInfo info, TByteHashSet IDPool, int index, int x, int y, int z, int countdown)
@@ -211,9 +219,8 @@ public class Calculations
 		//Obfuscate
 		if(info.world.getWorld().getEnvironment() == Environment.NORMAL && //Environment.NORMAL = overworld
 			!OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && //World not disabled
-				((!OrebfuscatorConfig.getNoObfuscationForPermission() || !PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate")) && //Player does not have permission
-				(!OrebfuscatorConfig.getNoObfuscationForOps() || !((Player)player).isOp()) && //Player is not op
-				OrebfuscatorConfig.getEnabled())) //Plugin enabled
+			OrebfuscatorConfig.obfuscateForPlayer(player) &&
+				OrebfuscatorConfig.getEnabled()) //Plugin enabled
 		{
 			info.data = packet.rawData;
 			byte[] obfuscated = Obfuscate(info);
