@@ -47,10 +47,10 @@ public class Calculations
 		List<Player> playerList = getPlayers(block.getWorld());
 		
         for (Player player : playerList) {
-        	double dx = Math.abs(player.getLocation().getChunk().getX() - block.getChunk().getX());
-        	double dz = Math.abs(player.getLocation().getChunk().getZ() - block.getChunk().getZ());
-        	double dist = Bukkit.getServer().getViewDistance();
-            if (dx <= dist && dz <= dist)
+        	double dx = Math.abs(player.getLocation().getX() - block.getX());
+        	double dz = Math.abs(player.getLocation().getZ() - block.getZ());
+        	double dist = Bukkit.getServer().getViewDistance() * 16;
+            if (dx < dist && dz < dist)
             {
             	players.add((CraftPlayer) player);
             }
@@ -124,8 +124,7 @@ public class Calculations
 		
 		synchronized(Orebfuscator.players)
 		{
-			HashSet<Player> allPlayers = Orebfuscator.players;
-			for(Player p : allPlayers)
+			for(Player p : Orebfuscator.players.keySet())
 			{
 				if(p.getWorld().getName().equals(world.getName()))
 					players.add(p);

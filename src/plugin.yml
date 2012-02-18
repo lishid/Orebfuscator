@@ -1,6 +1,6 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.3.9-beta
+version: 1.3.9
 author: lishid
 softdepend: [Spout, ChunkScrambler]
 load: startup

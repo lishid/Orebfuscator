@@ -1,7 +1,6 @@
 package lishid.orebfuscator;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
 import lishid.orebfuscator.chunkscrambler.ChunkScramblerWorldListener;
@@ -77,9 +76,9 @@ public class Orebfuscator extends JavaPlugin {
 	private static int lastTask = -1;
 
 	/**
-     * List of players online
+     * Players list
      */
-	public static HashSet<Player> players = new HashSet<Player>();
+	public static WeakHashMap<Player, Boolean> players = new WeakHashMap<Player, Boolean>();
 	
 	@Override
     public void onEnable() {
@@ -91,8 +90,10 @@ public class Orebfuscator extends JavaPlugin {
     	OrebfuscatorConfig.load();
 		synchronized(Orebfuscator.players)
 		{
-			players.clear();
-	    	players.addAll(Arrays.asList(this.getServer().getOnlinePlayers()));
+			for(Player p : this.getServer().getOnlinePlayers())
+			{
+				players.put(p, true);
+			}
 		}
         
         //Orebfuscator events

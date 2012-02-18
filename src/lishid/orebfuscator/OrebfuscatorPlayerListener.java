@@ -27,7 +27,7 @@ public class OrebfuscatorPlayerListener implements Listener
 		}
 		synchronized(Orebfuscator.players)
 		{
-			Orebfuscator.players.add(player);
+			Orebfuscator.players.put(player, true);
 		}
 	}
 	
