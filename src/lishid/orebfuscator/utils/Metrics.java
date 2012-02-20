@@ -1,4 +1,3 @@
-package lishid.orebfuscator.utils;
 /*
  * Copyright 2011 Tyler Blair. All rights reserved.
  *
@@ -26,6 +25,8 @@ package lishid.orebfuscator.utils;
  * authors and contributors and should not be interpreted as representing official policies,
  * either expressed or implied, of anybody else.
  */
+
+package lishid.orebfuscator.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
