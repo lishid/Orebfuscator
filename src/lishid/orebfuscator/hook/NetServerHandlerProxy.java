@@ -67,6 +67,11 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
     }
 
     @Override
+    public void a(Packet0KeepAlive packet0keepalive) {
+        nshInstance.a(packet0keepalive);
+    }
+
+    @Override
     public void a(Packet10Flying packet10flying) {
         nshInstance.a(packet10flying);
     }
@@ -95,11 +100,6 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
     public void a(String s, Object[] aobject) {
         nshInstance.a(s, aobject);
         disconnected = nshInstance.disconnected;
-    }
-
-    @Override
-    public void a(Packet packet) {
-        nshInstance.a(packet);
     }
 
     @Override
@@ -164,8 +164,8 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
     }
 
     @Override
-    public void a(Packet101CloseWindow packet101closewindow) {
-        nshInstance.a(packet101closewindow);
+    public void handleContainerClose(Packet101CloseWindow packet101closewindow) {
+    	nshInstance.handleContainerClose(packet101closewindow);
     }
 
     @Override
@@ -194,8 +194,13 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
     }
 
     @Override
-    public void a(Packet0KeepAlive packet0keepalive) {
-        nshInstance.a(packet0keepalive);
+    public void a(Packet250CustomPayload packet) {
+    	nshInstance.a(packet);
+    }
+
+    @Override
+    public void onUnhandledPacket(Packet packet) {
+    	nshInstance.onUnhandledPacket(packet);
     }
 
     @Override

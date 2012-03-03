@@ -29,7 +29,7 @@ public class ScrambledWorldChunkManager extends WorldChunkManager {
 	public BiomeBase getBiome(int x, int z)
 	{
 		BiomeBase biome = super.getBiome(x, z);
-		biome.G = new ScrambledBiomeDecorator(biome, biome.G);
+		biome.I = new ScrambledBiomeDecorator(biome, biome.I);
 		return biome;
 	}
 }

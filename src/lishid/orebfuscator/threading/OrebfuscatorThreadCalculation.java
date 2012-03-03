@@ -26,6 +26,7 @@ import lishid.orebfuscator.utils.ObfuscatedPlayerPacket;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+
 import net.minecraft.server.Packet51MapChunk;
 
 public class OrebfuscatorThreadCalculation extends Thread implements Runnable
@@ -44,15 +45,24 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 		return threads.size() == OrebfuscatorConfig.getProcessingThreads();
 	}
 	
+	public static void terminateAll()
+	{
+		for(int i = 0; i < threads.size(); i++)
+		{
+			threads.get(i).kill.set(true);
+			threads.remove(i);
+		}
+	}
+	
 	public static synchronized void SyncThreads()
 	{
 		int extra = threads.size() - OrebfuscatorConfig.getProcessingThreads();
 		if (extra > 0)
 		{
-			for(int i = extra; i > 0; i--)
+			for(int i = extra - 1; i >= 0; i--)
 			{
-				threads.get(i - 1).kill.set(true);
-				threads.remove(i - 1);
+				threads.get(i).kill.set(true);
+				threads.remove(i);
 			}
 		}
 		else if (extra < 0)
@@ -72,14 +82,37 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 	{
 		while(true)
 		{
-			try {
+			try {/*
+				int x = packet.a >> 4;
+				int z = packet.c >> 4;
+				WorldServer world = player.getHandle().world.getWorld().getHandle();
+				tryLoadChunk(world, x+1, z);
+				tryLoadChunk(world, x-1, z);
+				tryLoadChunk(world, x, z+1);
+				tryLoadChunk(world, x, z-1);
+				tryLoadChunk(world, x+1, z+1);
+				tryLoadChunk(world, x+1, z-1);
+				tryLoadChunk(world, x-1, z+1);
+				tryLoadChunk(world, x-1, z-1);*/
 				queue.put(new ObfuscatedPlayerPacket(player, packet));
 				return;
 			}
 			catch (Exception e) { Orebfuscator.log(e); }
 		}
 	}
-
+	/*
+	private static void tryLoadChunk(WorldServer world, int x, int z)
+	{
+		if(!world.isLoaded(x << 4, 0, z << 4))
+		{
+			try
+			{
+				world.chunkProvider.getChunkAt(x+1, z);
+			}
+			catch (Exception e) { Orebfuscator.log(e); }
+		}
+	}
+*/
 	private AtomicBoolean kill = new AtomicBoolean(false);
 	private byte[] chunkBuffer = new byte[16 * 16 * 128];
 	

@@ -32,8 +32,10 @@ import lishid.orebfuscator.Orebfuscator;
 
 public class OrebfuscatorConfig {
 	private static TByteHashSet TransparentBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{6,8,9,10,11,18,20,26,27,28,30,31,32,34,37,38,39,40,44,50,51,52,53,54,55,59,63,64,65,66,67,68,69,70,71,72,75,76,77,78,79,81,83,85,90,92,93,94,96,101,102,104,105,106,107,108,109,111,113,114,115,116,117,118,119,120,122}));
+	//private static TByteHashSet TopTransparentBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{44,60,53,78,93,94,108,109,116}));
 	private static TByteHashSet ObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74}));
 	private static TByteHashSet DarknessObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{48,52}));
+	private static TByteHashSet ProximityHiderBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{54, 61, 62}));
 	private static List<Integer> RandomBlocks = Arrays.asList(new Integer[]{1,5,14,15,16,21,48,56,73});
 	private static List<String> DisabledWorlds = new ArrayList<String>();
 	private static final Random randomGenerator = new Random();
@@ -42,8 +44,10 @@ public class OrebfuscatorConfig {
 	private static int InitialRadius = 1;
 	private static int ProcessingThreads = 1;
 	private static int MaxLoadedCacheFiles = 64;
+	private static int ProximityHiderDistance = 8;
 	private static long Seed = 0;
 	private static boolean UseChunkScrambler = true;
+	private static boolean UseProximityHider = true;
 	private static boolean UpdateOnBreak = true;
 	private static boolean UpdateOnDamage = true;
 	private static boolean UpdateOnPhysics = true;
@@ -102,6 +106,15 @@ public class OrebfuscatorConfig {
 		return MaxLoadedCacheFiles;
 	}
 	
+	public static int getProximityHiderDistance()
+	{
+		if(ProximityHiderDistance <= 2)
+			return 2;
+		if(MaxLoadedCacheFiles > 32)
+			return 32;
+		return ProximityHiderDistance;
+	}
+	
 	public static long getSeed()
 	{
 		return Seed;
@@ -110,6 +123,11 @@ public class OrebfuscatorConfig {
 	public static boolean getUseChunkScrambler()
 	{
 		return UseChunkScrambler;
+	}
+	
+	public static boolean getUseProximityHider()
+	{
+		return UseProximityHider;
 	}
 	
 	public static boolean getUpdateOnBreak()
@@ -197,6 +215,13 @@ public class OrebfuscatorConfig {
 	    return false;
 	}
 	
+	public static boolean isProximityObfuscated(byte id)
+	{
+	    if(ProximityHiderBlocks.contains(id))
+	    	return true;
+	    return false;
+	}
+	
 	public static boolean isWorldDisabled(String name)
 	{
 		for(String world : DisabledWorlds)
@@ -269,7 +294,13 @@ public class OrebfuscatorConfig {
 		MaxLoadedCacheFiles = data;
 	}
 	
-	public static void setSeed(int data)
+	public static void setProximityHiderDistance(int data)
+	{
+		setData("Integers.ProximityHiderDistance", data);
+		ProximityHiderDistance = data;
+	}
+	
+	public static void setSeed(long data)
 	{
 		setData("Integers.ScrambleSeed", data);
 		Seed = data;
@@ -279,6 +310,12 @@ public class OrebfuscatorConfig {
 	{
 		setData("Booleans.UseChunkScrambler", data);
 		UseChunkScrambler = data;
+	}
+	
+	public static void setUseProximityHider(boolean data)
+	{
+		setData("Booleans.UseProximityHider", data);
+		UseProximityHider = data;
 	}
 	
 	public static void setUpdateOnBreak(boolean data)
@@ -451,8 +488,10 @@ public class OrebfuscatorConfig {
 		}
 		ProcessingThreads = getInt("Integers.ProcessingThreads", ProcessingThreads);
 		MaxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles);
+		ProximityHiderDistance = getInt("Integers.ProximityHiderDistance", ProximityHiderDistance);
 		Seed = getLong("Integers.ScrambleSeed", Seed);
 		UseChunkScrambler = getBoolean("Booleans.UseChunkScrambler", UseChunkScrambler);
+		UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
 		UpdateOnBreak = getBoolean("Booleans.UpdateOnBreak", UpdateOnBreak);
 		UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
 		UpdateOnPhysics = getBoolean("Booleans.UpdateOnPhysics", UpdateOnPhysics);
@@ -468,6 +507,7 @@ public class OrebfuscatorConfig {
 		TransparentBlocks = IntListToTByteHashSet(getIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[]{6,8,9,10,11,18,20,26,27,28,30,31,32,34,37,38,39,40,44,50,51,52,53,54,55,59,63,64,65,66,67,68,69,70,71,72,75,76,77,78,79,81,83,85,90,92,93,94,96,101,102,104,105,106,107,108,109,111,113,114,115,116,117,118,119,120,122})));
 		ObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74})));
 		DarknessObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[]{48,52})));
+		ProximityHiderBlocks = IntListToTByteHashSet(getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[]{54, 61, 62})));
 		RandomBlocks = getIntList("Lists.RandomBlocks", Arrays.asList(new Integer[]{1,5,14,15,16,21,48,56,73}));
 		DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
 		save();

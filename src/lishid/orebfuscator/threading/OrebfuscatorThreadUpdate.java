@@ -17,6 +17,7 @@
 package lishid.orebfuscator.threading;
 
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.utils.Calculations;
@@ -30,6 +31,11 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 	private static final int QUEUE_CAPACITY = 1024 * 10;
 	private static final LinkedBlockingDeque<Block> queue = new LinkedBlockingDeque<Block>(QUEUE_CAPACITY);
 	private static OrebfuscatorThreadUpdate thread;
+
+	public static void terminate()
+	{
+		thread.kill.set(true);
+	}
 
 	public static void Queue(Block block)
 	{
@@ -64,9 +70,11 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 			catch (Exception e) { Orebfuscator.log(e); }
 		}
 	}
+
+	private AtomicBoolean kill = new AtomicBoolean(false);
 	
 	public void run() {
-		while (!this.isInterrupted()) {
+		while (!this.isInterrupted() && !kill.get()) {
 			try {
 				//Remove the first block from the queue
 				Block block = queue.take();

@@ -19,11 +19,15 @@ package lishid.orebfuscator;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
+import lishid.orebfuscator.cache.ObfuscatedHashCache;
+import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
 import lishid.orebfuscator.chunkscrambler.ChunkScramblerWorldListener;
 import lishid.orebfuscator.chunkscrambler.ScrambledWorldChunkManager;
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import lishid.orebfuscator.hook.OrebfuscatorPlayerListenerHook;
 import lishid.orebfuscator.hook.SpoutLoader;
+import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
+import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.Metrics;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
@@ -181,6 +185,11 @@ public class Orebfuscator extends JavaPlugin {
 	    	players.clear();
 		}
 		
+		ObfuscatedHashCache.clearCache();
+		ObfuscatedRegionFileCache.clearCache();
+		OrebfuscatorThreadCalculation.terminateAll();
+		OrebfuscatorThreadUpdate.terminate();
+		
     	//Output
         PluginDescriptionFile pdfFile = this.getDescription();
         log("Version " + pdfFile.getVersion() + " disabled!" );
@@ -230,7 +239,7 @@ public class Orebfuscator extends JavaPlugin {
      */
 	public static void log(String text)
 	{
-		logger.info("[Orebfuscator] " + text);
+		logger.info("[OFC] " + text);
 	}
 
 	/**
@@ -255,6 +264,6 @@ public class Orebfuscator extends JavaPlugin {
      */
 	public static void message(CommandSender target, String message)
 	{
-		target.sendMessage(ChatColor.AQUA + "[Orebfuscator] " + message);
+		target.sendMessage(ChatColor.AQUA + "[OFC] " + message);
 	}
 }

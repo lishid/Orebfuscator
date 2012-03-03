@@ -76,4 +76,10 @@ public class OrebfuscatorPlayerListener implements Listener
 			OrebfuscatorThreadUpdate.Queue(event.getClickedBlock());
 		}
 	}
+	
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerMove(PlayerMoveEvent event)
+	{
+		
+	}
 }
