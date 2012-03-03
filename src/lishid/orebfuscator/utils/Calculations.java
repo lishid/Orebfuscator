@@ -163,8 +163,15 @@ public class Calculations
             int cZ = z % 16;
             if(cZ < 0)
             	cZ += 16;
-            
-			id = info.data[section * 4096 + (y % 16 << 8) + (cZ << 4) + cX];
+            int index = section * 4096 + (y % 16 << 8) + (cZ << 4) + cX;
+            try{
+            	id = info.data[index];
+            }
+            catch(Exception e)
+            {
+            	Orebfuscator.log("Small problem, plz report to dev: " + x + " " + y + " " + z + " " + section + " " + index);
+				id = (byte)info.world.getTypeId(x, y, z);
+        	}
 		}
 		else
 		{
