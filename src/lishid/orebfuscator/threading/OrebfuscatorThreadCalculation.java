@@ -82,7 +82,16 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 	{
 		while(true)
 		{
-			try {/*
+			try {
+				if(packet.a == player.getLocation().getChunk().getX() && packet.b == player.getLocation().getChunk().getZ())
+				{
+					queue.putFirst(new ObfuscatedPlayerPacket(player, packet));
+				}
+				else
+				{
+					queue.put(new ObfuscatedPlayerPacket(player, packet));
+				}
+				/*
 				int x = packet.a >> 4;
 				int z = packet.c >> 4;
 				WorldServer world = player.getHandle().world.getWorld().getHandle();
@@ -94,7 +103,6 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 				tryLoadChunk(world, x+1, z-1);
 				tryLoadChunk(world, x-1, z+1);
 				tryLoadChunk(world, x-1, z-1);*/
-				queue.put(new ObfuscatedPlayerPacket(player, packet));
 				return;
 			}
 			catch (Exception e) { Orebfuscator.log(e); }
@@ -114,7 +122,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 	}
 */
 	private AtomicBoolean kill = new AtomicBoolean(false);
-	private byte[] chunkBuffer = new byte[16 * 16 * 128];
+	private byte[] chunkBuffer = new byte[65536];
 	
 	public void run() {
 		while (!this.isInterrupted() && !kill.get()) {

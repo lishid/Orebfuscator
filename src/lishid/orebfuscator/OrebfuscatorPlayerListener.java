@@ -16,6 +16,7 @@
 
 package lishid.orebfuscator;
 
+import lishid.orebfuscator.proximityhider.ProximityHider;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import org.bukkit.Material;
@@ -58,6 +59,13 @@ public class OrebfuscatorPlayerListener implements Listener
 		{
 			OrebfuscatorBlockListener.blockLog.remove(event.getPlayer());
 		}
+    	if(OrebfuscatorConfig.getUseProximityHider())
+    	{
+	    	synchronized(ProximityHider.Lock)
+	    	{
+	    		ProximityHider.proximityHiderTracker.remove(event.getPlayer());
+	    	}
+    	}
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -78,8 +86,27 @@ public class OrebfuscatorPlayerListener implements Listener
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerChangeWorld(PlayerChangedWorldEvent event)
+	{
+    	if(OrebfuscatorConfig.getUseProximityHider())
+    	{
+	    	synchronized(ProximityHider.Lock)
+	    	{
+	    		ProximityHider.proximityHiderTracker.remove(event.getPlayer());
+	    	}
+    	}
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerMove(PlayerMoveEvent event)
 	{
-		
+    	if(OrebfuscatorConfig.getUseProximityHider())
+    	{
+	    	synchronized(ProximityHider.Lock)
+	    	{
+	    		if(!ProximityHider.playersToCheck.contains(event.getPlayer()))
+	    			ProximityHider.playersToCheck.add(event.getPlayer());
+	    	}
+    	}
 	}
 }

@@ -21,26 +21,21 @@ import java.util.logging.Logger;
 
 import lishid.orebfuscator.cache.ObfuscatedHashCache;
 import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
-import lishid.orebfuscator.chunkscrambler.ChunkScramblerWorldListener;
-import lishid.orebfuscator.chunkscrambler.ScrambledWorldChunkManager;
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import lishid.orebfuscator.hook.OrebfuscatorPlayerListenerHook;
 import lishid.orebfuscator.hook.SpoutLoader;
+import lishid.orebfuscator.proximityhider.ProximityHider;
 import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.Metrics;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
-import lishid.orebfuscator.utils.PermissionRelay;
 import org.bukkit.ChatColor;
-import org.bukkit.World;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.World.Environment;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.Player;
 
 /**
@@ -104,7 +99,6 @@ public class Orebfuscator extends JavaPlugin {
     public void onEnable() {
     	//Load permissions system
         PluginManager pm = getServer().getPluginManager();
-    	PermissionRelay.Setup(pm);
     	//Load configurations
     	instance = this;
     	OrebfuscatorConfig.load();
@@ -120,22 +114,6 @@ public class Orebfuscator extends JavaPlugin {
 		pm.registerEvents(this.playerListener, this);
 		pm.registerEvents(this.entityListener, this);
 		pm.registerEvents(this.blockListener, this);
-		//Start ChunkScrambler
-		if(OrebfuscatorConfig.getUseChunkScrambler())
-		{
-			//ChunkScrambler events
-			pm.registerEvents(new ChunkScramblerWorldListener(), this);
-			for(World world : this.getServer().getWorlds())
-				ReplaceWorldChunkManager(world);
-			
-			//Disable ChunkScrambler plugin if exists
-			if(pm.getPlugin("ChunkScrambler") != null)
-			{
-				Orebfuscator.log("ChunkScrambler is integrated into Orebfuscator now. You should remove ChunkScrambler.jar from the plugins folder.");
-			}
-			Orebfuscator.log("Integrated ChunkScrambled enabled!");
-		}
-
 
 		//Check if OrebfuscatorSpoutBridge exists
 		if(pm.getPlugin("OrebfuscatorSpoutBridge") != null)
@@ -173,6 +151,9 @@ public class Orebfuscator extends JavaPlugin {
 		}
 		catch(Exception e){ Orebfuscator.log(e); }
 		
+		//Load ProximityHider
+		ProximityHider.Load();
+		
 		//Output
         PluginDescriptionFile pdfFile = this.getDescription();
         Orebfuscator.log("Version " + pdfFile.getVersion() + " enabled!" );
@@ -189,6 +170,8 @@ public class Orebfuscator extends JavaPlugin {
 		ObfuscatedRegionFileCache.clearCache();
 		OrebfuscatorThreadCalculation.terminateAll();
 		OrebfuscatorThreadUpdate.terminate();
+		ProximityHider.proximityHiderTracker.clear();
+		ProximityHider.playersToCheck.clear();
 		
     	//Output
         PluginDescriptionFile pdfFile = this.getDescription();
@@ -198,16 +181,6 @@ public class Orebfuscator extends JavaPlugin {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         return OrebfuscatorCommandExecutor.onCommand(sender, command, label, args);
-    }
-    
-
-	/**
-     * Replaces world's chunk manager to be able to scramble ore location
-     */
-    public static void ReplaceWorldChunkManager(World world)
-    {
-		if(world.getEnvironment() == Environment.NORMAL)
-			((CraftWorld)world).getHandle().worldProvider.c = new ScrambledWorldChunkManager(((CraftWorld)world).getHandle());
     }
 
 	/**

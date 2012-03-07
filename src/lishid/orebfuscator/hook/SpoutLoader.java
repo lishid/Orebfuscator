@@ -16,9 +16,7 @@
 
 package lishid.orebfuscator.hook;
 
-import java.util.HashMap;
-
-import lishid.orebfuscator.utils.Calculations;
+import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 import net.minecraft.server.Packet51MapChunk;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -30,12 +28,10 @@ import org.getspout.spoutapi.packet.standard.MCPacket;
 
 public class SpoutLoader {
 
-	private static HashMap<String, byte[]> chunkBuffers = new HashMap<String, byte[]>();
-	
 	public static void InitializeSpout()
 	{
 		//Add spout listeners
-		SpoutManager.getPacketManager().addListenerUncompressedChunk(new PacketListener(){
+		SpoutManager.getPacketManager().addListener(51, new PacketListener(){
 			
 			//Processing a chunk packet
 			public boolean checkPacket(Player player, MCPacket mcpacket)
@@ -45,18 +41,14 @@ public class SpoutLoader {
 				//Process the chunk
 				if(((MCCraftPacket)mcpacket).getPacket() instanceof Packet51MapChunk)
 				{
-					Calculations.Obfuscate((Packet51MapChunk)((MCCraftPacket)mcpacket).getPacket(), (CraftPlayer)player, false, getBuffer());
+
+		        	//Obfuscate packet
+					OrebfuscatorThreadCalculation.SyncThreads();
+		    		OrebfuscatorThreadCalculation.Queue((Packet51MapChunk)((MCCraftPacket)mcpacket).getPacket(), (CraftPlayer)player);
+					return false;
 				}
 				return true;
 			}
 		});
-	}
-	
-	private static byte[] getBuffer()
-	{
-		String thread = ((Long)Thread.currentThread().getId()).toString();
-		if(!chunkBuffers.containsKey(thread))
-			chunkBuffers.put(thread, new byte[16 * 16 * 128]);
-		return chunkBuffers.get(thread);
 	}
 }

@@ -1,8 +1,8 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.4.1-beta2
+version: 1.4.1-beta7
 author: lishid
-softdepend: [Spout, ChunkScrambler]
+softdepend: [Spout]
 load: startup
 description: >
              This plugin obfuscates chunk packets that is sent to players to prevent x-ray.
@@ -14,12 +14,12 @@ commands:
            /<command> initialradius [number] - Set block initial radius
            /<command> updateradius [number] - Set block update radius
            /<command> threads [number] - Set allowed processing threads
+           /<command> proximity [number] - Set ProximityHider distance
            /<command> <enable/disable> - Change the state of the plugin
-           /<command> <enable/disable> <updatebreak|updatedamage>
-           /<command> <enable/disable> <updatephysics|updateexplosion>
            /<command> <enable/disable> <darknesshide> - DarknessObfuscate
-           /<command> <enable/disable> <op|perms> - OPs/Permissions
+           /<command> <enable/disable> <op|perms> - Ops/Permissions
            /<command> <enable/disable> updatethread - Toggle update thread
+           /<command> <enable/disable> proximity - ProximityHider
            /<command> <enable/disable> cache - Chunk caching
            /<command> <enable/disable> verbose - Verbose mode
            /<command> <enable/disable> world <worldname>

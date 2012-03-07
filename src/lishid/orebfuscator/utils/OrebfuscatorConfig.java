@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
-import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -36,21 +35,20 @@ public class OrebfuscatorConfig {
 	private static TByteHashSet ObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74}));
 	private static TByteHashSet DarknessObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{48,52}));
 	private static TByteHashSet ProximityHiderBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[]{54, 61, 62}));
-	private static List<Integer> RandomBlocks = Arrays.asList(new Integer[]{1,5,14,15,16,21,48,56,73});
+	private static Integer[] RandomBlocks = new Integer[]{5,14,15,16,21,48,56,73};
 	private static List<String> DisabledWorlds = new ArrayList<String>();
-	private static final Random randomGenerator = new Random();
 	private static int EngineMode = 2;
 	private static int UpdateRadius = 2;
 	private static int InitialRadius = 1;
 	private static int ProcessingThreads = 1;
 	private static int MaxLoadedCacheFiles = 64;
 	private static int ProximityHiderDistance = 8;
-	private static long Seed = 0;
-	private static boolean UseChunkScrambler = true;
 	private static boolean UseProximityHider = true;
+	private static boolean UseStoneForProximityHider = true;
 	private static boolean UpdateOnBreak = true;
 	private static boolean UpdateOnDamage = true;
 	private static boolean UpdateOnPhysics = true;
+	private static boolean UpdateOnPiston = true;
 	private static boolean UpdateOnExplosion = true;
 	private static boolean UpdateOnHoe = true;
 	private static boolean UpdateThread = true;
@@ -110,24 +108,19 @@ public class OrebfuscatorConfig {
 	{
 		if(ProximityHiderDistance <= 2)
 			return 2;
-		if(MaxLoadedCacheFiles > 32)
+		if(ProximityHiderDistance > 32)
 			return 32;
 		return ProximityHiderDistance;
 	}
 	
-	public static long getSeed()
-	{
-		return Seed;
-	}
-	
-	public static boolean getUseChunkScrambler()
-	{
-		return UseChunkScrambler;
-	}
-	
 	public static boolean getUseProximityHider()
 	{
-		return UseProximityHider;
+		return UseCache ? false : UseProximityHider;
+	}
+	
+	public static boolean getUseStoneForProximityHider()
+	{
+		return UseStoneForProximityHider;
 	}
 	
 	public static boolean getUpdateOnBreak()
@@ -143,6 +136,11 @@ public class OrebfuscatorConfig {
 	public static boolean getUpdateOnPhysics()
 	{
 		return UpdateOnPhysics;
+	}
+	
+	public static boolean getUpdateOnPiston()
+	{
+		return UpdateOnPiston;
 	}
 	
 	public static boolean getUpdateOnExplosion()
@@ -242,12 +240,7 @@ public class OrebfuscatorConfig {
 		return retval.length() > 1 ? retval.substring(0,  retval.length() - 2) : retval;
 	}
 	
-	public static byte generateRandomBlock()
-	{
-		return (byte)(int)RandomBlocks.get(randomGenerator.nextInt(RandomBlocks.size()));
-	}
-	
-	public static List<Integer> getRandomBlocks()
+	public static Integer[] getRandomBlocks()
 	{
 		return RandomBlocks;
 	}
@@ -256,7 +249,7 @@ public class OrebfuscatorConfig {
 	{
 		synchronized(RandomBlocks)
 		{
-			Collections.shuffle(RandomBlocks);
+			Collections.shuffle(Arrays.asList(RandomBlocks));
 		}
 	}
 	
@@ -300,22 +293,16 @@ public class OrebfuscatorConfig {
 		ProximityHiderDistance = data;
 	}
 	
-	public static void setSeed(long data)
-	{
-		setData("Integers.ScrambleSeed", data);
-		Seed = data;
-	}
-	
-	public static void setUseChunkScrambler(boolean data)
-	{
-		setData("Booleans.UseChunkScrambler", data);
-		UseChunkScrambler = data;
-	}
-	
 	public static void setUseProximityHider(boolean data)
 	{
 		setData("Booleans.UseProximityHider", data);
 		UseProximityHider = data;
+	}
+	
+	public static void setUseStoneForProximityHider(boolean data)
+	{
+		setData("Booleans.UseStoneForProximityHider", data);
+		UseStoneForProximityHider = data;
 	}
 	
 	public static void setUpdateOnBreak(boolean data)
@@ -334,6 +321,12 @@ public class OrebfuscatorConfig {
 	{
 		setData("Booleans.UpdateOnPhysics", data);
 		UpdateOnPhysics = data;
+	}
+	
+	public static void setUpdateOnPiston(boolean data)
+	{
+		setData("Booleans.UpdateOnPiston", data);
+		UpdateOnPiston = data;
 	}
 	
 	public static void setUpdateOnExplosion(boolean data)
@@ -417,18 +410,18 @@ public class OrebfuscatorConfig {
 		return Orebfuscator.instance.getConfig().getInt(path, defaultData);
 	}
 	
-	private static long getLong(String path, long defaultData)
-	{
-		if(Orebfuscator.instance.getConfig().get(path) == null)
-			setData(path, defaultData);
-		return Orebfuscator.instance.getConfig().getLong(path, defaultData);
-	}
-	
 	private static List<Integer> getIntList(String path, List<Integer> defaultData)
 	{
 		if(Orebfuscator.instance.getConfig().get(path) == null)
 			setData(path, defaultData);
 		return Orebfuscator.instance.getConfig().getIntegerList(path);
+	}
+	
+	private static Integer[] getIntList2(String path, List<Integer> defaultData)
+	{
+		if(Orebfuscator.instance.getConfig().get(path) == null)
+			setData(path, defaultData);
+		return Orebfuscator.instance.getConfig().getIntegerList(path).toArray(new Integer[1]);
 	}
 	
 	private static List<String> getStringList(String path, List<String> defaultData)
@@ -489,12 +482,12 @@ public class OrebfuscatorConfig {
 		ProcessingThreads = getInt("Integers.ProcessingThreads", ProcessingThreads);
 		MaxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles);
 		ProximityHiderDistance = getInt("Integers.ProximityHiderDistance", ProximityHiderDistance);
-		Seed = getLong("Integers.ScrambleSeed", Seed);
-		UseChunkScrambler = getBoolean("Booleans.UseChunkScrambler", UseChunkScrambler);
 		UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
+		UseStoneForProximityHider = getBoolean("Booleans.UseStoneForProximityHider", UseStoneForProximityHider);
 		UpdateOnBreak = getBoolean("Booleans.UpdateOnBreak", UpdateOnBreak);
 		UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
 		UpdateOnPhysics = getBoolean("Booleans.UpdateOnPhysics", UpdateOnPhysics);
+		UpdateOnPiston = getBoolean("Booleans.UpdateOnPiston", UpdateOnPiston);
 		UpdateOnExplosion = getBoolean("Booleans.UpdateOnExplosion", UpdateOnExplosion);
 		UpdateOnHoe = getBoolean("Booleans.UpdateOnHoe", UpdateOnHoe);
 		UpdateThread = getBoolean("Booleans.UpdateThread", UpdateThread);
@@ -508,7 +501,7 @@ public class OrebfuscatorConfig {
 		ObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14,15,16,21,54,56,73,74})));
 		DarknessObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[]{48,52})));
 		ProximityHiderBlocks = IntListToTByteHashSet(getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[]{54, 61, 62})));
-		RandomBlocks = getIntList("Lists.RandomBlocks", Arrays.asList(new Integer[]{1,5,14,15,16,21,48,56,73}));
+		RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
 		DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
 		save();
 	}
@@ -536,6 +529,6 @@ public class OrebfuscatorConfig {
 	
 	public static boolean playerBypassPerms(Player player)
 	{
-		return OrebfuscatorConfig.getNoObfuscationForPermission() && PermissionRelay.hasPermission(player, "Orebfuscator.deobfuscate");
+		return OrebfuscatorConfig.getNoObfuscationForPermission() && player.hasPermission("Orebfuscator.deobfuscate");
 	}
 }

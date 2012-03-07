@@ -24,7 +24,6 @@ import lishid.orebfuscator.cache.ObfuscatedHashCache;
 import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
 import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 import lishid.orebfuscator.utils.OrebfuscatorConfig;
-import lishid.orebfuscator.utils.PermissionRelay;
 
 import net.minecraft.server.ChunkCoordIntPair;
 
@@ -72,7 +71,7 @@ public class OrebfuscatorCommandExecutor {
     	    return true;
     	}
     	
-    	if ((sender instanceof Player) && !PermissionRelay.hasPermission((Player) sender, "Orebfuscator.admin")) {
+    	if ((sender instanceof Player) && !sender.hasPermission("Orebfuscator.admin")) {
             Orebfuscator.message(sender, "You do not have permissions.");
             return true;
         }
@@ -162,6 +161,23 @@ public class OrebfuscatorCommandExecutor {
     		return true;
     	}
     	
+    	if((args[0].equalsIgnoreCase("proximity") | args[0].equalsIgnoreCase("proximityhider")) && args.length > 1)
+    	{
+    		int ProximityHiderDistance = OrebfuscatorConfig.getProximityHiderDistance();
+			try 
+			{
+				ProximityHiderDistance = new Integer(args[1]);
+			}
+			catch (NumberFormatException e) 
+			{
+	    		Orebfuscator.message(sender, args[1] + " is not a number!");
+	    		return true;
+			}
+    		OrebfuscatorConfig.setProximityHiderDistance(ProximityHiderDistance);
+    		Orebfuscator.message(sender, "ProximityHider Distance set to: " + ProximityHiderDistance);
+    		return true;
+    	}
+    	
     	if(args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable"))
     	{
     		boolean data = args[0].equalsIgnoreCase("enable");
@@ -180,27 +196,7 @@ public class OrebfuscatorCommandExecutor {
 
 			if(args.length > 1)
 			{
-				if(args[1].equalsIgnoreCase("updatebreak"))
-				{
-					OrebfuscatorConfig.setUpdateOnBreak(data);
-		    		Orebfuscator.message(sender, "OnBlockBreak update "+(data?"enabled":"disabled")+".");
-				}
-				else if(args[1].equalsIgnoreCase("updatedamage"))
-				{
-					OrebfuscatorConfig.setUpdateOnDamage(data);
-		    		Orebfuscator.message(sender, "OnBlockDamage update "+(data?"enabled":"disabled")+".");
-				}
-				else if(args[1].equalsIgnoreCase("updatephysics"))
-				{
-					OrebfuscatorConfig.setUpdateOnPhysics(data);
-		    		Orebfuscator.message(sender, "OnBlockPhysics update "+(data?"enabled":"disabled")+".");
-				}
-				else if(args[1].equalsIgnoreCase("updateexplosion"))
-				{
-					OrebfuscatorConfig.setUpdateOnExplosion(data);
-		    		Orebfuscator.message(sender, "OnCreeperExplosion update "+(data?"enabled":"disabled")+".");
-				}
-				else if(args[1].equalsIgnoreCase("updatethread"))
+				if(args[1].equalsIgnoreCase("updatethread"))
 				{
 					OrebfuscatorConfig.setUpdateThread(data);
 		    		Orebfuscator.message(sender, "Extra update thread "+(data?"enabled":"disabled. Updates will be processed in the main thread instead")+".");
@@ -219,6 +215,16 @@ public class OrebfuscatorCommandExecutor {
 				{
 					OrebfuscatorConfig.setNoObfuscationForPermission(data);
 		    		Orebfuscator.message(sender, "Permissions No-Obfuscation "+(data?"enabled":"disabled")+".");
+				}
+				else if(args[1].equalsIgnoreCase("proximity"))
+				{
+					OrebfuscatorConfig.setUseProximityHider(data);
+		    		Orebfuscator.message(sender, "ProximityHider "+(data?"enabled":"disabled")+".");
+		    		if(OrebfuscatorConfig.getUseCache())
+		    		{
+			    		Orebfuscator.message(sender, "Warning: Caching must be disabled before ProximityHider can work.");
+			    		Orebfuscator.message(sender, "Please use \"/ofc disable cache\" to disable cache.");
+		    		}
 				}
 				else if(args[1].equalsIgnoreCase("cache"))
 				{
@@ -261,7 +267,6 @@ public class OrebfuscatorCommandExecutor {
 
     		Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
     		Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());
-    		Orebfuscator.message(sender, "MaxLoadedCacheFiles: " + OrebfuscatorConfig.getMaxLoadedCacheFiles());
     		
     		String disabledWorlds = OrebfuscatorConfig.getDisabledWorlds();
     		Orebfuscator.message(sender, "Disabled worlds: " + (disabledWorlds.equals("")?"None":disabledWorlds));

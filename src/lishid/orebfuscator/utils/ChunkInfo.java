@@ -16,6 +16,8 @@
 
 package lishid.orebfuscator.utils;
 
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+
 import net.minecraft.server.WorldServer;
 
 public class ChunkInfo {
@@ -27,7 +29,10 @@ public class ChunkInfo {
 	int chunkSectionNumber;
 	int extraSectionNumber;
 	boolean canUseCache;
+	int[] chunkSectionToIndexMap = new int[16];
+	int[] extraSectionToIndexMap = new int[16];
 	WorldServer world;
 	byte[] data;
 	byte[] buffer;
+	CraftPlayer player;
 }

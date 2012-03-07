@@ -27,6 +27,7 @@ import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.cache.ObfuscatedChunkCache;
+import lishid.orebfuscator.proximityhider.ProximityHider;
 
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
@@ -146,86 +147,6 @@ public class Calculations
 		
 		return players;
 	}
-	
-	public static boolean GetAjacentBlocksTypeID(ChunkInfo info, TByteHashSet IDPool, int x, int y, int z, int countdown)
-	{
-		byte id = 0;
-		
-		if(y >= info.world.getHeight())
-			return true;
-		
-		int section = y >> 4;
-        if ((info.chunkMask & (1 << section)) > 0 && x >> 4 == info.chunkX && z >> 4 == info.chunkZ)
-		{
-            int cX = x % 16;
-            if(cX < 0)
-            	cX += 16;
-            int cZ = z % 16;
-            if(cZ < 0)
-            	cZ += 16;
-            int index = section * 4096 + (y % 16 << 8) + (cZ << 4) + cX;
-            try{
-            	id = info.data[index];
-            }
-            catch(Exception e)
-            {
-            	Orebfuscator.log("Small problem, plz report to dev: " + x + " " + y + " " + z + " " + section + " " + index);
-				id = (byte)info.world.getTypeId(x, y, z);
-        	}
-		}
-		else
-		{
-			if(!info.world.isLoaded(x, y, z))
-			{
-				id = 1;
-				info.useCache = false;
-			}
-			else
-			{
-				id = (byte)info.world.getTypeId(x, y, z);
-			}
-		}
-		
-		boolean isTested = IDPool.contains(id);
-		if(!isTested && OrebfuscatorConfig.isTransparent(id))
-		{
-			return true;
-		}
-		else if(!isTested)
-		{
-			IDPool.add(id);
-		}
-		
-		if (countdown == 0)
-			return false;
-		
-		if(GetAjacentBlocksTypeID(info, IDPool, x, y + 1, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, x, y - 1, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, x + 1, y, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, x - 1, y, z, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, x, y, z + 1, countdown - 1)) return true;
-		if(GetAjacentBlocksTypeID(info, IDPool, x, y, z - 1, countdown - 1)) return true;
-		
-		return false;
-	}
-	
-	public static boolean GetAjacentBlocksHaveLight(ChunkInfo info, int x, int y, int z, int countdown)
-	{
-		if(info.world.getLightLevel(x, y, z) > 0)
-			return true;
-		
-		if (countdown == 0)
-			return false;
-
-		if(GetAjacentBlocksHaveLight(info, x, y + 1, z, countdown - 1)) return true;
-		if(GetAjacentBlocksHaveLight(info, x, y - 1, z, countdown - 1)) return true;
-		if(GetAjacentBlocksHaveLight(info, x + 1, y, z, countdown - 1)) return true;
-		if(GetAjacentBlocksHaveLight(info, x - 1, y, z, countdown - 1)) return true;
-		if(GetAjacentBlocksHaveLight(info, x, y, z + 1, countdown - 1)) return true;
-		if(GetAjacentBlocksHaveLight(info, x, y, z - 1, countdown - 1)) return true;
-			
-		return false;
-	}
 
 	public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
 	{
@@ -235,6 +156,7 @@ public class Calculations
 		
 		ChunkInfo info = new ChunkInfo();
 		info.world = player.getHandle().world.getWorld().getHandle();
+		info.player = player;
 		info.chunkX = packet.a;
 		info.chunkZ = packet.b;
 		info.chunkMask = packet.c;
@@ -246,9 +168,15 @@ public class Calculations
 		for (int i = 0; i < 16; i++)
 		{
 		    if ((info.chunkMask & 1 << i) > 0)
+		    {
+		    	info.chunkSectionToIndexMap[i] = info.chunkSectionNumber;
 		    	info.chunkSectionNumber++;
+		    }
 		    if ((info.extraMask & 1 << i) > 0)
+		    {
+		    	info.extraSectionToIndexMap[i] = info.extraSectionNumber;
 		    	info.extraSectionNumber++;
+		    }
 		}
 		
 		//Obfuscate
@@ -292,7 +220,6 @@ public class Calculations
 			nsh.networkManager.queue(packet);
 		}
 		
-		//Send tile entities if not using spout
 		if(sendPacket)
 		{
 			//Send TileEntities
@@ -324,7 +251,8 @@ public class Calculations
 		ObfuscatedChunkCache cache = new ObfuscatedChunkCache(cacheFolder, info.chunkX, info.chunkZ, OrebfuscatorConfig.getInitialRadius());
 		TByteHashSet blockList = new TByteHashSet();
 		int tmp = 0;
-		boolean Obfuscate = false;
+		boolean obfuscate = false;
+		boolean stoneObfuscate = false;
 		info.useCache = false;
 		if(info.chunkSectionNumber * 4096 != info.buffer.length)
 			info.buffer = new byte[info.chunkSectionNumber * 4096];
@@ -392,13 +320,12 @@ public class Calculations
 		        //int indexExtraStart = extraIndexModifier * 2048;
 		        
 		        int tempIndex = 0;
-
-				OrebfuscatorConfig.shuffleRandomBlocks();
 				
 		        for (int y = 0; y < 16; y++)
 		        {
 			        for (int z = 0; z < 16; z++)
 			        {
+						OrebfuscatorConfig.shuffleRandomBlocks();
 				        for (int x = 0; x < 16; x++)
 				        {
 				            int index = indexDataStart + tempIndex;
@@ -415,15 +342,19 @@ public class Calculations
 				            
 
 							//Initialize objects
-							Obfuscate = false;
+							obfuscate = false;
+							stoneObfuscate = false;
 							blockList.clear();
 							
-							/*
+							
 							//Check if the block should be obfuscated because of proximity check
-							if (!Obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index]))
+							if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index]))
 							{
-								Obfuscate = true;
-							}*/
+								ProximityHider.AddProximityBlock(info.player, startX + x, (i << 4) + y, startZ + z);
+								obfuscate = true;
+								if(OrebfuscatorConfig.getUseStoneForProximityHider())
+									stoneObfuscate = true;
+							}
 
 							//Check if the block should be obfuscated because of being behind stuff
 							if(OrebfuscatorConfig.isObfuscated(data))
@@ -431,32 +362,35 @@ public class Calculations
 								if(OrebfuscatorConfig.getInitialRadius() == 0)
 								{
 									//Obfuscate anyways
-									Obfuscate = true;
+									obfuscate = true;
 								}
 								else
 								{
 									//Get all block IDs nearby
-									Obfuscate = !GetAjacentBlocksTypeID(info, blockList, startX + x, (i << 4) + y, startZ + z, OrebfuscatorConfig.getInitialRadius());
+									if(!GetAjacentBlocksTypeID(info, blockList, startX + x, (i << 4) + y, startZ + z, OrebfuscatorConfig.getInitialRadius()))
+									{
+										obfuscate = true;
+									}
 								}
 							}
 							
 							//Check if the block should be obfuscated because of darkness
-							if (!Obfuscate && OrebfuscatorConfig.getDarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(data))
+							if (!obfuscate && OrebfuscatorConfig.getDarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(data))
 							{
 								if(OrebfuscatorConfig.getInitialRadius() == 0)
 								{
-									Obfuscate = true;
+									obfuscate = true;
 								}
-								else if(!GetAjacentBlocksHaveLight(info, x, y, z, OrebfuscatorConfig.getInitialRadius()))
+								else if(!GetAjacentBlocksHaveLight(info, startX + x, (i << 4) + y, startZ + z, OrebfuscatorConfig.getInitialRadius()))
 								{
-									Obfuscate = true;
+									obfuscate = true;
 								}
 							}
 							
 							//If the block should be obfuscated
-							if(Obfuscate)
+							if(obfuscate)
 							{
-								if(OrebfuscatorConfig.getEngineMode() == 1)
+								if(OrebfuscatorConfig.getEngineMode() == 1 || stoneObfuscate)
 								{
 									//Engine mode 1, replace with stone
 									info.buffer[index] = 1;
@@ -464,8 +398,8 @@ public class Calculations
 								else if(OrebfuscatorConfig.getEngineMode() == 2)
 								{
 									//Ending mode 2, replace with random block
-						            tmp = tmp % (OrebfuscatorConfig.getRandomBlocks().size() - 1) + 1;
-						            info.buffer[index] = (byte)(int)OrebfuscatorConfig.getRandomBlocks().get(tmp);
+						            tmp = tmp % (OrebfuscatorConfig.getRandomBlocks().length - 1) + 1;
+						            info.buffer[index] = (byte)(int)OrebfuscatorConfig.getRandomBlocks()[tmp];
 								}
 							}
 				            
@@ -491,6 +425,91 @@ public class Calculations
 		}
 		
 		return info.buffer;
+	}
+	
+	public static boolean GetAjacentBlocksTypeID(ChunkInfo info, TByteHashSet IDPool, int x, int y, int z, int countdown)
+	{
+		byte id = 0;
+		
+		if(y >= info.world.getHeight() || y < 0)
+			return true;
+		
+		int section = info.chunkSectionToIndexMap[y >> 4];
+        if ((info.chunkMask & (1 << section)) > 0 && x >> 4 == info.chunkX && z >> 4 == info.chunkZ)
+		{
+            int cX = x % 16;
+            if(cX < 0)
+            	cX += 16;
+            int cZ = z % 16;
+            if(cZ < 0)
+            	cZ += 16;
+            int index = section * 4096 + (y % 16 << 8) + (cZ << 4) + cX;
+            try{
+            	id = info.data[index];
+            }
+            catch(Exception e)
+            {
+            	Orebfuscator.log("Small problem, plz report to dev: " + x + " " + y + " " + z + " " + section + " " + index + " " + info.data.length + " " + info.chunkMask);
+				id = (byte)info.world.getTypeId(x, y, z);
+        	}
+		}
+		else
+		{
+			if(!info.world.isLoaded(x, y, z))
+			{
+				id = 1;
+				info.useCache = false;
+			}
+			else
+			{
+				id = (byte)info.world.getTypeId(x, y, z);
+			}
+		}
+        
+        if(!net.minecraft.server.Block.g(id))
+        {
+        	return true;
+        }
+		/*
+		boolean isTested = IDPool.contains(id);
+		if(!isTested && OrebfuscatorConfig.isTransparent(id))
+		{
+			return true;
+		}
+		else if(!isTested)
+		{
+			IDPool.add(id);
+		}
+		*/
+		if (countdown == 0)
+			return false;
+		
+		if(GetAjacentBlocksTypeID(info, IDPool, x, y + 1, z, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, x, y - 1, z, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, x + 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, x - 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, x, y, z + 1, countdown - 1)) return true;
+		if(GetAjacentBlocksTypeID(info, IDPool, x, y, z - 1, countdown - 1)) return true;
+		
+		return false;
+	}
+	
+	public static boolean GetAjacentBlocksHaveLight(ChunkInfo info, int x, int y, int z, int countdown)
+	{
+		if(info.world.getLightLevel(x, y, z) > 0)
+			return true;
+		
+		if (countdown == 0)
+			return false;
+
+		if(GetAjacentBlocksHaveLight(info, x, y + 1, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, x, y - 1, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, x + 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, x - 1, y, z, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, x, y, z + 1, countdown - 1)) return true;
+		if(GetAjacentBlocksHaveLight(info, x, y, z - 1, countdown - 1)) return true;
+		
+		return false;
 	}
 	
 	public static long Hash(byte[] data)

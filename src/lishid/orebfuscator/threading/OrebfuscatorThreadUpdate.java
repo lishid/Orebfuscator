@@ -34,7 +34,8 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 
 	public static void terminate()
 	{
-		thread.kill.set(true);
+		if(thread != null)
+			thread.kill.set(true);
 	}
 
 	public static void Queue(Block block)
@@ -54,7 +55,7 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 	        return;
         }
         
-		if(thread == null || thread.isInterrupted())
+		if(thread == null || thread.isInterrupted() || !thread.isAlive())
 		{
 			thread = new OrebfuscatorThreadUpdate();
 			thread.setName("Orebfuscator Update Thread");

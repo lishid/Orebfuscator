@@ -66,6 +66,16 @@ public class OrebfuscatorBlockListener implements Listener {
         OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }
     
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockPistonExtend(BlockPistonExtendEvent event) {
+        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnPiston())
+        	return;
+        for(Block b : event.getBlocks())
+        {
+        	OrebfuscatorThreadUpdate.Queue(b);
+        }
+    }
+    
     private boolean applyphysics(Block block)
     {
         int l = block.getWorld().getBlockTypeIdAt(block.getX(), block.getY() - 1, block.getZ());
