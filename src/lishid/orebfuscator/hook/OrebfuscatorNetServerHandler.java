@@ -21,6 +21,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
+import net.minecraft.serverhook.NetServerHandlerProxy;
 
 public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy {
 	

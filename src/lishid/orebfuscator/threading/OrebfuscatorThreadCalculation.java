@@ -21,9 +21,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import lishid.orebfuscator.Orebfuscator;
-import lishid.orebfuscator.utils.Calculations;
-import lishid.orebfuscator.utils.ObfuscatedPlayerPacket;
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
+import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.obfuscation.Calculations;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
@@ -33,7 +32,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 {
 	private static final int QUEUE_CAPACITY = 1024 * 10;
 	private static ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
-	private static final LinkedBlockingDeque<ObfuscatedPlayerPacket> queue = new LinkedBlockingDeque<ObfuscatedPlayerPacket>(QUEUE_CAPACITY);
+	private static final LinkedBlockingDeque<PlayerPacket> queue = new LinkedBlockingDeque<PlayerPacket>(QUEUE_CAPACITY);
 	
 	public static int getThreads()
 	{
@@ -85,11 +84,11 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 			try {
 				if(packet.a == player.getLocation().getChunk().getX() && packet.b == player.getLocation().getChunk().getZ())
 				{
-					queue.putFirst(new ObfuscatedPlayerPacket(player, packet));
+					queue.putFirst(new PlayerPacket(player, packet));
 				}
 				else
 				{
-					queue.put(new ObfuscatedPlayerPacket(player, packet));
+					queue.put(new PlayerPacket(player, packet));
 				}
 				/*
 				int x = packet.a >> 4;
@@ -128,7 +127,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 		while (!this.isInterrupted() && !kill.get()) {
 			try {
 				//Take a package from the queue
-				ObfuscatedPlayerPacket packet = queue.take();
+				PlayerPacket packet = queue.take();
 				
 				try {
 					//Try to obfuscate and send the packet

@@ -14,10 +14,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lishid.orebfuscator;
+package lishid.orebfuscator.listeners;
 
+import lishid.orebfuscator.OrebfuscatorConfig;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;

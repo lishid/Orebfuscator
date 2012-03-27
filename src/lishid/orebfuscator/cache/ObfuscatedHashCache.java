@@ -16,8 +16,8 @@
 
 package lishid.orebfuscator.cache;
 
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
-import net.minecraft.server.*;
+import lishid.orebfuscator.OrebfuscatorConfig;
+import net.minecraft.server.RegionFile;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

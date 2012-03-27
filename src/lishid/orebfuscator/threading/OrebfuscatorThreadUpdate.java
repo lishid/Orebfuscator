@@ -20,8 +20,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import lishid.orebfuscator.Orebfuscator;
-import lishid.orebfuscator.utils.Calculations;
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
+import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.obfuscation.Calculations;
 
 import org.bukkit.block.Block;
 
@@ -40,11 +40,8 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 
 	public static void Queue(Block block)
 	{
-		//Removed: 
-		//!OrebfuscatorConfig.Enabled() || 
-		
 		//Dont do anything if the block is transparent
-        if (OrebfuscatorConfig.isTransparent((byte)block.getTypeId()))
+        if (!net.minecraft.server.Block.g((byte)block.getTypeId()))
         {
         	return;
         }

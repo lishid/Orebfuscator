@@ -20,16 +20,18 @@ import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
 import lishid.orebfuscator.cache.ObfuscatedHashCache;
-import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
+import lishid.orebfuscator.cache.ObfuscatedDataCache;
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import lishid.orebfuscator.hook.OrebfuscatorPlayerListenerHook;
 import lishid.orebfuscator.hook.SpoutLoader;
+import lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
+import lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
+import lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
+import lishid.orebfuscator.obfuscation.Calculations;
 import lishid.orebfuscator.proximityhider.ProximityHider;
 import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
-import lishid.orebfuscator.utils.Calculations;
 import lishid.orebfuscator.utils.Metrics;
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -69,11 +71,6 @@ public class Orebfuscator extends JavaPlugin {
      * Logger for debugging.
      */
     public static final Logger logger = Logger.getLogger("Minecraft.Orebfuscator");
-    
-	/**
-     * True if this plugin is using Spout.
-     */
-	public static boolean usingSpout = false;
 
 	/**
      * Object containing the instance of Orebfuscator.
@@ -127,7 +124,6 @@ public class Orebfuscator extends JavaPlugin {
 			//Using Spout
 			try{
 				SpoutLoader.InitializeSpout();
-				usingSpout = true;
 				Orebfuscator.log("Spout found, using Spout.");
 			}catch(Exception e){
 				Orebfuscator.log("Spout initialization failed. Error: " + e.getMessage());
@@ -146,8 +142,8 @@ public class Orebfuscator extends JavaPlugin {
 		try
 		{
 			Orebfuscator.log("Statistics features enabling...");
-			metrics = new Metrics();
-			metrics.beginMeasuringPlugin(this);
+			metrics = new Metrics(this);
+			metrics.start();
 		}
 		catch(Exception e){ Orebfuscator.log(e); }
 		
@@ -167,11 +163,12 @@ public class Orebfuscator extends JavaPlugin {
 		}
 		
 		ObfuscatedHashCache.clearCache();
-		ObfuscatedRegionFileCache.clearCache();
+		ObfuscatedDataCache.clearCache();
 		OrebfuscatorThreadCalculation.terminateAll();
 		OrebfuscatorThreadUpdate.terminate();
 		ProximityHider.proximityHiderTracker.clear();
 		ProximityHider.playersToCheck.clear();
+		OrebfuscatorBlockListener.blockLog.clear();
 		
     	//Output
         PluginDescriptionFile pdfFile = this.getDescription();

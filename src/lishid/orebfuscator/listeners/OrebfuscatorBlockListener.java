@@ -14,23 +14,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lishid.orebfuscator;
+package lishid.orebfuscator.listeners;
 
 import java.util.HashMap;
 
+import lishid.orebfuscator.OrebfuscatorConfig;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 
 public class OrebfuscatorBlockListener implements Listener {
-	public static HashMap<Player, Block> blockLog = new HashMap<Player, Block>();
+	public static HashMap<String, Block> blockLog = new HashMap<String, Block>();
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
@@ -45,12 +44,12 @@ public class OrebfuscatorBlockListener implements Listener {
     	if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnDamage())
         	return;
         
-		if(blockLog.containsKey(event.getPlayer()) && blockLog.get(event.getPlayer()).equals(event.getBlock()))
+		if(blockLog.containsKey(event.getPlayer().getName()) && blockLog.get(event.getPlayer().getName()).equals(event.getBlock()))
 		{
 			return;
 		}
 		
-		blockLog.put(event.getPlayer(), event.getBlock());
+		blockLog.put(event.getPlayer().getName(), event.getBlock());
 
 		OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }

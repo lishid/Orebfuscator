@@ -19,15 +19,13 @@ package lishid.orebfuscator.commands;
 import java.io.File;
 
 import lishid.orebfuscator.Orebfuscator;
-import lishid.orebfuscator.cache.ObfuscatedChunkCache;
-import lishid.orebfuscator.cache.ObfuscatedHashCache;
-import lishid.orebfuscator.cache.ObfuscatedRegionFileCache;
+import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.cache.ObfuscatedCachedChunk;
+import lishid.orebfuscator.cache.ObfuscatedDataCache;
 import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
 
 import net.minecraft.server.ChunkCoordIntPair;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -220,11 +218,6 @@ public class OrebfuscatorCommandExecutor {
 				{
 					OrebfuscatorConfig.setUseProximityHider(data);
 		    		Orebfuscator.message(sender, "ProximityHider "+(data?"enabled":"disabled")+".");
-		    		if(OrebfuscatorConfig.getUseCache())
-		    		{
-			    		Orebfuscator.message(sender, "Warning: Caching must be disabled before ProximityHider can work.");
-			    		Orebfuscator.message(sender, "Please use \"/ofc disable cache\" to disable cache.");
-		    		}
 				}
 				else if(args[1].equalsIgnoreCase("cache"))
 				{
@@ -256,14 +249,12 @@ public class OrebfuscatorCommandExecutor {
     		Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.getEnabled()?"Enabled":"Disabled"));
     		Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
     		
-    		if(Orebfuscator.usingSpout)
-        		Orebfuscator.message(sender, "Executing Threads: Using Spout");
-    		else
-    			Orebfuscator.message(sender, "Executing Threads: " + OrebfuscatorThreadCalculation.getThreads());
+			Orebfuscator.message(sender, "Executing Threads: " + OrebfuscatorThreadCalculation.getThreads());
     		Orebfuscator.message(sender, "Processing Threads Max: " + OrebfuscatorConfig.getProcessingThreads());
     		Orebfuscator.message(sender, "Extra Update Thread: " + (OrebfuscatorConfig.getUpdateThread()?"Enabled":"Disabled"));
 
     		Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache()?"Enabled":"Disabled"));
+    		Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider()?"Enabled":"Disabled"));
 
     		Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
     		Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());
@@ -274,13 +265,7 @@ public class OrebfuscatorCommandExecutor {
     	
     	if(args[0].equalsIgnoreCase("clearcache"))
     	{
-    		ObfuscatedRegionFileCache.clearCache();
-    		ObfuscatedHashCache.clearCache();
-    		File dir = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
-    		try {
-    			DeleteDir(dir);
-			}
-    		catch (Exception e) { Orebfuscator.log(e); }
+    		ObfuscatedDataCache.ClearCache();
     		Orebfuscator.message(sender, "Cache cleared.");
     	}
     	
@@ -294,26 +279,11 @@ public class OrebfuscatorCommandExecutor {
     		Player player = (Player) sender;
     		
     		File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), player.getWorld().getName());
-    		ObfuscatedChunkCache cache = new ObfuscatedChunkCache(cacheFolder, player.getLocation().getChunk().getX(), player.getLocation().getChunk().getZ(), OrebfuscatorConfig.getInitialRadius());
+    		ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, player.getLocation().getChunk().getX(), player.getLocation().getChunk().getZ(), OrebfuscatorConfig.getInitialRadius(), OrebfuscatorConfig.getUseProximityHider());
     		cache.Invalidate();
     		Orebfuscator.message(sender, "Chunk cache cleared. It will be re-calculated next time.");
     	}
     	
     	return true;
-    }
-    
-    private static void DeleteDir(File dir)
-    {
-    	try{
-	    	if (!dir.exists())
-	    		return;
-	    	
-	        if (dir.isDirectory())
-	            for (File f : dir.listFiles())
-	                DeleteDir(f);
-	        
-	        dir.delete();
-        }
-    	catch (Exception e) { Orebfuscator.log(e); }
     }
 }

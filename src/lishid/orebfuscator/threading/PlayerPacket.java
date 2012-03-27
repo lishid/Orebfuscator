@@ -14,25 +14,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lishid.orebfuscator.utils;
+package lishid.orebfuscator.threading;
+
+import net.minecraft.server.Packet51MapChunk;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
-import net.minecraft.server.WorldServer;
-
-public class ChunkInfo {
-	boolean useCache;
-	int chunkX;
-	int chunkZ;
-	int chunkMask;
-	int extraMask;
-	int chunkSectionNumber;
-	int extraSectionNumber;
-	boolean canUseCache;
-	int[] chunkSectionToIndexMap = new int[16];
-	int[] extraSectionToIndexMap = new int[16];
-	WorldServer world;
-	byte[] data;
-	byte[] buffer;
-	CraftPlayer player;
+public class PlayerPacket {
+	public CraftPlayer player;
+	public Packet51MapChunk packet;
+	public PlayerPacket(CraftPlayer player, Packet51MapChunk packet)
+	{
+		this.player = player;
+		this.packet = packet;
+	}
 }

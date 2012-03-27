@@ -27,18 +27,22 @@ import lishid.orebfuscator.Orebfuscator;
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
 
-public class ObfuscatedChunkCache {
+public class ObfuscatedCachedChunk {
 	File path;
 	File hashPath;
 	int x;
 	int z;
 	public int initialRadius;
+	public boolean proximityHider;
+	public byte[] data;
+	public int[] proximityBlockList;
 	
-	public ObfuscatedChunkCache(File file, int x, int z, int initialRadius)
+	public ObfuscatedCachedChunk(File file, int x, int z, int initialRadius, boolean proximityHider)
 	{
 		this.x = x;
 		this.z = z;
 		this.initialRadius = initialRadius;
+		this.proximityHider = proximityHider;
 		this.path = new File(file, "data");
 		this.hashPath = new File(file, "hash");
 		path.mkdirs();
@@ -53,13 +57,13 @@ public class ObfuscatedChunkCache {
 	public long getHash()
 	{
         try {
-            DataInputStream stream = ObfuscatedRegionFileCache.getInputStream(hashPath, x, z);
+            DataInputStream stream = ObfuscatedDataCache.getInputStream(hashPath, x, z);
             if(stream != null)
             {
 	            NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput)stream);
 	            
 	            //Check if data makes sense
-	            if(nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR"))
+	            if(nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR") || proximityHider != nbt.getBoolean("PH"))
 	            	return 0L;
 	            
 	            //Return data
@@ -72,31 +76,33 @@ public class ObfuscatedChunkCache {
 		return 0L;
 	}
 	
-	public byte[] getData()
+	public void getDataAndProximityList()
 	{
         try {
-            DataInputStream stream = ObfuscatedRegionFileCache.getInputStream(path, x, z);
+            DataInputStream stream = ObfuscatedDataCache.getInputStream(path, x, z);
             if(stream != null)
             {
 	            NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput)stream);
 	            
 	            //Check if data makes sense
-	            if(nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR"))
-	            	return null;
+	            if(nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR") || proximityHider != nbt.getBoolean("PH"))
+	            	return;
 	            
-	            //Return data
-	            return nbt.getByteArray("Data");
+	            //Retrieve data
+	            data = nbt.getByteArray("Data");
+	            if(proximityHider)
+	            	proximityBlockList = nbt.getIntArray("ProximityBlockList");
+	            else
+	            	proximityBlockList = new int[0];
             }
         } catch (Exception e) {
         	Orebfuscator.log("Error reading Orebfuscator Chunk cache data: " + e.getMessage());
         }
-		
-		return null;
 	}
 	
-	public void Write(long hash, byte[] data) {
+	public void Write(long hash, byte[] data, int[] proximityBlockList) {
 		setHash(hash);
-		setData(data);
+		setData(data, proximityBlockList);
 	}
 	
 	public void setHash(long hash) {
@@ -105,29 +111,32 @@ public class ObfuscatedChunkCache {
 		    nbt.setInt("X", x);
 		    nbt.setInt("Z", z);
 		    nbt.setInt("IR", initialRadius);
+		    nbt.setBoolean("PH", proximityHider);
 		    nbt.setLong("Hash", hash);
 
-			DataOutputStream stream = ObfuscatedRegionFileCache.getOutputStream(hashPath, x, z);
+			DataOutputStream stream = ObfuscatedDataCache.getOutputStream(hashPath, x, z);
 		    NBTCompressedStreamTools.a(nbt, (DataOutput)stream);
 		    stream.close();
 		} catch (Exception e) {
-			Orebfuscator.log("Error writting Orebfuscator Chunk cache hash: " + e.getMessage());
+			Orebfuscator.log("Error writing Orebfuscator Chunk cache hash: " + e.getMessage());
 		}
 	}
 	
-	public void setData(byte[] data) {
+	public void setData(byte[] data, int[] proximityBlockList) {
 		try {
 		    NBTTagCompound nbt = new NBTTagCompound();
 		    nbt.setInt("X", x);
 		    nbt.setInt("Z", z);
 		    nbt.setInt("IR", initialRadius);
+		    nbt.setBoolean("PH", proximityHider);
 		    nbt.setByteArray("Data", data);
+		    nbt.setIntArray("ProximityBlockList", proximityBlockList);
 
-			DataOutputStream stream = ObfuscatedRegionFileCache.getOutputStream(path, x, z);
+			DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
 		    NBTCompressedStreamTools.a(nbt, (DataOutput)stream);
 		    stream.close();
 		} catch (Exception e) {
-			Orebfuscator.log("Error writting Orebfuscator Chunk cache data: " + e.getMessage());
+			Orebfuscator.log("Error writing Orebfuscator Chunk cache data: " + e.getMessage());
 		}
 	}
 }

@@ -14,11 +14,34 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package lishid.orebfuscator.hook;
-
-import net.minecraft.server.*;
+package net.minecraft.serverhook;
 
 import java.util.logging.Logger;
+
+import net.minecraft.server.EntityPlayer;
+import net.minecraft.server.ICommandListener;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.NetServerHandler;
+import net.minecraft.server.NetworkManager;
+import net.minecraft.server.Packet;
+import net.minecraft.server.Packet0KeepAlive;
+import net.minecraft.server.Packet101CloseWindow;
+import net.minecraft.server.Packet102WindowClick;
+import net.minecraft.server.Packet106Transaction;
+import net.minecraft.server.Packet107SetCreativeSlot;
+import net.minecraft.server.Packet108ButtonClick;
+import net.minecraft.server.Packet10Flying;
+import net.minecraft.server.Packet130UpdateSign;
+import net.minecraft.server.Packet14BlockDig;
+import net.minecraft.server.Packet15Place;
+import net.minecraft.server.Packet16BlockItemSwitch;
+import net.minecraft.server.Packet18ArmAnimation;
+import net.minecraft.server.Packet19EntityAction;
+import net.minecraft.server.Packet250CustomPayload;
+import net.minecraft.server.Packet255KickDisconnect;
+import net.minecraft.server.Packet3Chat;
+import net.minecraft.server.Packet7UseEntity;
+import net.minecraft.server.Packet9Respawn;
 
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;

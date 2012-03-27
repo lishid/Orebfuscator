@@ -1,11 +1,11 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.4.1-beta7
+version: 1.4.2
 author: lishid
 softdepend: [Spout]
 load: startup
 description: >
-             This plugin obfuscates chunk packets that is sent to players to prevent x-ray.
+             Modify chunk packets sent to players to prevent x-ray by replacing ores and other valuables.
 commands:
   ofc:
     description: Manage Orebfuscator.

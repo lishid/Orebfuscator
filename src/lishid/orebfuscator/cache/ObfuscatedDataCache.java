@@ -16,8 +16,9 @@
 
 package lishid.orebfuscator.cache;
 
-import lishid.orebfuscator.utils.OrebfuscatorConfig;
-import net.minecraft.server.*;
+import lishid.orebfuscator.Orebfuscator;
+import lishid.orebfuscator.OrebfuscatorConfig;
+import net.minecraft.server.RegionFile;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -26,7 +27,9 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
 
-public class ObfuscatedRegionFileCache {
+import org.bukkit.Bukkit;
+
+public class ObfuscatedDataCache {
     private static final HashMap<File, Reference<RegionFile>> cachedRegionFiles = new HashMap<File, Reference<RegionFile>>();
 
     public static synchronized RegionFile getRegionFile(File folder, int x, int z) {
@@ -75,5 +78,31 @@ public class ObfuscatedRegionFileCache {
     public static DataOutputStream getOutputStream(File folder, int x, int z) {
         RegionFile regionFile = getRegionFile(folder, x, z);
         return regionFile.b(x & 0x1F, z & 0x1F);
+    }
+    
+    public static void ClearCache()
+    {
+		ObfuscatedDataCache.clearCache();
+		ObfuscatedHashCache.clearCache();
+		File dir = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
+		try {
+			DeleteDir(dir);
+		}
+		catch (Exception e) { Orebfuscator.log(e); }
+    }
+    
+    private static void DeleteDir(File dir)
+    {
+    	try{
+	    	if (!dir.exists())
+	    		return;
+	    	
+	        if (dir.isDirectory())
+	            for (File f : dir.listFiles())
+	                DeleteDir(f);
+	        
+	        dir.delete();
+        }
+    	catch (Exception e) { Orebfuscator.log(e); }
     }
 }
