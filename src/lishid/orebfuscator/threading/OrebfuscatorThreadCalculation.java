@@ -71,6 +71,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 			{
 				OrebfuscatorThreadCalculation thread = new OrebfuscatorThreadCalculation();
 				thread.setName("Orebfuscator Calculation Thread");
+				thread.setPriority(Thread.MIN_PRIORITY);
 				thread.start();
 				threads.add(thread);
 			}
@@ -90,36 +91,12 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 				{
 					queue.put(new PlayerPacket(player, packet));
 				}
-				/*
-				int x = packet.a >> 4;
-				int z = packet.c >> 4;
-				WorldServer world = player.getHandle().world.getWorld().getHandle();
-				tryLoadChunk(world, x+1, z);
-				tryLoadChunk(world, x-1, z);
-				tryLoadChunk(world, x, z+1);
-				tryLoadChunk(world, x, z-1);
-				tryLoadChunk(world, x+1, z+1);
-				tryLoadChunk(world, x+1, z-1);
-				tryLoadChunk(world, x-1, z+1);
-				tryLoadChunk(world, x-1, z-1);*/
 				return;
 			}
 			catch (Exception e) { Orebfuscator.log(e); }
 		}
 	}
-	/*
-	private static void tryLoadChunk(WorldServer world, int x, int z)
-	{
-		if(!world.isLoaded(x << 4, 0, z << 4))
-		{
-			try
-			{
-				world.chunkProvider.getChunkAt(x+1, z);
-			}
-			catch (Exception e) { Orebfuscator.log(e); }
-		}
-	}
-*/
+	
 	private AtomicBoolean kill = new AtomicBoolean(false);
 	private byte[] chunkBuffer = new byte[65536];
 	
@@ -133,10 +110,40 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 					//Try to obfuscate and send the packet
 					Calculations.Obfuscate(packet.packet, packet.player, true, chunkBuffer);
 				}
-				catch (Exception e)
+				catch (Throwable e)
 				{
 					Orebfuscator.log(e);
 		    		//If we run into problems, just send the packet.
+
+					//Compress packets
+					if(packet.packet.buffer == null)
+					{
+						try{
+							synchronized(Calculations.deflateBuffer)
+							{
+								//Compression
+						        int dataSize = packet.packet.rawData.length;
+						        if (Calculations.deflateBuffer.length < dataSize + 100) {
+						        	Calculations.deflateBuffer = new byte[dataSize + 100];
+						        }
+						        
+						        Calculations.deflater.reset();
+						        Calculations.deflater.setLevel(dataSize < 20480 ? 1 : 6);
+						        Calculations.deflater.setInput(packet.packet.rawData);
+						        Calculations.deflater.finish();
+						        int size = Calculations.deflater.deflate(Calculations.deflateBuffer);
+						        if (size == 0) {
+						            size = Calculations.deflater.deflate(Calculations.deflateBuffer);
+						        }
+					        	
+						        //Copy compressed packet out
+						        packet.packet.buffer = new byte[size];
+						        packet.packet.size = size;
+						        System.arraycopy(Calculations.deflateBuffer, 0, packet.packet.buffer, 0, size);
+							}
+						} catch (Exception e2) { Orebfuscator.log(e2); }
+					}
+					
 					packet.player.getHandle().netServerHandler.sendPacket(packet.packet);
 				}
 			} catch (Exception e) { Orebfuscator.log(e); }

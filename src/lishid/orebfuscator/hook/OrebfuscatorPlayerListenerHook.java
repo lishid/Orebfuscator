@@ -18,7 +18,6 @@ package lishid.orebfuscator.hook;
 
 import lishid.orebfuscator.Orebfuscator;
 
-import org.bukkit.Location;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -44,8 +43,6 @@ public class OrebfuscatorPlayerListenerHook implements Listener{
 
 			if (!(cPlayer.getHandle().netServerHandler instanceof OrebfuscatorNetServerHandler)) {
 				OrebfuscatorNetServerHandler handler = new OrebfuscatorNetServerHandler(server.getHandle().server, cPlayer.getHandle().netServerHandler);
-				Location loc = player.getLocation();
-				handler.a(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 				cPlayer.getHandle().netServerHandler = handler;
 				cPlayer.getHandle().netServerHandler.networkManager.a(handler);
 				server.getServer().networkListenThread.a(handler);

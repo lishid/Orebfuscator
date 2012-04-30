@@ -35,7 +35,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 public class OrebfuscatorCommandExecutor {
     @SuppressWarnings("unchecked")
 	public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    	if (command.getName().equalsIgnoreCase("chunk"))
+    	if (command.getName().equalsIgnoreCase("chunk") && sender instanceof Player)
     	{
     	    int r = 2;
     	    if (args.length > 0)

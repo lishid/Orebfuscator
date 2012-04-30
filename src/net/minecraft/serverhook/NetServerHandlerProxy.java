@@ -127,7 +127,8 @@ public class NetServerHandlerProxy extends NetServerHandler implements ICommandL
 
     @Override
     public void sendPacket(Packet packet) {
-        nshInstance.sendPacket(packet);
+        if(packet != null)
+            nshInstance.sendPacket(packet);
     }
 
     @Override

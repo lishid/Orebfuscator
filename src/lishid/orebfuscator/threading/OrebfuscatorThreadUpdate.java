@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.cache.ChunkCacheInvalidation;
 import lishid.orebfuscator.obfuscation.Calculations;
 
 import org.bukkit.block.Block;
@@ -41,10 +42,13 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 	public static void Queue(Block block)
 	{
 		//Dont do anything if the block is transparent
-        if (!net.minecraft.server.Block.g((byte)block.getTypeId()))
+	    byte id = (byte)block.getTypeId();
+        if (id < 0 || !net.minecraft.server.Block.g(id))
         {
         	return;
         }
+        
+        ChunkCacheInvalidation.Queue(block);
         
         if(!OrebfuscatorConfig.getUpdateThread())
         {
@@ -56,6 +60,7 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 		{
 			thread = new OrebfuscatorThreadUpdate();
 			thread.setName("Orebfuscator Update Thread");
+            thread.setPriority(Thread.MIN_PRIORITY);
 			thread.start();
 		}
 		while(true)

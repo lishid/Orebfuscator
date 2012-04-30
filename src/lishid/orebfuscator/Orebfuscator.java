@@ -112,21 +112,27 @@ public class Orebfuscator extends JavaPlugin {
 		pm.registerEvents(this.entityListener, this);
 		pm.registerEvents(this.blockListener, this);
 
-		//Check if OrebfuscatorSpoutBridge exists
-		if(pm.getPlugin("OrebfuscatorSpoutBridge") != null)
+		//Using Spout
+		if(pm.getPlugin("Spout") != null)
 		{
-			Orebfuscator.log("OrebfuscatorSpoutBridge is integrated into Orebfuscator now. You should remove OrebfuscatorSpoutBridge.jar from the plugins folder.");
-		}
-		
-		//Spout events
-		else if(pm.getPlugin("Spout") != null)
-		{
-			//Using Spout
-			try{
-				SpoutLoader.InitializeSpout();
-				Orebfuscator.log("Spout found, using Spout.");
-			}catch(Exception e){
-				Orebfuscator.log("Spout initialization failed. Error: " + e.getMessage());
+			//Try to load spout 10 times...
+			Throwable t = null;
+			boolean spoutLoaded = false;
+			for(int i = 0; i < 10; i++)
+			{
+				try{
+					SpoutLoader.InitializeSpout();
+					Orebfuscator.log("Spout found, using Spout.");
+					spoutLoaded = true;
+					break;
+				}catch(Throwable e){
+					t = e;
+				}
+			}
+			if(!spoutLoaded && t != null)
+			{
+				Orebfuscator.log("Spout loading error.");
+				t.printStackTrace();
 			}
 		}
 		else
@@ -215,7 +221,7 @@ public class Orebfuscator extends JavaPlugin {
 	/**
      * Log an error
      */
-	public static void log(Exception e)
+	public static void log(Throwable e)
 	{
 		logger.severe("[OFC] " + e.getMessage());
 		e.printStackTrace();

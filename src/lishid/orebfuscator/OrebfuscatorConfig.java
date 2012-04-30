@@ -44,6 +44,7 @@ public class OrebfuscatorConfig {
 	private static int MaxLoadedCacheFiles = 64;
 	private static int ProximityHiderDistance = 8;
 	private static int ProximityHiderID = 0;
+	private static int ProximityHiderEnd = 255;
 	private static boolean UseProximityHider = true;
 	private static boolean UseSpecialBlockForProximityHider = true;
 	private static boolean UpdateOnBreak = true;
@@ -57,7 +58,7 @@ public class OrebfuscatorConfig {
 	private static boolean VerboseMode = false;
 	private static boolean NoObfuscationForOps = true;
 	private static boolean NoObfuscationForPermission = true;
-	private static boolean UseCache = true;
+	private static boolean UseCache = false;
 	private static boolean Enabled = true;
 	private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
 	
@@ -75,8 +76,8 @@ public class OrebfuscatorConfig {
 	
 	public static int getUpdateRadius()
 	{
-		if(UpdateRadius < 1)
-			return 1;
+		if(UpdateRadius < 0)
+			return 0;
 		return UpdateRadius;
 	}
 	
@@ -117,6 +118,11 @@ public class OrebfuscatorConfig {
 	public static int getProximityHiderID()
 	{
 		return ProximityHiderID;
+	}
+	
+	public static int getProximityHiderEnd()
+	{
+		return ProximityHiderEnd;
 	}
 	
 	public static boolean getUseProximityHider()
@@ -294,6 +300,12 @@ public class OrebfuscatorConfig {
 	{
 		setData("Integers.ProximityHiderID", data);
 		ProximityHiderID = data;
+	}
+	
+	public static void setProximityHiderEnd(int data)
+	{
+		setData("Integers.ProximityHiderEnd", data);
+		ProximityHiderEnd = data;
 	}
 	
 	public static void setUseProximityHider(boolean data)
@@ -486,6 +498,7 @@ public class OrebfuscatorConfig {
 		MaxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles);
 		ProximityHiderDistance = getInt("Integers.ProximityHiderDistance", ProximityHiderDistance);
 		ProximityHiderID = getInt("Integers.ProximityHiderID", ProximityHiderID);
+		ProximityHiderEnd = getInt("Integers.ProximityHiderEnd", ProximityHiderEnd);
 		UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
 		UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
 		UpdateOnBreak = getBoolean("Booleans.UpdateOnBreak", UpdateOnBreak);
@@ -585,11 +598,27 @@ public class OrebfuscatorConfig {
 	
 	public static boolean playerBypassOp(Player player)
 	{
-		return OrebfuscatorConfig.getNoObfuscationForOps() && player.isOp();
+		boolean ret = false;
+		try{
+			ret = OrebfuscatorConfig.getNoObfuscationForOps() && player.isOp();
+		}
+		catch (Exception e)
+		{
+			Orebfuscator.log("Error while obtaining OP status for player" + player.getName() + ": " + e.getMessage());
+		}
+		return ret;
 	}
 	
 	public static boolean playerBypassPerms(Player player)
 	{
-		return OrebfuscatorConfig.getNoObfuscationForPermission() && player.hasPermission("Orebfuscator.deobfuscate");
+		boolean ret = false;
+		try{
+			ret = OrebfuscatorConfig.getNoObfuscationForPermission() && player.hasPermission("Orebfuscator.deobfuscate");
+		}
+		catch (Exception e)
+		{
+			Orebfuscator.log("Error while obtaining permissions for player" + player.getName() + ": " + e.getMessage());
+		}
+		return ret;
 	}
 }

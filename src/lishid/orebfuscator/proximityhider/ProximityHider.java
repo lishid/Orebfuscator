@@ -32,6 +32,11 @@ public class ProximityHider {
 				    		HashSet<Block> blocks = proximityHiderTracker.get(p);
 				    		for(Block b : blocks)
 				    		{
+				    		    if(b == null || p == null || b.getWorld() == null || p.getWorld() == null)
+				    		    {
+                                    blocksToRemove.add(b);
+				    		        continue;
+				    		    }
 				    			if(!p.getWorld().equals(b.getWorld()))
 				    			{
 					    			blocksToRemove.add(b);

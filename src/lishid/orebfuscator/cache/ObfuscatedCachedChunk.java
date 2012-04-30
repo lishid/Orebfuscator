@@ -21,8 +21,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
-
-import lishid.orebfuscator.Orebfuscator;
+import java.io.IOException;
 
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
@@ -70,7 +69,9 @@ public class ObfuscatedCachedChunk {
 	            return nbt.getLong("Hash");
             }
         } catch (Exception e) {
-        	Orebfuscator.log("Error reading Orebfuscator Chunk cache hash: " + e.getMessage());
+            //Orebfuscator.log("Error reading Orebfuscator Chunk cache hash: " + e.getMessage());
+        } catch (Error e) {
+            //Orebfuscator.log("Error reading Orebfuscator Chunk cache hash: " + e.getMessage());
         }
 		
 		return 0L;
@@ -96,7 +97,9 @@ public class ObfuscatedCachedChunk {
 	            	proximityBlockList = new int[0];
             }
         } catch (Exception e) {
-        	Orebfuscator.log("Error reading Orebfuscator Chunk cache data: " + e.getMessage());
+            //Orebfuscator.log("Error reading Orebfuscator Chunk cache data: " + e.getMessage());
+        } catch (Error e) {
+            //Orebfuscator.log("Error reading Orebfuscator Chunk cache data: " + e.getMessage());
         }
 	}
 	
@@ -117,9 +120,13 @@ public class ObfuscatedCachedChunk {
 			DataOutputStream stream = ObfuscatedDataCache.getOutputStream(hashPath, x, z);
 		    NBTCompressedStreamTools.a(nbt, (DataOutput)stream);
 		    stream.close();
-		} catch (Exception e) {
-			Orebfuscator.log("Error writing Orebfuscator Chunk cache hash: " + e.getMessage());
-		}
+		} catch (IOException e) {
+            //Orebfuscator.log("Error writing Orebfuscator Chunk cache hash: " + e.getMessage());
+        } catch (Exception e) {
+			//Orebfuscator.log("Error writing Orebfuscator Chunk cache hash: " + e.getMessage());
+		} catch (Error e) {
+            //Orebfuscator.log("Error writing Orebfuscator Chunk cache hash: " + e.getMessage());
+        }
 	}
 	
 	public void setData(byte[] data, int[] proximityBlockList) {
@@ -135,8 +142,12 @@ public class ObfuscatedCachedChunk {
 			DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
 		    NBTCompressedStreamTools.a(nbt, (DataOutput)stream);
 		    stream.close();
-		} catch (Exception e) {
-			Orebfuscator.log("Error writing Orebfuscator Chunk cache data: " + e.getMessage());
-		}
+		} catch (IOException e) {
+            //Orebfuscator.log("Error writing Orebfuscator Chunk cache data: " + e.getMessage());
+        } catch (Exception e) {
+            //Orebfuscator.log("Error writing Orebfuscator Chunk cache data: " + e.getMessage());
+        } catch (Error e) {
+            //Orebfuscator.log("Error writing Orebfuscator Chunk cache data: " + e.getMessage());
+        }
 	}
 }
