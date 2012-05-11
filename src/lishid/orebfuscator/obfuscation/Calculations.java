@@ -25,7 +25,6 @@ import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
-import lishid.orebfuscator.cache.ChunkCacheInvalidation;
 import lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import lishid.orebfuscator.proximityhider.ProximityHider;
 
@@ -337,20 +336,9 @@ public class Calculations
             // Hash the chunk
             hash = Hash(info.buffer, info.chunkSectionNumber * 4096);
             
-            boolean chunkInvalidated = false;
-            
-            synchronized(ChunkCacheInvalidation.invalidationLock)
-            {
-                long chunk = (long)info.chunkX << 32 + info.chunkZ;
-                if(ChunkCacheInvalidation.invalidChunks.contains(chunk))
-                {
-                    chunkInvalidated = true;
-                }
-            }
-            
             // Check if hash is consistent
             long storedHash = cache.getHash();
-            if (!chunkInvalidated && storedHash != 0L && hash == storedHash)
+            if (storedHash != 0L && hash == storedHash)
             {
                 // Get data
                 cache.getDataAndProximityList();
@@ -445,7 +433,7 @@ public class Calculations
                             specialObfuscate = false;
                             
                             // Check if the block should be obfuscated because of proximity check
-                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index]) && y <= OrebfuscatorConfig.getProximityHiderEnd())
+                            if (OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index]) && y <= OrebfuscatorConfig.getProximityHiderEnd())
                             {
                                 proximityBlocks.add(getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
                                 obfuscate = true;
@@ -454,7 +442,7 @@ public class Calculations
                             }
                             
                             // Check if the block should be obfuscated because of being behind stuff
-                            if (OrebfuscatorConfig.isObfuscated(data))
+                            if (!obfuscate && OrebfuscatorConfig.isObfuscated(data))
                             {
                                 if (initialRadius == 0)
                                 {
@@ -500,7 +488,8 @@ public class Calculations
                                 else if (OrebfuscatorConfig.getEngineMode() == 2)
                                 {
                                     // Ending mode 2, replace with random block
-                                    randomIncrement = randomIncrement % (OrebfuscatorConfig.getRandomBlocks().length - 1) + 1;
+                                    if(OrebfuscatorConfig.getRandomBlocks().length > 1)
+                                        randomIncrement = randomIncrement % (OrebfuscatorConfig.getRandomBlocks().length - 1) + 1;
                                     info.buffer[index] = (byte) (int) OrebfuscatorConfig.getRandomBlocks()[randomIncrement];
                                 }
                             }
@@ -529,9 +518,12 @@ public class Calculations
             for (int i = 0; i < proximityBlocks.size(); i++)
             {
                 Block b = proximityBlocks.get(i);
-                chestList[i * 3] = b.getX();
-                chestList[i * 3 + 1] = b.getY();
-                chestList[i * 3 + 2] = b.getZ();
+                if(b != null)
+                {
+                    chestList[i * 3] = b.getX();
+                    chestList[i * 3 + 1] = b.getY();
+                    chestList[i * 3 + 2] = b.getZ();
+                }
             }
             cache.Write(hash, info.buffer, chestList);
         }

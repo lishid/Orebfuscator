@@ -43,7 +43,7 @@ public class OrebfuscatorConfig {
 	private static int ProcessingThreads = 1;
 	private static int MaxLoadedCacheFiles = 64;
 	private static int ProximityHiderDistance = 8;
-	private static int ProximityHiderID = 0;
+	private static int ProximityHiderID = 1;
 	private static int ProximityHiderEnd = 255;
 	private static boolean UseProximityHider = true;
 	private static boolean UseSpecialBlockForProximityHider = true;
@@ -543,7 +543,7 @@ public class OrebfuscatorConfig {
 		setProximityHiderDistance(ProximityHiderDistance);
 		setProximityHiderID(ProximityHiderID);
 		setUseProximityHider(UseProximityHider);
-		setUseSpecialBlockForProximityHider(UseSpecialBlockForProximityHider);
+        setUseSpecialBlockForProximityHider(UseSpecialBlockForProximityHider);
 		setUpdateOnBreak(UpdateOnBreak);
 		setUpdateOnDamage(UpdateOnDamage);
 		setUpdateOnPhysics(UpdateOnPhysics);

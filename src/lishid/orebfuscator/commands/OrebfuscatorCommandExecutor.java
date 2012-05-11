@@ -254,7 +254,7 @@ public class OrebfuscatorCommandExecutor {
     		Orebfuscator.message(sender, "Extra Update Thread: " + (OrebfuscatorConfig.getUpdateThread()?"Enabled":"Disabled"));
 
     		Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache()?"Enabled":"Disabled"));
-    		Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider()?"Enabled":"Disabled"));
+            Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider()?"Enabled":"Disabled"));
 
     		Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
     		Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());

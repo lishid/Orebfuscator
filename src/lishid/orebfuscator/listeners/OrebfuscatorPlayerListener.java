@@ -62,7 +62,7 @@ public class OrebfuscatorPlayerListener implements Listener
 		}
     	if(OrebfuscatorConfig.getUseProximityHider())
     	{
-	    	synchronized(ProximityHider.Lock)
+	    	synchronized(ProximityHider.BlockLock)
 	    	{
 	    		ProximityHider.proximityHiderTracker.remove(event.getPlayer());
 	    	}
@@ -91,7 +91,7 @@ public class OrebfuscatorPlayerListener implements Listener
 	{
     	if(OrebfuscatorConfig.getUseProximityHider())
     	{
-	    	synchronized(ProximityHider.Lock)
+	    	synchronized(ProximityHider.BlockLock)
 	    	{
 	    		ProximityHider.proximityHiderTracker.remove(event.getPlayer());
 	    	}
@@ -106,7 +106,7 @@ public class OrebfuscatorPlayerListener implements Listener
 		
     	if(OrebfuscatorConfig.getUseProximityHider())
     	{
-	    	synchronized(ProximityHider.Lock)
+	    	synchronized(ProximityHider.PlayerLock)
 	    	{
 	    		if(!ProximityHider.playersToCheck.contains(event.getPlayer()))
 	    			ProximityHider.playersToCheck.add(event.getPlayer());

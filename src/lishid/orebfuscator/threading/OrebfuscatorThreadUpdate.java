@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
-import lishid.orebfuscator.cache.ChunkCacheInvalidation;
 import lishid.orebfuscator.obfuscation.Calculations;
 
 import org.bukkit.block.Block;
@@ -47,8 +46,6 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
         {
         	return;
         }
-        
-        ChunkCacheInvalidation.Queue(block);
         
         if(!OrebfuscatorConfig.getUpdateThread())
         {
