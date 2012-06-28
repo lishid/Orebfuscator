@@ -176,6 +176,8 @@ public class Orebfuscator extends JavaPlugin {
 		ProximityHider.playersToCheck.clear();
 		OrebfuscatorBlockListener.blockLog.clear();
 		
+		Orebfuscator.instance.getServer().getScheduler().cancelAllTasks();
+		
     	//Output
         PluginDescriptionFile pdfFile = this.getDescription();
         log("Version " + pdfFile.getVersion() + " disabled!" );

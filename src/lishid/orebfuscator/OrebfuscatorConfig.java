@@ -92,8 +92,8 @@ public class OrebfuscatorConfig {
 	{
 		if(ProcessingThreads <= 0)
 			return 1;
-		if(ProcessingThreads > 4)
-			return 4;
+		if(ProcessingThreads > 16)
+			return 16;
 		return ProcessingThreads;
 	}
 	
@@ -619,6 +619,6 @@ public class OrebfuscatorConfig {
 		{
 			Orebfuscator.log("Error while obtaining permissions for player" + player.getName() + ": " + e.getMessage());
 		}
-		return ret;
-	}
+        return ret;
+    }
 }
