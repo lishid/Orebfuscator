@@ -432,15 +432,6 @@ public class Calculations
                             obfuscate = false;
                             specialObfuscate = false;
                             
-                            // Check if the block should be obfuscated because of proximity check
-                            if (OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index]) && y <= OrebfuscatorConfig.getProximityHiderEnd())
-                            {
-                                proximityBlocks.add(getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
-                                obfuscate = true;
-                                if (OrebfuscatorConfig.getUseSpecialBlockForProximityHider())
-                                    specialObfuscate = true;
-                            }
-                            
                             // Check if the block should be obfuscated because of being behind stuff
                             if (!obfuscate && OrebfuscatorConfig.isObfuscated(data))
                             {
@@ -457,6 +448,15 @@ public class Calculations
                                         obfuscate = true;
                                     }
                                 }
+                            }
+                            
+                            // Check if the block should be obfuscated because of proximity check
+                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index]) && y <= OrebfuscatorConfig.getProximityHiderEnd())
+                            {
+                                proximityBlocks.add(getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
+                                obfuscate = true;
+                                if (OrebfuscatorConfig.getUseSpecialBlockForProximityHider())
+                                    specialObfuscate = true;
                             }
                             
                             // Check if the block should be obfuscated because of darkness
