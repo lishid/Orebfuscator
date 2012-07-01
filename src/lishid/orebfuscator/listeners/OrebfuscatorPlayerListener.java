@@ -108,7 +108,8 @@ public class OrebfuscatorPlayerListener implements Listener
     	{
 	    	synchronized(ProximityHider.PlayerLock)
 	    	{
-    			ProximityHider.playersToCheck.add(event.getPlayer());
+	    	    if(!ProximityHider.playersToCheck.containsKey(event.getPlayer()))
+	    	        ProximityHider.playersToCheck.put(event.getPlayer(), event.getFrom());
 	    	}
     	}
 	}

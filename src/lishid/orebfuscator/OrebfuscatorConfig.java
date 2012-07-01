@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 
 public class OrebfuscatorConfig
 {
-    private static final int CONFIG_VERSION = 2;
+    private static final int CONFIG_VERSION = 3;
     private static TByteHashSet ObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
     private static TByteHashSet DarknessObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
     private static TByteHashSet ProximityHiderBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
@@ -58,11 +58,14 @@ public class OrebfuscatorConfig
     private static boolean NoObfuscationForPermission = true;
     private static boolean UseCache = false;
     private static boolean Enabled = true;
-    private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
+    private static String CacheLocation = "orebfuscator_cache";
+    private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
     
     // Other gets
     public static File getCacheFolder()
     {
+        if(!CacheFolder.exists())
+            CacheFolder = new File("orebfuscator_cache");
         return CacheFolder;
     }
     
@@ -196,6 +199,11 @@ public class OrebfuscatorConfig
     public static boolean getEnabled()
     {
         return Enabled;
+    }
+    
+    public static String getCacheLocation()
+    {
+        return CacheLocation;
     }
     
     public static boolean isObfuscated(byte id)
@@ -395,6 +403,13 @@ public class OrebfuscatorConfig
         Enabled = data;
     }
     
+    public static void setCacheLocation(String data)
+    {
+        setData("Strings.CacheLocation", data);
+        CacheFolder = new File(data);
+        CacheLocation = data;
+    }
+    
     public static void setDisabledWorlds(String name, boolean data)
     {
         if (!data)
@@ -413,6 +428,13 @@ public class OrebfuscatorConfig
         if (Orebfuscator.instance.getConfig().get(path) == null)
             setData(path, defaultData);
         return Orebfuscator.instance.getConfig().getBoolean(path, defaultData);
+    }
+    
+    private static String getString(String path, String defaultData)
+    {
+        if (Orebfuscator.instance.getConfig().get(path) == null)
+            setData(path, defaultData);
+        return Orebfuscator.instance.getConfig().getString(path, defaultData);
     }
     
     private static int getInt(String path, int defaultData)
@@ -522,6 +544,8 @@ public class OrebfuscatorConfig
         ProximityHiderBlocks = IntListToTByteHashSet(getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116 })));
         RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
+        CacheLocation = getString("Strings.CacheLocation", CacheLocation);
+        CacheFolder = new File(CacheLocation);
         
         // Version check
         int version = getInt("ConfigVersion", 0);
@@ -541,7 +565,7 @@ public class OrebfuscatorConfig
             
             setData("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
             
-            setData("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116 }));
+            setData("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 58, 61, 62, 116, 117 }));
         }
         setData("ConfigVersion", CONFIG_VERSION);
         

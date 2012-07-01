@@ -1,6 +1,6 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.4.9
+version: 1.5.1
 author: lishid
 softdepend: [Spout]
 load: startup

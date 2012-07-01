@@ -7,6 +7,7 @@ import java.util.HashSet;
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
 
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -14,7 +15,7 @@ import org.bukkit.entity.Player;
 public class ProximityHider
 {
     public static HashMap<Player, HashSet<Block>> proximityHiderTracker = new HashMap<Player, HashSet<Block>>();
-    public static HashSet<Player> playersToCheck = new HashSet<Player>();
+    public static HashMap<Player, Location> playersToCheck = new HashMap<Player, Location>();
     public static final Object PlayerLock = new Object();
     public static final Object BlockLock = new Object();
     public static boolean isRunning = false;
@@ -33,18 +34,26 @@ public class ProximityHider
                 
                 isRunning = true;
                 
-                HashSet<Player> newPlayers = new HashSet<Player>();
+                HashMap<Player, Location> newPlayers = new HashMap<Player, Location>();
                 
                 synchronized (PlayerLock)
                 {
-                    newPlayers.addAll(playersToCheck);
+                    newPlayers.putAll(playersToCheck);
                     playersToCheck.clear();
                 }
                 
-                for (Player p : newPlayers)
+                for (Player p : newPlayers.keySet())
                 {
                     if (p != null && proximityHiderTracker.containsKey(p))
                     {
+                        Location loc1 = p.getLocation();
+                        Location loc2 = (newPlayers.get(p));
+
+                        if(loc1.getBlock().getLocation().distance(loc2.getBlock().getLocation()) < 0.9)
+                        {
+                            continue;
+                        }
+                        
                         HashSet<Block> blocks = new HashSet<Block>();
                         
                         synchronized (BlockLock)
