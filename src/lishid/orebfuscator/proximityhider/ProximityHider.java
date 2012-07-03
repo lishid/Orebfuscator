@@ -48,7 +48,10 @@ public class ProximityHider
                     {
                         Location loc1 = p.getLocation();
                         Location loc2 = (newPlayers.get(p));
-
+                        
+                        if(!loc1.getWorld().getName().equalsIgnoreCase(loc2.getWorld().getName()))
+                            continue;
+                        
                         if(loc1.getBlock().getLocation().distance(loc2.getBlock().getLocation()) < 0.9)
                         {
                             continue;
