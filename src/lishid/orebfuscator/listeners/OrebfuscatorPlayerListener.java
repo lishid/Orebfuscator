@@ -101,8 +101,9 @@ public class OrebfuscatorPlayerListener implements Listener
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerMove(PlayerMoveEvent event)
 	{
-		if(event.isCancelled())
-			return;
+		if(event.getTo().equals(event.getFrom())) {
+		    return;
+		}
 		
     	if(OrebfuscatorConfig.getUseProximityHider())
     	{
