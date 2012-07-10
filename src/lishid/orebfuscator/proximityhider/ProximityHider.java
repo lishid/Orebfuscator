@@ -18,7 +18,6 @@ public class ProximityHider
     public static HashMap<Player, Location> playersToCheck = new HashMap<Player, Location>();
     public static final Object PlayerLock = new Object();
     public static final Object BlockLock = new Object();
-    public static boolean isRunning = false;
     
     public static void Load()
     {
@@ -28,11 +27,6 @@ public class ProximityHider
             {
                 if (!OrebfuscatorConfig.getUseProximityHider())
                     return;
-                
-                if (isRunning)
-                    return;
-                
-                isRunning = true;
                 
                 HashMap<Player, Location> newPlayers = new HashMap<Player, Location>();
                 
@@ -84,8 +78,6 @@ public class ProximityHider
                         }
                     }
                 }
-                
-                isRunning = false;
             }
         }, 10L, 10L);
     }

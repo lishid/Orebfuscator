@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 
 public class OrebfuscatorConfig
 {
-    private static final int CONFIG_VERSION = 3;
+    private static final int CONFIG_VERSION = 4;
     private static TByteHashSet ObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
     private static TByteHashSet DarknessObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
     private static TByteHashSet ProximityHiderBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
@@ -565,7 +565,7 @@ public class OrebfuscatorConfig
             
             setData("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
             
-            setData("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 58, 61, 62, 116, 117 }));
+            setData("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 117 }));
         }
         setData("ConfigVersion", CONFIG_VERSION);
         
