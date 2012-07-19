@@ -28,7 +28,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class OrebfuscatorPlayerListenerHook implements Listener{
 	
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(final PlayerJoinEvent event)
 	{
 		TryUpdateNetServerHandler(event.getPlayer());
