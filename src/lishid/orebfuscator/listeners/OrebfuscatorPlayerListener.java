@@ -31,7 +31,7 @@ import org.bukkit.event.player.*;
 
 public class OrebfuscatorPlayerListener implements Listener
 {
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(final PlayerJoinEvent event)
 	{
 		Player player = event.getPlayer();
@@ -49,7 +49,7 @@ public class OrebfuscatorPlayerListener implements Listener
 		}
 	}
 	
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerQuit(final PlayerQuitEvent event)
 	{
 		synchronized(Orebfuscator.players)

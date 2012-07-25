@@ -211,6 +211,10 @@ public class Calculations
                 info.chunkSectionToIndexMap[i] = info.chunkSectionNumber;
                 info.chunkSectionNumber++;
             }
+            else
+            {
+                info.chunkSectionToIndexMap[i] = -1;
+            }
             if ((info.extraMask & 1 << i) > 0)
             {
                 info.extraSectionToIndexMap[i] = info.extraSectionNumber;
@@ -540,7 +544,8 @@ public class Calculations
             return true;
         
         int section = info.chunkSectionToIndexMap[y >> 4];
-        if ((info.chunkMask & (1 << section)) > 0 && x >> 4 == info.chunkX && z >> 4 == info.chunkZ)
+        
+        if ((info.chunkMask & (1 << (y >> 4))) > 0 && x >> 4 == info.chunkX && z >> 4 == info.chunkZ)
         {
             int cX = x % 16;
             if (cX < 0)

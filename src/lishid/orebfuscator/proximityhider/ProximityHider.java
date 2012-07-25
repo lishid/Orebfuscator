@@ -55,7 +55,8 @@ public class ProximityHider
                         
                         synchronized (BlockLock)
                         {
-                            blocks.addAll(proximityHiderTracker.get(p));
+                            if(proximityHiderTracker.get(p) != null)
+                                blocks.addAll(proximityHiderTracker.get(p));
                         }
                         
                         for (Block b : blocks)
@@ -87,7 +88,9 @@ public class ProximityHider
         synchronized (BlockLock)
         {
             if (proximityHiderTracker.get(p) != null)
+            {
                 proximityHiderTracker.get(p).remove(b);
+            }
         }
     }
     
