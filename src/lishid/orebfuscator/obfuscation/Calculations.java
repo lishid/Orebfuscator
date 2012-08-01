@@ -315,6 +315,7 @@ public class Calculations
         ArrayList<Block> proximityBlocks = new ArrayList<Block>();
         // Track of pseudo-randomly assigned randomBlock
         int randomIncrement = 0;
+        int randomIncrement2 = 0;
         // Track of whether a block should be obfuscated or not
         boolean obfuscate = false;
         // Track of whether blocks needs special treatment for ProximityHider
@@ -488,13 +489,30 @@ public class Calculations
                                 {
                                     // Engine mode 1, replace with stone
                                     info.buffer[index] = 1;
+                                    
+                                    //Anti texturepack and freecam
+                                    if(OrebfuscatorConfig.getAntiTexturePackAndFreecam())
+                                    {
+                                        randomIncrement2 = (randomIncrement2 + 1) % 20;
+                                        if(randomIncrement2 == 0)
+                                            info.buffer[index] = 0;
+                                    }
                                 }
                                 else if (OrebfuscatorConfig.getEngineMode() == 2)
                                 {
                                     // Ending mode 2, replace with random block
                                     if(OrebfuscatorConfig.getRandomBlocks().length > 1)
                                         randomIncrement = randomIncrement % (OrebfuscatorConfig.getRandomBlocks().length - 1) + 1;
-                                    info.buffer[index] = (byte) (int) OrebfuscatorConfig.getRandomBlocks()[randomIncrement];
+                                    info.buffer[index] = OrebfuscatorConfig.getRandomBlock(randomIncrement);
+                                    
+                                    if(!OrebfuscatorConfig.getDisableExtraAntixray() && OrebfuscatorConfig.getAntiTexturePackAndFreecam())
+                                    {
+                                        randomIncrement2 = (randomIncrement2 + 1) % 20;
+                                        if(randomIncrement2 == 0)
+                                            info.buffer[index] = 0;
+                                        else if(randomIncrement2 == 1)
+                                            info.buffer[index] = 1;
+                                    }
                                 }
                             }
                             

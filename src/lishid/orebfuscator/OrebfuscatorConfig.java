@@ -29,11 +29,11 @@ import org.bukkit.entity.Player;
 
 public class OrebfuscatorConfig
 {
-    private static final int CONFIG_VERSION = 4;
+    private static final int CONFIG_VERSION = 5;
     private static TByteHashSet ObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
     private static TByteHashSet DarknessObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
     private static TByteHashSet ProximityHiderBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
-    private static Integer[] RandomBlocks = new Integer[] { 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82 };
+    private static Integer[] RandomBlocks = new Integer[] { 0, 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82 };
     private static List<String> DisabledWorlds = new ArrayList<String>();
     private static int EngineMode = 2;
     private static int UpdateRadius = 2;
@@ -56,10 +56,16 @@ public class OrebfuscatorConfig
     private static boolean VerboseMode = false;
     private static boolean NoObfuscationForOps = true;
     private static boolean NoObfuscationForPermission = true;
-    private static boolean UseCache = false;
+    private static boolean LoginNotification = true;
+    private static boolean AntiTexturePackAndFreecam = true;
+    private static boolean UseCache = true;
     private static boolean Enabled = true;
     private static String CacheLocation = "orebfuscator_cache";
     private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
+    
+    //Internal
+    private static boolean DisableExtraAntixray = false;
+    
     
     // Other gets
     public static File getCacheFolder()
@@ -191,6 +197,16 @@ public class OrebfuscatorConfig
         return NoObfuscationForPermission;
     }
     
+    public static boolean getLoginNotification()
+    {
+        return LoginNotification;
+    }
+    
+    public static boolean getAntiTexturePackAndFreecam()
+    {
+        return AntiTexturePackAndFreecam;
+    }
+    
     public static boolean getUseCache()
     {
         return UseCache;
@@ -250,6 +266,11 @@ public class OrebfuscatorConfig
         return retval.length() > 1 ? retval.substring(0, retval.length() - 2) : retval;
     }
     
+    public static byte getRandomBlock(int index)
+    {
+        return (byte)(int)RandomBlocks[index];
+    }
+    
     public static Integer[] getRandomBlocks()
     {
         return RandomBlocks;
@@ -261,6 +282,13 @@ public class OrebfuscatorConfig
         {
             Collections.shuffle(Arrays.asList(RandomBlocks));
         }
+    }
+    
+    //Get internals
+    
+    public static boolean getDisableExtraAntixray()
+    {
+        return DisableExtraAntixray;
     }
     
     // Set
@@ -389,6 +417,18 @@ public class OrebfuscatorConfig
     {
         setData("Booleans.NoObfuscationForPermission", data);
         NoObfuscationForPermission = data;
+    }
+    
+    public static void setLoginNotification(boolean data)
+    {
+        setData("Booleans.LoginNotification", data);
+        LoginNotification = data;
+    }
+    
+    public static void setAntiTexturePackAndFreecam(boolean data)
+    {
+        setData("Booleans.AntiTexturePackAndFreecam", data);
+        AntiTexturePackAndFreecam = data;
     }
     
     public static void setUseCache(boolean data)
@@ -538,6 +578,8 @@ public class OrebfuscatorConfig
         NoObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
         NoObfuscationForPermission = getBoolean("Booleans.NoObfuscationForPermission", NoObfuscationForPermission);
         UseCache = getBoolean("Booleans.UseCache", UseCache);
+        LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
+        AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         ObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74 })));
         DarknessObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[] { 52, 54 })));
@@ -561,7 +603,11 @@ public class OrebfuscatorConfig
                 RandomBlocks2.add(49);
             if (!RandomBlocks2.contains(82))
                 RandomBlocks2.add(82);
-            RandomBlocks = RandomBlocks2.toArray(new Integer[1]);
+            if (!RandomBlocks2.contains(0))
+                RandomBlocks2.add(0);
+            if (!RandomBlocks2.contains(1))
+                RandomBlocks2.add(1);
+            RandomBlocks = RandomBlocks2.toArray(new Integer[0]);
             
             setData("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
             
@@ -570,6 +616,9 @@ public class OrebfuscatorConfig
         setData("ConfigVersion", CONFIG_VERSION);
         
         save();
+        
+        //Load internals
+        DisableExtraAntixray = Arrays.asList(RandomBlocks).contains(0) && Arrays.asList(RandomBlocks).contains(1);
     }
     
     public static void saveAll()

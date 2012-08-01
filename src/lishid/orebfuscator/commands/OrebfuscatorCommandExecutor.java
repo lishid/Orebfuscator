@@ -16,11 +16,8 @@
 
 package lishid.orebfuscator.commands;
 
-import java.io.File;
-
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
-import lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import lishid.orebfuscator.cache.ObfuscatedDataCache;
 import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 
@@ -35,7 +32,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 public class OrebfuscatorCommandExecutor {
     @SuppressWarnings("unchecked")
 	public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    	if (command.getName().equalsIgnoreCase("chunk") && sender instanceof Player)
+    	if (command.getName().equalsIgnoreCase("rechunk") && sender instanceof Player)
     	{
     	    int r = 2;
     	    if (args.length > 0)
@@ -230,6 +227,16 @@ public class OrebfuscatorCommandExecutor {
 					Orebfuscator.Verbose();
 		    		Orebfuscator.message(sender, "Verbose mode "+(data?"enabled":"disabled")+".");
 				}
+				else if(args[1].equalsIgnoreCase("axr"))
+				{
+					OrebfuscatorConfig.setAntiTexturePackAndFreecam(data);
+		    		Orebfuscator.message(sender, "AntiTexturePackAndFreecam "+(data?"enabled":"disabled")+".");
+				}
+				else if(args[1].equalsIgnoreCase("notification"))
+				{
+					OrebfuscatorConfig.setLoginNotification(data);
+		    		Orebfuscator.message(sender, "Login Notification "+(data?"enabled":"disabled")+".");
+				}
 				else if(args[1].equalsIgnoreCase("world") && args.length > 2)
 				{
 					OrebfuscatorConfig.setDisabledWorlds(args[2], !data);
@@ -267,21 +274,6 @@ public class OrebfuscatorCommandExecutor {
     	{
     		ObfuscatedDataCache.ClearCache();
     		Orebfuscator.message(sender, "Cache cleared.");
-    	}
-    	
-    	if(args[0].equalsIgnoreCase("recache"))
-    	{
-    		if(!(sender instanceof Player))
-    		{
-        		Orebfuscator.message(sender, "You must execute this as a player");
-    			return true;
-    		}
-    		Player player = (Player) sender;
-    		
-    		File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), player.getWorld().getName());
-    		ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, player.getLocation().getChunk().getX(), player.getLocation().getChunk().getZ(), OrebfuscatorConfig.getInitialRadius(), OrebfuscatorConfig.getUseProximityHider());
-    		cache.Invalidate();
-    		Orebfuscator.message(sender, "Chunk cache cleared. It will be re-calculated next time.");
     	}
     	
     	return true;

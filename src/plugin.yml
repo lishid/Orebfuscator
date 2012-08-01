@@ -1,6 +1,6 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.5.3
+version: 1.5.4
 author: lishid
 softdepend: [Spout]
 load: startup
@@ -15,19 +15,16 @@ commands:
            /<command> updateradius [number] - Set block update radius
            /<command> threads [number] - Set allowed processing threads
            /<command> proximity [number] - Set ProximityHider distance
-           /<command> <enable/disable> - Change the state of the plugin
-           /<command> <enable/disable> <darknesshide> - DarknessObfuscate
-           /<command> <enable/disable> <op|perms> - Ops/Permissions
-           /<command> <enable/disable> updatethread - Toggle update thread
-           /<command> <enable/disable> proximity - ProximityHider
-           /<command> <enable/disable> cache - Chunk caching
-           /<command> <enable/disable> verbose - Verbose mode
            /<command> <enable/disable> world <worldname>
            /<command> reload - Reload from config file
            /<command> status - Show status of Orebfuscator
            /<command> clearcache - Clear all cache
            /<command> recache - Clear the cache at current chunk
-  chunk:
+           /<command> <enable/disable> - Change the state of the plugin
+           /<command> <enable/disable> <Setting> - possible settings:
+           Settings: op, perms, updatethread, proximity, cache, verbose,
+            axr, notification
+  rechunk:
     description: Re-send chunks.
     usage: |
            /<command> [radius=2] Send the chunks within a specific radius

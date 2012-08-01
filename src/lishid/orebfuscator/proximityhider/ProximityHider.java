@@ -41,7 +41,7 @@ public class ProximityHider
                     if (p != null && proximityHiderTracker.containsKey(p))
                     {
                         Location loc1 = p.getLocation();
-                        Location loc2 = (newPlayers.get(p));
+                        Location loc2 = newPlayers.get(p);
                         
                         if(!loc1.getWorld().getName().equalsIgnoreCase(loc2.getWorld().getName()))
                             continue;

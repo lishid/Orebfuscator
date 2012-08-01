@@ -31,87 +31,90 @@ import org.bukkit.event.player.*;
 
 public class OrebfuscatorPlayerListener implements Listener
 {
-	@EventHandler(priority = EventPriority.NORMAL)
-	public void onPlayerJoin(final PlayerJoinEvent event)
-	{
-		Player player = event.getPlayer();
-		if(OrebfuscatorConfig.playerBypassOp(player))
-		{
-			Orebfuscator.message(player, "Orebfuscator bypassed because you are OP.");
-		}
-		else if(OrebfuscatorConfig.playerBypassPerms(player))
-		{
-			Orebfuscator.message(player, "Orebfuscator bypassed because you have permission.");
-		}
-		synchronized(Orebfuscator.players)
-		{
-			Orebfuscator.players.put(player, true);
-		}
-	}
-	
-	@EventHandler(priority = EventPriority.NORMAL)
-	public void onPlayerQuit(final PlayerQuitEvent event)
-	{
-		synchronized(Orebfuscator.players)
-		{
-			Orebfuscator.players.remove(event.getPlayer());
-		}
-		if(OrebfuscatorBlockListener.blockLog.containsKey(event.getPlayer().getName()))
-		{
-			OrebfuscatorBlockListener.blockLog.remove(event.getPlayer().getName());
-		}
-    	if(OrebfuscatorConfig.getUseProximityHider())
-    	{
-	    	synchronized(ProximityHider.BlockLock)
-	    	{
-	    		ProximityHider.proximityHiderTracker.remove(event.getPlayer());
-	    	}
-    	}
-	}
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerInteract(PlayerInteractEvent event)
-	{
-		if( event.getAction() != Action.RIGHT_CLICK_BLOCK ||
-				event.isCancelled() || event.useInteractedBlock() == Result.DENY || 
-				!OrebfuscatorConfig.getEnabled() || !OrebfuscatorConfig.getUpdateOnHoe())
-			return;
-		
-		if(event.getItem() != null && event.getItem().getType() != null && 
-				((event.getItem().getType() == Material.WOOD_HOE) || (event.getItem().getType() == Material.IRON_HOE) 
-				|| (event.getItem().getType() == Material.GOLD_HOE) || (event.getItem().getType() == Material.DIAMOND_HOE)) && 
-				(event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS))
-		{
-			OrebfuscatorThreadUpdate.Queue(event.getClickedBlock());
-		}
-	}
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerChangeWorld(PlayerChangedWorldEvent event)
-	{
-    	if(OrebfuscatorConfig.getUseProximityHider())
-    	{
-	    	synchronized(ProximityHider.BlockLock)
-	    	{
-	    		ProximityHider.proximityHiderTracker.remove(event.getPlayer());
-	    	}
-    	}
-	}
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerMove(PlayerMoveEvent event)
-	{
-		if(event.getTo().equals(event.getFrom())) {
-		    return;
-		}
-		
-    	if(OrebfuscatorConfig.getUseProximityHider())
-    	{
-	    	synchronized(ProximityHider.PlayerLock)
-	    	{
-	    	    if(!ProximityHider.playersToCheck.containsKey(event.getPlayer()))
-	    	        ProximityHider.playersToCheck.put(event.getPlayer(), event.getFrom());
-	    	}
-    	}
-	}
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onPlayerJoin(final PlayerJoinEvent event)
+    {
+        Player player = event.getPlayer();
+        if (OrebfuscatorConfig.getLoginNotification())
+        {
+            if (OrebfuscatorConfig.playerBypassOp(player))
+            {
+                Orebfuscator.message(player, "Orebfuscator bypassed because you are OP.");
+            }
+            else if (OrebfuscatorConfig.playerBypassPerms(player))
+            {
+                Orebfuscator.message(player, "Orebfuscator bypassed because you have permission.");
+            }
+        }
+        synchronized (Orebfuscator.players)
+        {
+            Orebfuscator.players.put(player, true);
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onPlayerQuit(final PlayerQuitEvent event)
+    {
+        synchronized (Orebfuscator.players)
+        {
+            Orebfuscator.players.remove(event.getPlayer());
+        }
+        if (OrebfuscatorBlockListener.blockLog.containsKey(event.getPlayer().getName()))
+        {
+            OrebfuscatorBlockListener.blockLog.remove(event.getPlayer().getName());
+        }
+        if (OrebfuscatorConfig.getUseProximityHider())
+        {
+            synchronized (ProximityHider.BlockLock)
+            {
+                ProximityHider.proximityHiderTracker.remove(event.getPlayer());
+            }
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerInteract(PlayerInteractEvent event)
+    {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.isCancelled() || event.useInteractedBlock() == Result.DENY || !OrebfuscatorConfig.getEnabled()
+                || !OrebfuscatorConfig.getUpdateOnHoe())
+            return;
+        
+        if (event.getItem() != null
+                && event.getItem().getType() != null
+                && ((event.getItem().getType() == Material.WOOD_HOE) || (event.getItem().getType() == Material.IRON_HOE) || (event.getItem().getType() == Material.GOLD_HOE) || (event.getItem()
+                        .getType() == Material.DIAMOND_HOE)) && (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS))
+        {
+            OrebfuscatorThreadUpdate.Queue(event.getClickedBlock());
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerChangeWorld(PlayerChangedWorldEvent event)
+    {
+        if (OrebfuscatorConfig.getUseProximityHider())
+        {
+            synchronized (ProximityHider.BlockLock)
+            {
+                ProximityHider.proximityHiderTracker.remove(event.getPlayer());
+            }
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerMove(PlayerMoveEvent event)
+    {
+        if (event.getTo().equals(event.getFrom()))
+        {
+            return;
+        }
+        
+        if (OrebfuscatorConfig.getUseProximityHider())
+        {
+            synchronized (ProximityHider.PlayerLock)
+            {
+                if (!ProximityHider.playersToCheck.containsKey(event.getPlayer()))
+                    ProximityHider.playersToCheck.put(event.getPlayer(), event.getFrom());
+            }
+        }
+    }
 }
