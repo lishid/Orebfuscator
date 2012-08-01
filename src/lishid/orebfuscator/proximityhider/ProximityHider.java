@@ -3,6 +3,7 @@ package lishid.orebfuscator.proximityhider;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
@@ -13,21 +14,51 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-public class ProximityHider
+public class ProximityHider extends Thread implements Runnable
 {
     public static HashMap<Player, HashSet<Block>> proximityHiderTracker = new HashMap<Player, HashSet<Block>>();
     public static HashMap<Player, Location> playersToCheck = new HashMap<Player, Location>();
     public static final Object PlayerLock = new Object();
     public static final Object BlockLock = new Object();
     
+    public static ProximityHider thread = new ProximityHider();
+    
+    public long lastExecute = System.currentTimeMillis();
+    public AtomicBoolean kill =  new AtomicBoolean(false);
+    
     public static void Load()
     {
-        Orebfuscator.instance.getServer().getScheduler().scheduleAsyncRepeatingTask(Orebfuscator.instance, new Runnable()
+        if (thread == null || thread.isInterrupted() || !thread.isAlive())
         {
-            public void run()
+            thread = new ProximityHider();
+            thread.setName("ProximityHider Thread");
+            thread.setPriority(Thread.MIN_PRIORITY);
+            thread.start();
+        }
+    }
+    
+    public static void terminate()
+    {
+        if (thread != null)
+            thread.kill.set(true);
+    }
+    
+    public void run()
+    {
+        while (!this.isInterrupted() && !kill.get())
+        {
+            try
             {
+                //Wait until necessary
+                long timeWait = lastExecute + 500 - System.currentTimeMillis();
+                lastExecute = System.currentTimeMillis();
+                if(timeWait > 0)
+                {
+                    Thread.sleep(timeWait);
+                }
+                
                 if (!OrebfuscatorConfig.getUseProximityHider())
-                    return;
+                    continue;
                 
                 HashMap<Player, Location> newPlayers = new HashMap<Player, Location>();
                 
@@ -103,7 +134,11 @@ public class ProximityHider
                     }
                 }
             }
-        }, 10L, 10L);
+            catch (Exception e)
+            {
+                Orebfuscator.log(e);
+            }
+        }
     }
     
     public static void AddProximityBlocks(CraftPlayer player, ArrayList<Block> blocks)

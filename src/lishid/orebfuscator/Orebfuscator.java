@@ -90,10 +90,10 @@ public class Orebfuscator extends JavaPlugin
     @Override
     public void onEnable()
     {
+        instance = this;
         // Load permissions system
         PluginManager pm = getServer().getPluginManager();
         // Load configurations
-        instance = this;
         OrebfuscatorConfig.load();
         synchronized (Orebfuscator.players)
         {
@@ -173,6 +173,7 @@ public class Orebfuscator extends JavaPlugin
         ObfuscatedDataCache.clearCache();
         OrebfuscatorThreadCalculation.terminateAll();
         OrebfuscatorThreadUpdate.terminate();
+        ProximityHider.terminate();
         ProximityHider.proximityHiderTracker.clear();
         ProximityHider.playersToCheck.clear();
         OrebfuscatorBlockListener.blockLog.clear();
