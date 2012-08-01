@@ -27,68 +27,84 @@ import org.bukkit.block.Block;
 
 public class OrebfuscatorThreadUpdate extends Thread implements Runnable
 {
-	//Global
-	private static final int QUEUE_CAPACITY = 1024 * 10;
-	private static final LinkedBlockingDeque<Block> queue = new LinkedBlockingDeque<Block>(QUEUE_CAPACITY);
-	private static OrebfuscatorThreadUpdate thread;
-
-	public static void terminate()
-	{
-		if(thread != null)
-			thread.kill.set(true);
-	}
-
-	public static void Queue(Block block)
-	{
-		//Dont do anything if the block is transparent
-	    byte id = (byte)block.getTypeId();
-        if (id < 0 || !net.minecraft.server.Block.g(id))
+    // Global
+    private static final int QUEUE_CAPACITY = 1024 * 10;
+    private static final LinkedBlockingDeque<Block> queue = new LinkedBlockingDeque<Block>(QUEUE_CAPACITY);
+    private static OrebfuscatorThreadUpdate thread;
+    
+    public static void terminate()
+    {
+        if (thread != null)
+            thread.kill.set(true);
+    }
+    
+    public static void Queue(Block block)
+    {
+        // Don't do anything if the block is transparent
+        byte id = (byte) block.getTypeId();
+        if (OrebfuscatorConfig.isBlockTransparent(id))
         {
-        	return;
+            return;
         }
         
-        if(!OrebfuscatorConfig.getUpdateThread())
+        if (!OrebfuscatorConfig.getUpdateThread())
         {
-	        Calculations.UpdateBlocksNearby(block);
-	        return;
+            Calculations.UpdateBlocksNearby(block);
+            return;
         }
         
-		if(thread == null || thread.isInterrupted() || !thread.isAlive())
-		{
-			thread = new OrebfuscatorThreadUpdate();
-			thread.setName("Orebfuscator Update Thread");
+        if (queue.contains(block))
+        {
+            return;
+        }
+        
+        if (thread == null || thread.isInterrupted() || !thread.isAlive())
+        {
+            thread = new OrebfuscatorThreadUpdate();
+            thread.setName("Orebfuscator Update Thread");
             thread.setPriority(Thread.MIN_PRIORITY);
-			thread.start();
-		}
-		while(true)
-		{
-			try {
-				//Queue block for later processing
-				queue.put(block);
-				return;
-			}
-			catch (Exception e) { Orebfuscator.log(e); }
-		}
-	}
-
-	private AtomicBoolean kill = new AtomicBoolean(false);
-	
-	public void run() {
-		while (!this.isInterrupted() && !kill.get()) {
-			try {
-				//Remove the first block from the queue
-				Block block = queue.take();
-				//Send updates on the block change
-		        Calculations.UpdateBlocksNearby(block);
-		        
-		        //Exit if config changed to not using this thread.
-		        if(!OrebfuscatorConfig.getUpdateThread() && queue.size() <= 0)
-		        {
-		        	thread = null;
-		        	return;
-		        }
-			}
-			catch (Exception e) { Orebfuscator.log(e); }
-		}
-	}
+            thread.start();
+        }
+        
+        while (true)
+        {
+            try
+            {
+                // Queue block for later processing
+                queue.put(block);
+                return;
+            }
+            catch (Exception e)
+            {
+                Orebfuscator.log(e);
+            }
+        }
+    }
+    
+    private AtomicBoolean kill = new AtomicBoolean(false);
+    
+    public void run()
+    {
+        while (!this.isInterrupted() && !kill.get())
+        {
+            try
+            {
+                // Remove the first block from the queue
+                Block block = queue.take();
+                // Send updates on the block change
+                Calculations.UpdateBlocksNearby(block);
+                
+                // Exit if config changed to not using this thread.
+                if (!OrebfuscatorConfig.getUpdateThread() && queue.size() <= 0)
+                {
+                    thread = null;
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                Orebfuscator.log(e);
+            }
+        }
+    }
 }

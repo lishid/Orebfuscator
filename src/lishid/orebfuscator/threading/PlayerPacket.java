@@ -20,12 +20,14 @@ import net.minecraft.server.Packet51MapChunk;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
-public class PlayerPacket {
-	public CraftPlayer player;
-	public Packet51MapChunk packet;
-	public PlayerPacket(CraftPlayer player, Packet51MapChunk packet)
-	{
-		this.player = player;
-		this.packet = packet;
-	}
+public class PlayerPacket
+{
+    public CraftPlayer player;
+    public Packet51MapChunk packet;
+    
+    public PlayerPacket(CraftPlayer player, Packet51MapChunk packet)
+    {
+        this.player = player;
+        this.packet = packet;
+    }
 }

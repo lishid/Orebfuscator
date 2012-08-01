@@ -26,28 +26,32 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-public class OrebfuscatorPlayerListenerHook implements Listener{
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerJoin(final PlayerJoinEvent event)
-	{
-		TryUpdateNetServerHandler(event.getPlayer());
-	}
-	
-	public void TryUpdateNetServerHandler(Player player)
-	{
-		try
-		{
-			CraftPlayer cPlayer = (CraftPlayer)player;
-			CraftServer server = (CraftServer)player.getServer();
-
-			if (!(cPlayer.getHandle().netServerHandler instanceof OrebfuscatorNetServerHandler)) {
-				OrebfuscatorNetServerHandler handler = new OrebfuscatorNetServerHandler(server.getHandle().server, cPlayer.getHandle().netServerHandler);
-				cPlayer.getHandle().netServerHandler = handler;
-				cPlayer.getHandle().netServerHandler.networkManager.a(handler);
-				server.getServer().networkListenThread.a(handler);
-			}
-		}
-		catch (Exception e) { Orebfuscator.log(e); }
-	}
+public class OrebfuscatorPlayerListenerHook implements Listener
+{
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onPlayerJoin(final PlayerJoinEvent event)
+    {
+        TryUpdateNetServerHandler(event.getPlayer());
+    }
+    
+    public void TryUpdateNetServerHandler(Player player)
+    {
+        try
+        {
+            CraftPlayer cPlayer = (CraftPlayer) player;
+            CraftServer server = (CraftServer) player.getServer();
+            
+            if (!(cPlayer.getHandle().netServerHandler instanceof OrebfuscatorNetServerHandler))
+            {
+                OrebfuscatorNetServerHandler handler = new OrebfuscatorNetServerHandler(server.getHandle().server, cPlayer.getHandle().netServerHandler);
+                cPlayer.getHandle().netServerHandler = handler;
+                cPlayer.getHandle().netServerHandler.networkManager.a(handler);
+                server.getServer().networkListenThread.a(handler);
+            }
+        }
+        catch (Exception e)
+        {
+            Orebfuscator.log(e);
+        }
+    }
 }

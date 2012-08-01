@@ -6,6 +6,7 @@ import java.util.HashSet;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.obfuscation.Calculations;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -38,60 +39,71 @@ public class ProximityHider
                 
                 for (Player p : newPlayers.keySet())
                 {
-                    if (p != null && proximityHiderTracker.containsKey(p))
+                    if (p == null || !proximityHiderTracker.containsKey(p))
                     {
-                        Location loc1 = p.getLocation();
-                        Location loc2 = newPlayers.get(p);
-                        
-                        if(!loc1.getWorld().getName().equalsIgnoreCase(loc2.getWorld().getName()))
-                            continue;
-                        
-                        if(loc1.getBlock().getLocation().distance(loc2.getBlock().getLocation()) < 0.9)
+                        continue;
+                    }
+                    
+                    Location loc1 = p.getLocation();
+                    Location loc2 = newPlayers.get(p);
+                    
+                    // If player changed world
+                    if (!loc1.getWorld().equals(loc2.getWorld()))
+                    {
+                        proximityHiderTracker.remove(p);
+                        continue;
+                    }
+                    
+                    // Player didn't actually move
+                    if (loc1.getBlock().equals((loc2.getBlock())))
+                    {
+                        continue;
+                    }
+                    
+                    HashSet<Block> blocks = new HashSet<Block>();
+                    HashSet<Block> removedBlocks = new HashSet<Block>();
+                    
+                    synchronized (BlockLock)
+                    {
+                        if (proximityHiderTracker.get(p) != null)
+                            blocks.addAll(proximityHiderTracker.get(p));
+                    }
+                    
+                    for (Block b : blocks)
+                    {
+                        if (b == null || p == null || b.getWorld() == null || p.getWorld() == null)
                         {
+                            removedBlocks.add(b);
                             continue;
                         }
                         
-                        HashSet<Block> blocks = new HashSet<Block>();
-                        
-                        synchronized (BlockLock)
+                        if (!p.getWorld().equals(b.getWorld()))
                         {
-                            if(proximityHiderTracker.get(p) != null)
-                                blocks.addAll(proximityHiderTracker.get(p));
+                            removedBlocks.add(b);
+                            continue;
                         }
                         
-                        for (Block b : blocks)
+                        if (p.getLocation().distance(b.getLocation()) < OrebfuscatorConfig.getProximityHiderDistance())
                         {
-                            if (b == null || p == null || b.getWorld() == null || p.getWorld() == null)
+                            removedBlocks.add(b);
+                            
+                            if (Calculations.isChunkLoaded(b.getWorld(), b.getChunk().getX(), b.getChunk().getZ()))
                             {
-                                removeBlock(p, b);
-                                continue;
-                            }
-                            if (!p.getWorld().equals(b.getWorld()))
-                            {
-                                removeBlock(p, b);
-                            }
-                            else if (p.getLocation().distance(b.getLocation()) < OrebfuscatorConfig.getProximityHiderDistance())
-                            {
-                                removeBlock(p, b);
-                                
                                 p.sendBlockChange(b.getLocation(), b.getTypeId(), b.getData());
                             }
+                        }
+                    }
+                    
+                    synchronized (BlockLock)
+                    {
+                        for (Block b : removedBlocks)
+                        {
+                            proximityHiderTracker.get(p).remove(b);
                         }
                     }
                 }
             }
         }, 10L, 10L);
-    }
-    
-    private static void removeBlock(Player p, Block b)
-    {
-        synchronized (BlockLock)
-        {
-            if (proximityHiderTracker.get(p) != null)
-            {
-                proximityHiderTracker.get(p).remove(b);
-            }
-        }
     }
     
     public static void AddProximityBlocks(CraftPlayer player, ArrayList<Block> blocks)

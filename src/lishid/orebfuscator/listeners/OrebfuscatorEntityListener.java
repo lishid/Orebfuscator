@@ -25,15 +25,19 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 
-public class OrebfuscatorEntityListener implements Listener{
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onEntityExplode(EntityExplodeEvent event)
-	{
-		if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnExplosion() || !OrebfuscatorConfig.getEnabled())
-			return;
-		
-		for (Block block : event.blockList()) {
-			OrebfuscatorThreadUpdate.Queue(block);
-		}
-	}
+public class OrebfuscatorEntityListener implements Listener
+{
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEntityExplode(EntityExplodeEvent event)
+    {
+        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnExplosion() || !OrebfuscatorConfig.getEnabled())
+        {
+            return;
+        }
+        
+        for (Block block : event.blockList())
+        {
+            OrebfuscatorThreadUpdate.Queue(block);
+        }
+    }
 }

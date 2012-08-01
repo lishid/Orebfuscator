@@ -1,6 +1,6 @@
 name: Orebfuscator
 main: lishid.orebfuscator.Orebfuscator
-version: 1.5.4
+version: 1.5.5
 author: lishid
 softdepend: [Spout]
 load: startup
@@ -22,7 +22,7 @@ commands:
            /<command> recache - Clear the cache at current chunk
            /<command> <enable/disable> - Change the state of the plugin
            /<command> <enable/disable> <Setting> - possible settings:
-           Settings: op, perms, updatethread, proximity, cache, verbose,
+           Settings: op, perms, updatethread, proximity, cache,
             axr, notification
   rechunk:
     description: Re-send chunks.

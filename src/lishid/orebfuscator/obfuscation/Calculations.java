@@ -27,6 +27,7 @@ import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
 import lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import lishid.orebfuscator.proximityhider.ProximityHider;
+import lishid.orebfuscator.utils.MemoryManager;
 
 import net.minecraft.server.ChunkProviderServer;
 import net.minecraft.server.NetServerHandler;
@@ -49,8 +50,6 @@ public class Calculations
     
     public static Deflater deflater = new Deflater();
     public static byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
-    
-    public static int ChunksCalculated = 0;
     
     public static void UpdateBlocksNearby(Block block)
     {
@@ -113,8 +112,7 @@ public class Calculations
     
     public static boolean isChunkLoaded(World world, int x, int z)
     {
-        WorldServer worldServer = ((CraftWorld) world).getHandle();
-        return isChunkLoaded(worldServer, x, z);
+        return isChunkLoaded(((CraftWorld) world).getHandle(), x, z);
     }
     
     public static boolean isChunkLoaded(WorldServer worldServer, int x, int z)
@@ -313,20 +311,16 @@ public class Calculations
         long hash = 0L;
         // Blocks kept track for ProximityHider
         ArrayList<Block> proximityBlocks = new ArrayList<Block>();
-        // Track of pseudo-randomly assigned randomBlock
-        int randomIncrement = 0;
-        int randomIncrement2 = 0;
-        // Track of whether a block should be obfuscated or not
-        boolean obfuscate = false;
-        // Track of whether blocks needs special treatment for ProximityHider
-        boolean specialObfuscate = false;
-        
-        int initialRadius = OrebfuscatorConfig.getInitialRadius();
         // Start with caching false
         info.useCache = false;
+        
+        int initialRadius = OrebfuscatorConfig.getInitialRadius();
+        
         // Expand buffer if not enough space
         if (info.chunkSectionNumber * 4096 > info.buffer.length)
+        {
             info.buffer = new byte[info.chunkSectionNumber * 4096];
+        }
         // Copy data into buffer
         System.arraycopy(info.data, 0, info.buffer, 0, info.chunkSectionNumber * 4096);
         
@@ -335,7 +329,7 @@ public class Calculations
         {
             // Get cache folder
             File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), info.world.getWorld().getName());
-            // Creaate cache objects
+            // Create cache objects
             cache = new ObfuscatedCachedChunk(cacheFolder, info.chunkX, info.chunkZ, initialRadius, OrebfuscatorConfig.getUseProximityHider());
             info.useCache = true;
             // Hash the chunk
@@ -351,11 +345,6 @@ public class Calculations
                 int[] chestList = cache.proximityBlockList;
                 if (data != null)
                 {
-                    if (OrebfuscatorConfig.getVerboseMode())
-                    {
-                        Orebfuscator.log("Cache found.");
-                    }
-                    
                     // Decrypt chest list
                     if (chestList != null)
                     {
@@ -374,27 +363,19 @@ public class Calculations
                     return info.buffer;
                 }
             }
-            
-            if (OrebfuscatorConfig.getVerboseMode())
-            {
-                if (storedHash == 0L)
-                    Orebfuscator.log("Cache not found.");
-                else if (hash != storedHash)
-                    Orebfuscator.log("Cache hash does not match: " + hash + " " + storedHash);
-                else
-                    Orebfuscator.log("Cache data inconsistent.");
-            }
         }
         
-        if (OrebfuscatorConfig.getVerboseMode() && OrebfuscatorConfig.getUseCache() && !info.useCache)
-        {
-            Orebfuscator.log("Cache not used.");
-        }
+        // Track of pseudo-randomly assigned randomBlock
+        int randomIncrement = 0;
+        int randomIncrement2 = 0;
+        // Track of whether a block should be obfuscated or not
+        boolean obfuscate = false;
+        // Track of whether blocks needs special treatment for ProximityHider
+        boolean specialObfuscate = false;
         
-        if (OrebfuscatorConfig.getVerboseMode())
-        {
-            ChunksCalculated++;
-        }
+        int engineMode = OrebfuscatorConfig.getEngineMode();
+        
+        Integer[] randomBlocks = OrebfuscatorConfig.getRandomBlocks();
         
         // Loop over 16x16x16 chunks in the 16x256x16 column
         int dataIndexModifier = 0;
@@ -433,21 +414,21 @@ public class Calculations
                              * }
                              */
                             
-                            // Initialize objects
+                            // Initialize data
                             obfuscate = false;
                             specialObfuscate = false;
                             
-                            // Check if the block should be obfuscated because of being behind stuff
-                            if (!obfuscate && OrebfuscatorConfig.isObfuscated(data))
+                            // Check if the block should be obfuscated for the default engine modes
+                            if (OrebfuscatorConfig.isObfuscated(data))
                             {
                                 if (initialRadius == 0)
                                 {
-                                    // Obfuscate anyways
+                                    // Obfuscate all blocks
                                     obfuscate = true;
                                 }
                                 else
                                 {
-                                    // Get all block IDs nearby
+                                    // Check if any nearby blocks are transparent
                                     if (!areAjacentBlocksTransparent(info, startX + x, (i << 4) + y, startZ + z, initialRadius))
                                     {
                                         obfuscate = true;
@@ -456,7 +437,8 @@ public class Calculations
                             }
                             
                             // Check if the block should be obfuscated because of proximity check
-                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index]) && y <= OrebfuscatorConfig.getProximityHiderEnd())
+                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index])
+                                    && ((i << 4) + y) <= OrebfuscatorConfig.getProximityHiderEnd())
                             {
                                 proximityBlocks.add(getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
                                 obfuscate = true;
@@ -464,7 +446,7 @@ public class Calculations
                                     specialObfuscate = true;
                             }
                             
-                            // Check if the block should be obfuscated because of darkness
+                            // Check if the block should be obfuscated because of the darkness
                             if (!obfuscate && OrebfuscatorConfig.getDarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(data))
                             {
                                 if (initialRadius == 0)
@@ -477,7 +459,7 @@ public class Calculations
                                 }
                             }
                             
-                            // If the block should be obfuscated
+                            // Check if the block is obfuscated
                             if (obfuscate)
                             {
                                 if (specialObfuscate)
@@ -485,32 +467,35 @@ public class Calculations
                                     // Proximity hider
                                     info.buffer[index] = (byte) OrebfuscatorConfig.getProximityHiderID();
                                 }
-                                else if (OrebfuscatorConfig.getEngineMode() == 1)
+                                else if (engineMode == 1)
                                 {
                                     // Engine mode 1, replace with stone
                                     info.buffer[index] = 1;
                                     
-                                    //Anti texturepack and freecam
-                                    if(OrebfuscatorConfig.getAntiTexturePackAndFreecam())
+                                    // Anti texturepack and freecam
+                                    if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
                                     {
-                                        randomIncrement2 = (randomIncrement2 + 1) % 20;
-                                        if(randomIncrement2 == 0)
+                                        randomIncrement2 = increment(randomIncrement2, OrebfuscatorConfig.getAirGeneratorMaxChance());
+                                        // Add random air blocks
+                                        if (randomIncrement2 == 0)
                                             info.buffer[index] = 0;
                                     }
                                 }
-                                else if (OrebfuscatorConfig.getEngineMode() == 2)
+                                else if (engineMode == 2)
                                 {
                                     // Ending mode 2, replace with random block
-                                    if(OrebfuscatorConfig.getRandomBlocks().length > 1)
-                                        randomIncrement = randomIncrement % (OrebfuscatorConfig.getRandomBlocks().length - 1) + 1;
+                                    if (randomBlocks.length > 1)
+                                        randomIncrement = increment(randomIncrement, randomBlocks.length);
                                     info.buffer[index] = OrebfuscatorConfig.getRandomBlock(randomIncrement);
                                     
-                                    if(!OrebfuscatorConfig.getDisableExtraAntixray() && OrebfuscatorConfig.getAntiTexturePackAndFreecam())
+                                    // Anti texturepack and freecam
+                                    if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
                                     {
-                                        randomIncrement2 = (randomIncrement2 + 1) % 20;
-                                        if(randomIncrement2 == 0)
+                                        randomIncrement2 = increment(randomIncrement2, OrebfuscatorConfig.getAirGeneratorMaxChance());
+                                        // Add random air blocks and stone blocks
+                                        if (randomIncrement2 == 0)
                                             info.buffer[index] = 0;
-                                        else if(randomIncrement2 == 1)
+                                        else if (randomIncrement2 == 1)
                                             info.buffer[index] = 1;
                                     }
                                 }
@@ -540,7 +525,7 @@ public class Calculations
             for (int i = 0; i < proximityBlocks.size(); i++)
             {
                 Block b = proximityBlocks.get(i);
-                if(b != null)
+                if (b != null)
                 {
                     chestList[i * 3] = b.getX();
                     chestList[i * 3 + 1] = b.getY();
@@ -595,7 +580,7 @@ public class Calculations
             }
         }
         
-        if (id < 0 || !(net.minecraft.server.Block.g(id)))// || OrebfuscatorConfig.isObfuscated(id)))
+        if (OrebfuscatorConfig.isBlockTransparent(id))
         {
             return true;
         }
@@ -624,7 +609,9 @@ public class Calculations
         if (isChunkLoaded(info.world, x >> 4, z >> 4))
         {
             if (info.world.getLightLevel(x, y, z) > 0)
+            {
                 return true;
+            }
         }
         else
         {
@@ -657,5 +644,10 @@ public class Calculations
         crc.update(data, 0, length);
         long hash = crc.getValue();
         return hash;
+    }
+    
+    public static int increment(int current, int max)
+    {
+        return (current + 1) % max;
     }
 }

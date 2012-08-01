@@ -16,8 +16,6 @@
 
 package lishid.orebfuscator;
 
-import gnu.trove.set.hash.TByteHashSet;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,9 +28,8 @@ import org.bukkit.entity.Player;
 public class OrebfuscatorConfig
 {
     private static final int CONFIG_VERSION = 5;
-    private static TByteHashSet ObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
-    private static TByteHashSet DarknessObfuscateBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
-    private static TByteHashSet ProximityHiderBlocks = IntListToTByteHashSet(Arrays.asList(new Integer[] {}));
+    private static boolean[] ObfuscateBlocks = new boolean[256];
+    private static boolean[] ProximityHiderBlocks = new boolean[256];
     private static Integer[] RandomBlocks = new Integer[] { 0, 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82 };
     private static List<String> DisabledWorlds = new ArrayList<String>();
     private static int EngineMode = 2;
@@ -43,6 +40,7 @@ public class OrebfuscatorConfig
     private static int ProximityHiderDistance = 8;
     private static int ProximityHiderID = 1;
     private static int ProximityHiderEnd = 255;
+    private static int AirGeneratorMaxChance = 15;
     private static boolean UseProximityHider = true;
     private static boolean UseSpecialBlockForProximityHider = true;
     private static boolean UpdateOnBreak = true;
@@ -53,7 +51,6 @@ public class OrebfuscatorConfig
     private static boolean UpdateOnHoe = true;
     private static boolean UpdateThread = true;
     private static boolean DarknessHideBlocks = true;
-    private static boolean VerboseMode = false;
     private static boolean NoObfuscationForOps = true;
     private static boolean NoObfuscationForPermission = true;
     private static boolean LoginNotification = true;
@@ -63,14 +60,10 @@ public class OrebfuscatorConfig
     private static String CacheLocation = "orebfuscator_cache";
     private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
     
-    //Internal
-    private static boolean DisableExtraAntixray = false;
-    
-    
     // Other gets
     public static File getCacheFolder()
     {
-        if(!CacheFolder.exists())
+        if (!CacheFolder.exists())
             CacheFolder = new File("orebfuscator_cache");
         return CacheFolder;
     }
@@ -132,6 +125,15 @@ public class OrebfuscatorConfig
         return ProximityHiderEnd;
     }
     
+    public static int getAirGeneratorMaxChance()
+    {
+        if (AirGeneratorMaxChance < 1)
+            return 2;
+        if (AirGeneratorMaxChance > 23)
+            return 24;
+        return AirGeneratorMaxChance + 1;
+    }
+    
     public static boolean getUseProximityHider()
     {
         return UseProximityHider;
@@ -182,11 +184,6 @@ public class OrebfuscatorConfig
         return DarknessHideBlocks;
     }
     
-    public static boolean getVerboseMode()
-    {
-        return VerboseMode;
-    }
-    
     public static boolean getNoObfuscationForOps()
     {
         return NoObfuscationForOps;
@@ -222,26 +219,35 @@ public class OrebfuscatorConfig
         return CacheLocation;
     }
     
+    public static boolean isBlockTransparent(byte id)
+    {
+        if (id < 0 || !net.minecraft.server.Block.g(id))
+        {
+            return true;
+        }
+        return false;
+    }
+    
     public static boolean isObfuscated(byte id)
     {
         if (id == 1)
             return true;
         
-        if (ObfuscateBlocks.contains(id))
+        if (ObfuscateBlocks[id])
             return true;
         return false;
     }
     
     public static boolean isDarknessObfuscated(byte id)
     {
-        if (DarknessObfuscateBlocks.contains(id))
+        if (id == 52 || id == 54)
             return true;
         return false;
     }
     
     public static boolean isProximityObfuscated(byte id)
     {
-        if (ProximityHiderBlocks.contains(id))
+        if (ProximityHiderBlocks[id])
             return true;
         return false;
     }
@@ -268,7 +274,7 @@ public class OrebfuscatorConfig
     
     public static byte getRandomBlock(int index)
     {
-        return (byte)(int)RandomBlocks[index];
+        return (byte) (int) RandomBlocks[index];
     }
     
     public static Integer[] getRandomBlocks()
@@ -282,13 +288,6 @@ public class OrebfuscatorConfig
         {
             Collections.shuffle(Arrays.asList(RandomBlocks));
         }
-    }
-    
-    //Get internals
-    
-    public static boolean getDisableExtraAntixray()
-    {
-        return DisableExtraAntixray;
     }
     
     // Set
@@ -339,6 +338,12 @@ public class OrebfuscatorConfig
     {
         setData("Integers.ProximityHiderEnd", data);
         ProximityHiderEnd = data;
+    }
+    
+    public static void setAirGeneratorMaxChance(int data)
+    {
+        setData("Integers.AirGeneratorMaxChance", data);
+        AirGeneratorMaxChance = data;
     }
     
     public static void setUseProximityHider(boolean data)
@@ -399,12 +404,6 @@ public class OrebfuscatorConfig
     {
         setData("Booleans.DarknessHideBlocks", data);
         DarknessHideBlocks = data;
-    }
-    
-    public static void setVerboseMode(boolean data)
-    {
-        setData("Booleans.VerboseMode", data);
-        VerboseMode = data;
     }
     
     public static void setNoObfuscationForOps(boolean data)
@@ -518,26 +517,12 @@ public class OrebfuscatorConfig
         }
     }
     
-    /*
-     * private static byte[] IntListToByteArray(List<Integer> list)
-     * {
-     * byte[] byteArray = new byte[list.size()];
-     * for (int i=0; i < byteArray.length; i++)
-     * {
-     * byteArray[i] = (byte)(int)list.get(i);
-     * }
-     * return byteArray;
-     * }
-     */
-    
-    private static TByteHashSet IntListToTByteHashSet(List<Integer> list)
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)
     {
-        TByteHashSet bytes = new TByteHashSet();
-        for (int i = 0; i < list.size(); i++)
+        for (int i = 0; i < boolArray.length; i++)
         {
-            bytes.add((byte) (int) list.get(i));
+            boolArray[i] = blocks.contains(i);
         }
-        return bytes;
     }
     
     public static void load()
@@ -564,6 +549,7 @@ public class OrebfuscatorConfig
         ProximityHiderDistance = getInt("Integers.ProximityHiderDistance", ProximityHiderDistance);
         ProximityHiderID = getInt("Integers.ProximityHiderID", ProximityHiderID);
         ProximityHiderEnd = getInt("Integers.ProximityHiderEnd", ProximityHiderEnd);
+        AirGeneratorMaxChance = getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance);
         UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
         UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
         UpdateOnBreak = getBoolean("Booleans.UpdateOnBreak", UpdateOnBreak);
@@ -574,16 +560,14 @@ public class OrebfuscatorConfig
         UpdateOnHoe = getBoolean("Booleans.UpdateOnHoe", UpdateOnHoe);
         UpdateThread = getBoolean("Booleans.UpdateThread", UpdateThread);
         DarknessHideBlocks = getBoolean("Booleans.DarknessHideBlocks", DarknessHideBlocks);
-        VerboseMode = getBoolean("Booleans.VerboseMode", VerboseMode);
         NoObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
         NoObfuscationForPermission = getBoolean("Booleans.NoObfuscationForPermission", NoObfuscationForPermission);
         UseCache = getBoolean("Booleans.UseCache", UseCache);
         LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
-        ObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74 })));
-        DarknessObfuscateBlocks = IntListToTByteHashSet(getIntList("Lists.DarknessObfuscateBlocks", Arrays.asList(new Integer[] { 52, 54 })));
-        ProximityHiderBlocks = IntListToTByteHashSet(getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116 })));
+        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74 })));
+        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116 })));
         RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
@@ -603,10 +587,6 @@ public class OrebfuscatorConfig
                 RandomBlocks2.add(49);
             if (!RandomBlocks2.contains(82))
                 RandomBlocks2.add(82);
-            if (!RandomBlocks2.contains(0))
-                RandomBlocks2.add(0);
-            if (!RandomBlocks2.contains(1))
-                RandomBlocks2.add(1);
             RandomBlocks = RandomBlocks2.toArray(new Integer[0]);
             
             setData("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
@@ -615,44 +595,6 @@ public class OrebfuscatorConfig
         }
         setData("ConfigVersion", CONFIG_VERSION);
         
-        save();
-        
-        //Load internals
-        DisableExtraAntixray = Arrays.asList(RandomBlocks).contains(0) && Arrays.asList(RandomBlocks).contains(1);
-    }
-    
-    public static void saveAll()
-    {
-        setData("ConfigVersion", CONFIG_VERSION);
-        setEngineMode(EngineMode);
-        setUpdateRadius(UpdateRadius);
-        setInitialRadius(InitialRadius);
-        setProcessingThreads(ProcessingThreads);
-        setMaxLoadedCacheFiles(MaxLoadedCacheFiles);
-        setProximityHiderDistance(ProximityHiderDistance);
-        setProximityHiderID(ProximityHiderID);
-        setUseProximityHider(UseProximityHider);
-        setUseSpecialBlockForProximityHider(UseSpecialBlockForProximityHider);
-        setUpdateOnBreak(UpdateOnBreak);
-        setUpdateOnDamage(UpdateOnDamage);
-        setUpdateOnPhysics(UpdateOnPhysics);
-        setUpdateOnPiston(UpdateOnPiston);
-        setUpdateOnExplosion(UpdateOnExplosion);
-        setUpdateOnHoe(UpdateOnHoe);
-        setUpdateThread(UpdateThread);
-        setDarknessHideBlocks(DarknessHideBlocks);
-        setVerboseMode(VerboseMode);
-        setNoObfuscationForOps(NoObfuscationForOps);
-        setNoObfuscationForPermission(NoObfuscationForPermission);
-        setUseCache(UseCache);
-        setEnabled(Enabled);
-        /*
-         * setData("Lists.ObfuscateBlocks", Arrays.asList(ObfuscateBlocks.toArray()));
-         * setData("Lists.DarknessObfuscateBlocks", Arrays.asList(DarknessObfuscateBlocks.toArray()));
-         * setData("Lists.ProximityHiderBlocks", Arrays.asList(ProximityHiderBlocks.toArray()));
-         * setData("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
-         * setData("Lists.DisabledWorlds", Arrays.asList(DisabledWorlds));
-         */
         save();
     }
     

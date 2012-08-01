@@ -26,30 +26,29 @@ import org.getspout.spoutapi.SpoutManager;
 import org.getspout.spoutapi.packet.listener.PacketListener;
 import org.getspout.spoutapi.packet.standard.MCPacket;
 
-public class SpoutLoader {
-
-	public static void InitializeSpout() {
-		// Add spout listeners
-		SpoutManager.getPacketManager().addListener(51, new PacketListener() {
-
-			// Processing a chunk packet
-			public boolean checkPacket(Player player, MCPacket mcpacket) {
-				if ((player == null) || (mcpacket == null)
-						|| (player.getWorld() == null))
-					return true;
-
-				// Process the chunk
-				if (((MCCraftPacket) mcpacket).getPacket() instanceof Packet51MapChunk) {
-
-					// Obfuscate packet
-					OrebfuscatorThreadCalculation.SyncThreads();
-					OrebfuscatorThreadCalculation.Queue(
-							(Packet51MapChunk) ((MCCraftPacket) mcpacket)
-									.getPacket(), (CraftPlayer) player);
-					return false;
-				}
-				return true;
-			}
-		});
-	}
+public class SpoutLoader
+{
+    public static void InitializeSpout()
+    {
+        // Add spout listeners
+        SpoutManager.getPacketManager().addListener(51, new PacketListener()
+        {
+            // Processing a chunk packet
+            public boolean checkPacket(Player player, MCPacket mcpacket)
+            {
+                if ((player == null) || (mcpacket == null) || (player.getWorld() == null))
+                    return true;
+                
+                // Process the chunk
+                if (((MCCraftPacket) mcpacket).getPacket() instanceof Packet51MapChunk)
+                {
+                    // Obfuscate packet
+                    OrebfuscatorThreadCalculation.SyncThreads();
+                    OrebfuscatorThreadCalculation.Queue((Packet51MapChunk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
+                    return false;
+                }
+                return true;
+            }
+        });
+    }
 }

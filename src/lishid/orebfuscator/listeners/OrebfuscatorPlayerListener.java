@@ -32,7 +32,7 @@ import org.bukkit.event.player.*;
 public class OrebfuscatorPlayerListener implements Listener
 {
     @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerJoin(final PlayerJoinEvent event)
+    public void onPlayerJoin(PlayerJoinEvent event)
     {
         Player player = event.getPlayer();
         if (OrebfuscatorConfig.getLoginNotification())
@@ -53,7 +53,7 @@ public class OrebfuscatorPlayerListener implements Listener
     }
     
     @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerQuit(final PlayerQuitEvent event)
+    public void onPlayerQuit(PlayerQuitEvent event)
     {
         synchronized (Orebfuscator.players)
         {
@@ -75,14 +75,14 @@ public class OrebfuscatorPlayerListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event)
     {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.isCancelled() || event.useInteractedBlock() == Result.DENY || !OrebfuscatorConfig.getEnabled()
-                || !OrebfuscatorConfig.getUpdateOnHoe())
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.useInteractedBlock() == Result.DENY || !OrebfuscatorConfig.getEnabled() || !OrebfuscatorConfig.getUpdateOnHoe())
             return;
         
         if (event.getItem() != null
                 && event.getItem().getType() != null
+                && (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS)
                 && ((event.getItem().getType() == Material.WOOD_HOE) || (event.getItem().getType() == Material.IRON_HOE) || (event.getItem().getType() == Material.GOLD_HOE) || (event.getItem()
-                        .getType() == Material.DIAMOND_HOE)) && (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS))
+                        .getType() == Material.DIAMOND_HOE)))
         {
             OrebfuscatorThreadUpdate.Queue(event.getClickedBlock());
         }
@@ -103,7 +103,7 @@ public class OrebfuscatorPlayerListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerMove(PlayerMoveEvent event)
     {
-        if (event.getTo().equals(event.getFrom()))
+        if (event.isCancelled())
         {
             return;
         }
