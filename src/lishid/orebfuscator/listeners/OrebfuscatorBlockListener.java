@@ -16,9 +16,8 @@
 
 package lishid.orebfuscator.listeners;
 
-import java.util.HashMap;
-
 import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.hithack.BlockHitManager;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 
 import org.bukkit.Material;
@@ -30,17 +29,17 @@ import org.bukkit.event.block.*;
 
 public class OrebfuscatorBlockListener implements Listener
 {
-    public static HashMap<String, Block> blockLog = new HashMap<String, Block>();
     
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event)
     {
-        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnBreak())
+        if (event.isCancelled())
         {
             return;
         }
         
         OrebfuscatorThreadUpdate.Queue(event.getBlock());
+        BlockHitManager.breakBlock(event.getPlayer(), event.getBlock());
     }
     
     @EventHandler(priority = EventPriority.MONITOR)
@@ -51,12 +50,15 @@ public class OrebfuscatorBlockListener implements Listener
             return;
         }
         
-        if (blockLog.containsKey(event.getPlayer().getName()) && blockLog.get(event.getPlayer().getName()).equals(event.getBlock()))
+        if(!OrebfuscatorThreadUpdate.needsUpdate(event.getBlock()))
         {
             return;
         }
         
-        blockLog.put(event.getPlayer().getName(), event.getBlock());
+        if (!BlockHitManager.hitBlock(event.getPlayer(), event.getBlock()))
+        {
+            return;
+        }
         
         OrebfuscatorThreadUpdate.Queue(event.getBlock());
     }
@@ -64,7 +66,7 @@ public class OrebfuscatorBlockListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPhysics(BlockPhysicsEvent event)
     {
-        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnPhysics())
+        if (event.isCancelled())
         {
             return;
         }
@@ -85,7 +87,7 @@ public class OrebfuscatorBlockListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPistonExtend(BlockPistonExtendEvent event)
     {
-        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnPiston())
+        if (event.isCancelled() )
         {
             return;
         }

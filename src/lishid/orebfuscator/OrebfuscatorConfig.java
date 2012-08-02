@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -40,15 +41,10 @@ public class OrebfuscatorConfig
     private static int ProximityHiderDistance = 8;
     private static int ProximityHiderID = 1;
     private static int ProximityHiderEnd = 255;
-    private static int AirGeneratorMaxChance = 15;
+    private static int AirGeneratorMaxChance = 16;
     private static boolean UseProximityHider = true;
     private static boolean UseSpecialBlockForProximityHider = true;
-    private static boolean UpdateOnBreak = true;
     private static boolean UpdateOnDamage = true;
-    private static boolean UpdateOnPhysics = true;
-    private static boolean UpdateOnPiston = true;
-    private static boolean UpdateOnExplosion = true;
-    private static boolean UpdateOnHoe = true;
     private static boolean UpdateThread = true;
     private static boolean DarknessHideBlocks = true;
     private static boolean NoObfuscationForOps = true;
@@ -59,6 +55,10 @@ public class OrebfuscatorConfig
     private static boolean Enabled = true;
     private static String CacheLocation = "orebfuscator_cache";
     private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
+    
+    private static int AntiHitHackDecrementFactor = 1000;
+    private static int AntiHitHackMaxViolation = 15;
+    private static Random random = new Random();
     
     // Other gets
     public static File getCacheFolder()
@@ -134,6 +134,24 @@ public class OrebfuscatorConfig
         return AirGeneratorMaxChance + 1;
     }
     
+    public static int getAntiHitHackDecrementFactor()
+    {
+        if (AntiHitHackDecrementFactor < 200)
+            return 200;
+        if (AirGeneratorMaxChance > 60000)
+            return 60000;
+        return AntiHitHackDecrementFactor;
+    }
+    
+    public static int getAntiHitHackMaxViolation()
+    {
+        if (AntiHitHackMaxViolation < 3)
+            return 3;
+        if (AntiHitHackMaxViolation > 50)
+            return 50;
+        return AntiHitHackMaxViolation;
+    }
+    
     public static boolean getUseProximityHider()
     {
         return UseProximityHider;
@@ -144,34 +162,9 @@ public class OrebfuscatorConfig
         return UseSpecialBlockForProximityHider;
     }
     
-    public static boolean getUpdateOnBreak()
-    {
-        return UpdateOnBreak;
-    }
-    
     public static boolean getUpdateOnDamage()
     {
         return UpdateOnDamage;
-    }
-    
-    public static boolean getUpdateOnPhysics()
-    {
-        return UpdateOnPhysics;
-    }
-    
-    public static boolean getUpdateOnPiston()
-    {
-        return UpdateOnPiston;
-    }
-    
-    public static boolean getUpdateOnExplosion()
-    {
-        return UpdateOnExplosion;
-    }
-    
-    public static boolean getUpdateOnHoe()
-    {
-        return UpdateOnHoe;
     }
     
     public static boolean getUpdateThread()
@@ -221,7 +214,7 @@ public class OrebfuscatorConfig
     
     public static boolean isBlockTransparent(byte id)
     {
-        if (id < 0 || !net.minecraft.server.Block.g(id))
+        if (id < 0 || !net.minecraft.server.Block.i(id))
         {
             return true;
         }
@@ -230,6 +223,9 @@ public class OrebfuscatorConfig
     
     public static boolean isObfuscated(byte id)
     {
+        if (id < 0)
+            return false;
+        
         if (id == 1)
             return true;
         
@@ -247,6 +243,9 @@ public class OrebfuscatorConfig
     
     public static boolean isProximityObfuscated(byte id)
     {
+        if (id < 0)
+            return false;
+        
         if (ProximityHiderBlocks[id])
             return true;
         return false;
@@ -288,6 +287,11 @@ public class OrebfuscatorConfig
         {
             Collections.shuffle(Arrays.asList(RandomBlocks));
         }
+    }
+    
+    public static int random(int max)
+    {
+        return random.nextInt(max);
     }
     
     // Set
@@ -358,40 +362,10 @@ public class OrebfuscatorConfig
         UseSpecialBlockForProximityHider = data;
     }
     
-    public static void setUpdateOnBreak(boolean data)
-    {
-        setData("Booleans.UpdateOnBreak", data);
-        UpdateOnBreak = data;
-    }
-    
     public static void setUpdateOnDamage(boolean data)
     {
         setData("Booleans.UpdateOnDamage", data);
         UpdateOnDamage = data;
-    }
-    
-    public static void setUpdateOnPhysics(boolean data)
-    {
-        setData("Booleans.UpdateOnPhysics", data);
-        UpdateOnPhysics = data;
-    }
-    
-    public static void setUpdateOnPiston(boolean data)
-    {
-        setData("Booleans.UpdateOnPiston", data);
-        UpdateOnPiston = data;
-    }
-    
-    public static void setUpdateOnExplosion(boolean data)
-    {
-        setData("Booleans.UpdateOnExplosion", data);
-        UpdateOnExplosion = data;
-    }
-    
-    public static void setUpdateOnHoe(boolean data)
-    {
-        setData("Booleans.UpdateOnHoe", data);
-        UpdateOnHoe = data;
     }
     
     public static void setUpdateThread(boolean data)
@@ -527,6 +501,27 @@ public class OrebfuscatorConfig
     
     public static void load()
     {
+        // Version check
+        int version = getInt("ConfigVersion", CONFIG_VERSION);
+        if (version < CONFIG_VERSION)
+        {
+            File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
+            File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
+            if (destination.exists())
+            {
+                try
+                {
+                    destination.delete();
+                }
+                catch (Exception e)
+                {
+                    Orebfuscator.log(e);
+                }
+            }
+            configFile.renameTo(destination);
+            reload();
+        }
+        
         EngineMode = getInt("Integers.EngineMode", EngineMode);
         if (EngineMode != 1 && EngineMode != 2)
         {
@@ -552,12 +547,7 @@ public class OrebfuscatorConfig
         AirGeneratorMaxChance = getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance);
         UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
         UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
-        UpdateOnBreak = getBoolean("Booleans.UpdateOnBreak", UpdateOnBreak);
         UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
-        UpdateOnPhysics = getBoolean("Booleans.UpdateOnPhysics", UpdateOnPhysics);
-        UpdateOnPiston = getBoolean("Booleans.UpdateOnPiston", UpdateOnPiston);
-        UpdateOnExplosion = getBoolean("Booleans.UpdateOnExplosion", UpdateOnExplosion);
-        UpdateOnHoe = getBoolean("Booleans.UpdateOnHoe", UpdateOnHoe);
         UpdateThread = getBoolean("Booleans.UpdateThread", UpdateThread);
         DarknessHideBlocks = getBoolean("Booleans.DarknessHideBlocks", DarknessHideBlocks);
         NoObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
@@ -572,28 +562,6 @@ public class OrebfuscatorConfig
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
-        
-        // Version check
-        int version = getInt("ConfigVersion", 0);
-        
-        if (version < CONFIG_VERSION)
-        {
-            List<Integer> RandomBlocks2 = new ArrayList<Integer>(Arrays.asList(RandomBlocks));
-            if (!RandomBlocks2.contains(4))
-                RandomBlocks2.add(4);
-            if (!RandomBlocks2.contains(46))
-                RandomBlocks2.add(46);
-            if (!RandomBlocks2.contains(49))
-                RandomBlocks2.add(49);
-            if (!RandomBlocks2.contains(82))
-                RandomBlocks2.add(82);
-            RandomBlocks = RandomBlocks2.toArray(new Integer[0]);
-            
-            setData("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
-            
-            setData("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 117 }));
-        }
-        setData("ConfigVersion", CONFIG_VERSION);
         
         save();
     }

@@ -24,24 +24,22 @@ import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
 import lishid.orebfuscator.obfuscation.Calculations;
 
+import org.bukkit.craftbukkit.ChunkCompressionThread;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
+import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
+import net.minecraft.server.Packet56MapChunkBulk;
 
 public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 {
     private static final int QUEUE_CAPACITY = 1024 * 10;
     private static ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
-    private static final LinkedBlockingDeque<PlayerPacket> queue = new LinkedBlockingDeque<PlayerPacket>(QUEUE_CAPACITY);
+    private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
     
     public static int getThreads()
     {
         return threads.size();
-    }
-    
-    public static boolean CheckThreads()
-    {
-        return threads.size() == OrebfuscatorConfig.getProcessingThreads();
     }
     
     public static void terminateAll()
@@ -78,6 +76,22 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
         }
     }
     
+    public static void Queue(Packet56MapChunkBulk packet, CraftPlayer player)
+    {
+        while (true)
+        {
+            try
+            {
+                queue.put(new QueuedPacket(player, packet));
+                return;
+            }
+            catch (Exception e)
+            {
+                Orebfuscator.log(e);
+            }
+        }
+    }
+    
     public static void Queue(Packet51MapChunk packet, CraftPlayer player)
     {
         while (true)
@@ -86,11 +100,11 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
             {
                 if (Math.abs(packet.a - player.getLocation().getChunk().getX()) <= 1 && Math.abs(packet.b - player.getLocation().getChunk().getZ()) <= 1)
                 {
-                    queue.putFirst(new PlayerPacket(player, packet));
+                    queue.putFirst(new QueuedPacket(player, packet));
                 }
                 else
                 {
-                    queue.put(new PlayerPacket(player, packet));
+                    queue.put(new QueuedPacket(player, packet));
                 }
                 return;
             }
@@ -111,7 +125,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
             try
             {
                 // Take a package from the queue
-                PlayerPacket packet = queue.take();
+                QueuedPacket packet = queue.take();
                 
                 // Don't waste time if the player is gone
                 synchronized (Orebfuscator.players)
@@ -125,50 +139,20 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
                 try
                 {
                     // Try to obfuscate and send the packet
-                    Calculations.Obfuscate(packet.packet, packet.player, true, chunkBuffer);
+                    if (packet.packet instanceof Packet56MapChunkBulk)
+                    {
+                        Calculations.Obfuscate((Packet56MapChunkBulk) packet.packet, packet.player, true, chunkBuffer);
+                    }
+                    else if (packet.packet instanceof Packet51MapChunk)
+                    {
+                        Calculations.Obfuscate((Packet51MapChunk) packet.packet, packet.player, true, chunkBuffer);
+                    }
                 }
                 catch (Throwable e)
                 {
                     Orebfuscator.log(e);
                     // If we run into problems, just send the packet.
-                    
-                    // Compress packets
-                    if (packet.packet.buffer == null)
-                    {
-                        try
-                        {
-                            synchronized (Calculations.deflateBuffer)
-                            {
-                                // Compression
-                                int dataSize = packet.packet.rawData.length;
-                                if (Calculations.deflateBuffer.length < dataSize + 100)
-                                {
-                                    Calculations.deflateBuffer = new byte[dataSize + 100];
-                                }
-                                
-                                Calculations.deflater.reset();
-                                Calculations.deflater.setLevel(dataSize < 20480 ? 1 : 6);
-                                Calculations.deflater.setInput(packet.packet.rawData);
-                                Calculations.deflater.finish();
-                                int size = Calculations.deflater.deflate(Calculations.deflateBuffer);
-                                if (size == 0)
-                                {
-                                    size = Calculations.deflater.deflate(Calculations.deflateBuffer);
-                                }
-                                
-                                // Copy compressed packet out
-                                packet.packet.buffer = new byte[size];
-                                packet.packet.size = size;
-                                System.arraycopy(Calculations.deflateBuffer, 0, packet.packet.buffer, 0, size);
-                            }
-                        }
-                        catch (Exception e2)
-                        {
-                            Orebfuscator.log(e2);
-                        }
-                    }
-                    
-                    packet.player.getHandle().netServerHandler.sendPacket(packet.packet);
+                    ChunkCompressionThread.sendPacket(packet.player.getHandle(), packet.packet);
                 }
             }
             catch (Exception e)
@@ -178,5 +162,17 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
         }
         
         threads.remove(this);
+    }
+    
+    private static class QueuedPacket
+    {
+        final CraftPlayer player;
+        final Packet packet;
+        
+        QueuedPacket(CraftPlayer player, Packet packet)
+        {
+            this.player = player;
+            this.packet = packet;
+        }
     }
 }

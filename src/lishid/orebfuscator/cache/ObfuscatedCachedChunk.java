@@ -35,6 +35,7 @@ public class ObfuscatedCachedChunk
     public boolean proximityHider;
     public byte[] data;
     public int[] proximityBlockList;
+    public boolean isValid = true;
     
     public ObfuscatedCachedChunk(File file, int x, int z, int initialRadius, boolean proximityHider)
     {
@@ -92,7 +93,7 @@ public class ObfuscatedCachedChunk
                 NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput) stream);
                 
                 // Check if data makes sense
-                if (nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR") || proximityHider != nbt.getBoolean("PH"))
+                if (nbt.getInt("X") != x || nbt.getInt("Z") != z)
                     return;
                 
                 // Retrieve data
@@ -151,8 +152,6 @@ public class ObfuscatedCachedChunk
             NBTTagCompound nbt = new NBTTagCompound();
             nbt.setInt("X", x);
             nbt.setInt("Z", z);
-            nbt.setInt("IR", initialRadius);
-            nbt.setBoolean("PH", proximityHider);
             nbt.setByteArray("Data", data);
             nbt.setIntArray("ProximityBlockList", proximityBlockList);
             

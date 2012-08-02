@@ -72,7 +72,7 @@ public class ObfuscatedDataCache
             {
                 RegionFile regionFile = (RegionFile) reference.get();
                 if (regionFile != null)
-                    regionFile.a();
+                    regionFile.c();
             }
             catch (Exception e)
             {

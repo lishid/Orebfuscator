@@ -36,4 +36,7 @@ public class ChunkInfo
     byte[] data;
     byte[] buffer;
     CraftPlayer player;
+    int startIndex;
+    int size;
+    int blockSize;
 }

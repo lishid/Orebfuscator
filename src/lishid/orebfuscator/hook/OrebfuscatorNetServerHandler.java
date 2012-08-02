@@ -21,6 +21,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
+import net.minecraft.server.Packet56MapChunkBulk;
 import net.minecraft.serverhook.NetServerHandlerProxy;
 
 public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
@@ -38,6 +39,12 @@ public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
             // Obfuscate packet
             OrebfuscatorThreadCalculation.SyncThreads();
             OrebfuscatorThreadCalculation.Queue((Packet51MapChunk) packet, this.getPlayer());
+        }
+        else if (packet instanceof Packet56MapChunkBulk)
+        {
+            // Obfuscate packet
+            OrebfuscatorThreadCalculation.SyncThreads();
+            OrebfuscatorThreadCalculation.Queue((Packet56MapChunkBulk) packet, this.getPlayer());
         }
         else
         {

@@ -38,14 +38,16 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
             thread.kill.set(true);
     }
     
+    public static boolean needsUpdate(Block block)
+    {
+        byte id = (byte) block.getTypeId();
+        return !OrebfuscatorConfig.isBlockTransparent(id);
+    }
+    
     public static void Queue(Block block)
     {
-        // Don't do anything if the block is transparent
-        byte id = (byte) block.getTypeId();
-        if (OrebfuscatorConfig.isBlockTransparent(id))
-        {
+        if(!needsUpdate(block))
             return;
-        }
         
         if (!OrebfuscatorConfig.getUpdateThread())
         {

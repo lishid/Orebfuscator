@@ -18,6 +18,7 @@ package lishid.orebfuscator.hook;
 
 import lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 import net.minecraft.server.Packet51MapChunk;
+import net.minecraft.server.Packet56MapChunkBulk;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -30,8 +31,8 @@ public class SpoutLoader
 {
     public static void InitializeSpout()
     {
-        // Add spout listeners
-        SpoutManager.getPacketManager().addListener(51, new PacketListener()
+        // Add spout listener
+        PacketListener listener = new PacketListener()
         {
             // Processing a chunk packet
             public boolean checkPacket(Player player, MCPacket mcpacket)
@@ -47,8 +48,18 @@ public class SpoutLoader
                     OrebfuscatorThreadCalculation.Queue((Packet51MapChunk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
                     return false;
                 }
+                if (((MCCraftPacket) mcpacket).getPacket() instanceof Packet56MapChunkBulk)
+                {
+                    // Obfuscate packet
+                    OrebfuscatorThreadCalculation.SyncThreads();
+                    OrebfuscatorThreadCalculation.Queue((Packet56MapChunkBulk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
+                    return false;
+                }
                 return true;
             }
-        });
+        };
+        SpoutManager.getPacketManager().addListener(51, listener);
     }
+    
+    
 }

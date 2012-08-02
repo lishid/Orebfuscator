@@ -170,10 +170,7 @@ public class OrebfuscatorCommandExecutor
                 return true;
             }
             OrebfuscatorConfig.setProcessingThreads(threads);
-            if (OrebfuscatorThreadCalculation.CheckThreads())
-            {
-                OrebfuscatorThreadCalculation.SyncThreads();
-            }
+            OrebfuscatorThreadCalculation.SyncThreads();
             Orebfuscator.message(sender, "Processing Threads set to: " + threads);
             return true;
         }

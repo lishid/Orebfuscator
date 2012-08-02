@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import lishid.orebfuscator.cache.ObfuscatedHashCache;
 import lishid.orebfuscator.cache.ObfuscatedDataCache;
 import lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
+import lishid.orebfuscator.hithack.BlockHitManager;
 import lishid.orebfuscator.hook.OrebfuscatorPlayerListenerHook;
 import lishid.orebfuscator.hook.SpoutLoader;
 import lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
@@ -176,7 +177,7 @@ public class Orebfuscator extends JavaPlugin
         ProximityHider.terminate();
         ProximityHider.proximityHiderTracker.clear();
         ProximityHider.playersToCheck.clear();
-        OrebfuscatorBlockListener.blockLog.clear();
+        BlockHitManager.clearAll();
         
         Orebfuscator.instance.getServer().getScheduler().cancelAllTasks();
         

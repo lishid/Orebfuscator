@@ -17,11 +17,11 @@
 package lishid.orebfuscator.obfuscation;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.zip.CRC32;
-import java.util.zip.Deflater;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
@@ -33,6 +33,7 @@ import net.minecraft.server.ChunkProviderServer;
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
+import net.minecraft.server.Packet56MapChunkBulk;
 import net.minecraft.server.TileEntity;
 import net.minecraft.server.WorldServer;
 
@@ -42,15 +43,11 @@ import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.craftbukkit.ChunkCompressionThread;
 import org.bukkit.craftbukkit.CraftWorld;
 
 public class Calculations
 {
-    public final static int CHUNK_SIZE = 16 * 128 * 16 * 5 / 2;
-    
-    public static Deflater deflater = new Deflater();
-    public static byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
-    
     public static void UpdateBlocksNearby(Block block)
     {
         HashSet<Block> blocks = Calculations.GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius());
@@ -145,7 +142,7 @@ public class Calculations
                 TileEntity te = ((CraftWorld) block.getWorld()).getHandle().getTileEntity(block.getX(), block.getY(), block.getZ());
                 if (te != null)
                 {
-                    p = te.d();
+                    p = te.e();
                 }
                 break;
             }
@@ -181,6 +178,60 @@ public class Calculations
         return players;
     }
     
+    public static void Obfuscate(Packet56MapChunkBulk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
+    {
+        
+        NetServerHandler nsh = player.getHandle().netServerHandler;
+        if (nsh == null || nsh.disconnected || nsh.networkManager == null)
+            return;
+        
+        ChunkInfo[] infos = new ChunkInfo[packet.d()];
+        
+        int dataStartIndex = 0;
+        
+        int[] x = (int[]) getPrivateField(packet, "c");
+        int[] z = (int[]) getPrivateField(packet, "d");
+        
+        int[] chunkMask = packet.a;
+        int[] extraMask = packet.b;
+        
+        for (int chunkNum = 0; chunkNum < packet.d(); chunkNum++)
+        {
+            // Create an info objects
+            ChunkInfo info = new ChunkInfo();
+            infos[chunkNum] = info;
+            info.world = player.getHandle().world.getWorld().getHandle();
+            info.player = player;
+            info.chunkX = x[chunkNum];
+            info.chunkZ = z[chunkNum];
+            info.chunkMask = chunkMask[chunkNum];
+            info.extraMask = extraMask[chunkNum];
+            info.buffer = chunkBuffer;
+            info.data = packet.buildBuffer;
+            info.startIndex = dataStartIndex;
+            
+            ComputeChunkInfoAndObfuscate(info, packet.buildBuffer);
+            
+            dataStartIndex += info.size;
+        }
+        
+        if (sendPacket)
+        {
+            ChunkCompressionThread.sendPacket(player.getHandle(), packet);
+            
+            for (ChunkInfo info : infos)
+            {
+                if (info != null)
+                {
+                    sendTileEntities(info, nsh);
+                }
+            }
+        }
+        
+        // Let MemoryManager do its work
+        MemoryManager.CheckAndCollect();
+    }
+    
     public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
     {
         NetServerHandler nsh = player.getHandle().netServerHandler;
@@ -196,11 +247,23 @@ public class Calculations
         info.chunkMask = packet.c;
         info.extraMask = packet.d;
         info.buffer = chunkBuffer;
-        info.data = packet.rawData;
+        info.data = packet.inflatedBuffer;
+        info.startIndex = 0;
+        
+        ComputeChunkInfoAndObfuscate(info, packet.inflatedBuffer);
+        
+        if (sendPacket)
+        {
+            ChunkCompressionThread.sendPacket(player.getHandle(), packet);
+            sendTileEntities(info, nsh);
+        }
         
         // Let MemoryManager do its work
         MemoryManager.CheckAndCollect();
-        
+    }
+
+    public static void ComputeChunkInfoAndObfuscate(ChunkInfo info, byte[] returnData)
+    {
         // Compute chunk number
         for (int i = 0; i < 16; i++)
         {
@@ -220,86 +283,19 @@ public class Calculations
             }
         }
         
+        info.size = 2048 * (5 * info.chunkSectionNumber + info.extraSectionNumber) + 256;
+        info.blockSize = 4096 * info.chunkSectionNumber;
+
         // Obfuscate
-        if (isChunkLoaded(info.world, info.chunkX, info.chunkZ) && // Make sure the chunk is loaded to prevent problems
-                info.world.getWorld().getEnvironment() == Environment.NORMAL && !OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && // World not disabled
-                OrebfuscatorConfig.obfuscateForPlayer(player) && // Should the player have obfuscation?
-                OrebfuscatorConfig.getEnabled()) // Plugin enabled
+        if (info.world.getWorld().getEnvironment() == Environment.NORMAL && // Is overworld
+                !OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && // World not
+                OrebfuscatorConfig.obfuscateForPlayer(info.player) && // Should the player have obfuscation?
+                OrebfuscatorConfig.getEnabled() && // Plugin enabled
+                isChunkLoaded(info.world, info.chunkX, info.chunkZ))// Make sure the chunk is loaded
         {
             byte[] obfuscated = Obfuscate(info);
             // Copy the data out of the buffer
-            System.arraycopy(obfuscated, 0, packet.rawData, 0, info.chunkSectionNumber * 4096);
-        }
-        
-        if (sendPacket)
-        {
-            // Compress packets
-            try
-            {
-                synchronized (deflateBuffer)
-                {
-                    // Compression
-                    int dataSize = packet.rawData.length;
-                    if (deflateBuffer.length < dataSize + 100)
-                    {
-                        deflateBuffer = new byte[dataSize + 100];
-                    }
-                    
-                    deflater.reset();
-                    deflater.setLevel(dataSize < 20480 ? 1 : 6);
-                    deflater.setInput(packet.rawData);
-                    deflater.finish();
-                    int size = deflater.deflate(deflateBuffer);
-                    if (size == 0)
-                    {
-                        size = deflater.deflate(deflateBuffer);
-                    }
-                    
-                    // Copy compressed packet out
-                    packet.buffer = new byte[size];
-                    packet.size = size;
-                    System.arraycopy(deflateBuffer, 0, packet.buffer, 0, size);
-                }
-            }
-            catch (Exception e)
-            {
-                Orebfuscator.log(e);
-            }
-            
-            // Send it
-            nsh.networkManager.queue(packet);
-            
-            // Send TileEntities
-            int i = info.chunkX * 16;
-            int j = info.chunkZ * 16;
-            for (int k = 0; k < 16; ++k)
-            {
-                if ((info.chunkMask & 1 << k) != 0)
-                {
-                    int l = k << 4;
-                    try
-                    {
-                        Object[] list = info.world.getTileEntities(i, l, j, i + 16, l + 16, j + 16).toArray();
-                        
-                        for (int i1 = 0; i1 < list.length; i1++)
-                        {
-                            TileEntity tileentity = (TileEntity) list[i1];
-                            if (tileentity != null)
-                            {
-                                Packet p = tileentity.d();
-                                if (p != null)
-                                {
-                                    nsh.sendPacket(p);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Orebfuscator.log("Get Minecraft entity list error: " + e.getMessage());
-                    }
-                }
-            }
+            System.arraycopy(obfuscated, 0, returnData, info.startIndex, info.blockSize);
         }
     }
     
@@ -317,15 +313,15 @@ public class Calculations
         int initialRadius = OrebfuscatorConfig.getInitialRadius();
         
         // Expand buffer if not enough space
-        if (info.chunkSectionNumber * 4096 > info.buffer.length)
+        if (info.blockSize > info.buffer.length)
         {
-            info.buffer = new byte[info.chunkSectionNumber * 4096];
+            info.buffer = new byte[info.blockSize];
         }
         // Copy data into buffer
-        System.arraycopy(info.data, 0, info.buffer, 0, info.chunkSectionNumber * 4096);
+        System.arraycopy(info.data, info.startIndex, info.buffer, 0, info.blockSize);
         
         // Caching
-        if (info.data.length == 2048 * (5 * info.chunkSectionNumber + info.extraSectionNumber) + 256 && OrebfuscatorConfig.getUseCache())
+        if (OrebfuscatorConfig.getUseCache())
         {
             // Get cache folder
             File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), info.world.getWorld().getName());
@@ -333,7 +329,7 @@ public class Calculations
             cache = new ObfuscatedCachedChunk(cacheFolder, info.chunkX, info.chunkZ, initialRadius, OrebfuscatorConfig.getUseProximityHider());
             info.useCache = true;
             // Hash the chunk
-            hash = Hash(info.buffer, info.chunkSectionNumber * 4096);
+            hash = Hash(info.buffer, info.blockSize);
             
             // Check if hash is consistent
             long storedHash = cache.getHash();
@@ -374,6 +370,8 @@ public class Calculations
         boolean specialObfuscate = false;
         
         int engineMode = OrebfuscatorConfig.getEngineMode();
+        int maxChance = OrebfuscatorConfig.getAirGeneratorMaxChance();
+        int incrementMax = maxChance;
         
         Integer[] randomBlocks = OrebfuscatorConfig.getRandomBlocks();
         
@@ -399,10 +397,11 @@ public class Calculations
                     for (int z = 0; z < 16; z++)
                     {
                         OrebfuscatorConfig.shuffleRandomBlocks();
+                        incrementMax = (maxChance + OrebfuscatorConfig.random(maxChance)) / 2;
                         for (int x = 0; x < 16; x++)
                         {
                             int index = indexDataStart + tempIndex;
-                            byte data = info.data[index];
+                            byte data = info.data[info.startIndex + index];
                             /*
                              * byte extra = 0;
                              * if(useExtraData)
@@ -437,7 +436,7 @@ public class Calculations
                             }
                             
                             // Check if the block should be obfuscated because of proximity check
-                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[index])
+                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[info.startIndex + index])
                                     && ((i << 4) + y) <= OrebfuscatorConfig.getProximityHiderEnd())
                             {
                                 proximityBlocks.add(getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
@@ -475,7 +474,7 @@ public class Calculations
                                     // Anti texturepack and freecam
                                     if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
                                     {
-                                        randomIncrement2 = increment(randomIncrement2, OrebfuscatorConfig.getAirGeneratorMaxChance());
+                                        randomIncrement2 = increment(randomIncrement2, incrementMax);
                                         // Add random air blocks
                                         if (randomIncrement2 == 0)
                                             info.buffer[index] = 0;
@@ -491,7 +490,7 @@ public class Calculations
                                     // Anti texturepack and freecam
                                     if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
                                     {
-                                        randomIncrement2 = increment(randomIncrement2, OrebfuscatorConfig.getAirGeneratorMaxChance());
+                                        randomIncrement2 = increment(randomIncrement2, incrementMax);
                                         // Add random air blocks and stone blocks
                                         if (randomIncrement2 == 0)
                                             info.buffer[index] = 0;
@@ -559,7 +558,7 @@ public class Calculations
             int index = section * 4096 + (y % 16 << 8) + (cZ << 4) + cX;
             try
             {
-                id = info.data[index];
+                id = info.data[info.startIndex + index];
                 foundID = true;
             }
             catch (Exception e)
@@ -649,5 +648,58 @@ public class Calculations
     public static int increment(int current, int max)
     {
         return (current + 1) % max;
+    }
+    
+    public static void sendTileEntities(ChunkInfo info, NetServerHandler nsh)
+    {
+        // Send TileEntities
+        int i = info.chunkX * 16;
+        int j = info.chunkZ * 16;
+        for (int k = 0; k < 16; ++k)
+        {
+            if ((info.chunkMask & 1 << k) != 0)
+            {
+                int l = k << 4;
+                try
+                {
+                    Object[] list = info.world.getTileEntities(i, l, j, i + 16, l + 16, j + 16).toArray();
+                    
+                    for (int i1 = 0; i1 < list.length; i1++)
+                    {
+                        TileEntity tileentity = (TileEntity) list[i1];
+                        if (tileentity != null)
+                        {
+                            Packet p = tileentity.e();
+                            if (p != null)
+                            {
+                                nsh.sendPacket(p);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Orebfuscator.log("Get Minecraft entity list error: " + e.getMessage());
+                }
+            }
+        }
+    }
+    
+    public static Object getPrivateField(Object object, String fieldName)
+    {
+        Field field;
+        Object newObject = new int[0];
+        try
+        {
+            field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            newObject = field.get(object);
+        }
+        catch (Exception e)
+        {
+            Orebfuscator.log(e);
+        }
+        
+        return newObject;
     }
 }

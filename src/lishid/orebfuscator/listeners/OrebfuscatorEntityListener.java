@@ -30,7 +30,7 @@ public class OrebfuscatorEntityListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityExplode(EntityExplodeEvent event)
     {
-        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnExplosion() || !OrebfuscatorConfig.getEnabled())
+        if (event.isCancelled() || !OrebfuscatorConfig.getEnabled())
         {
             return;
         }

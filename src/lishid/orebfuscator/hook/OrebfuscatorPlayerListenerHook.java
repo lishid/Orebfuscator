@@ -43,10 +43,9 @@ public class OrebfuscatorPlayerListenerHook implements Listener
             
             if (!(cPlayer.getHandle().netServerHandler instanceof OrebfuscatorNetServerHandler))
             {
-                OrebfuscatorNetServerHandler handler = new OrebfuscatorNetServerHandler(server.getHandle().server, cPlayer.getHandle().netServerHandler);
+                OrebfuscatorNetServerHandler handler = new OrebfuscatorNetServerHandler(server.getServer(), cPlayer.getHandle().netServerHandler);
                 cPlayer.getHandle().netServerHandler = handler;
                 cPlayer.getHandle().netServerHandler.networkManager.a(handler);
-                server.getServer().networkListenThread.a(handler);
             }
         }
         catch (Exception e)

@@ -18,6 +18,7 @@ package lishid.orebfuscator.listeners;
 
 import lishid.orebfuscator.Orebfuscator;
 import lishid.orebfuscator.OrebfuscatorConfig;
+import lishid.orebfuscator.hithack.BlockHitManager;
 import lishid.orebfuscator.proximityhider.ProximityHider;
 import lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import org.bukkit.Material;
@@ -59,10 +60,7 @@ public class OrebfuscatorPlayerListener implements Listener
         {
             Orebfuscator.players.remove(event.getPlayer());
         }
-        if (OrebfuscatorBlockListener.blockLog.containsKey(event.getPlayer().getName()))
-        {
-            OrebfuscatorBlockListener.blockLog.remove(event.getPlayer().getName());
-        }
+        BlockHitManager.clearHistory(event.getPlayer());
         if (OrebfuscatorConfig.getUseProximityHider())
         {
             synchronized (ProximityHider.BlockLock)
@@ -75,7 +73,7 @@ public class OrebfuscatorPlayerListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerInteract(PlayerInteractEvent event)
     {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.useInteractedBlock() == Result.DENY || !OrebfuscatorConfig.getEnabled() || !OrebfuscatorConfig.getUpdateOnHoe())
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.useInteractedBlock() == Result.DENY || !OrebfuscatorConfig.getEnabled())
             return;
         
         if (event.getItem() != null
@@ -91,6 +89,7 @@ public class OrebfuscatorPlayerListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event)
     {
+        BlockHitManager.clearHistory(event.getPlayer());
         if (OrebfuscatorConfig.getUseProximityHider())
         {
             synchronized (ProximityHider.BlockLock)
