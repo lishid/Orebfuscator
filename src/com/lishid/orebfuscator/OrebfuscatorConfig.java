@@ -30,10 +30,10 @@ public class OrebfuscatorConfig
 {
     private static Random random = new Random();
     
-    private static final int CONFIG_VERSION = 5;
+    private static final int CONFIG_VERSION = 6;
     private static boolean[] ObfuscateBlocks = new boolean[256];
     private static boolean[] ProximityHiderBlocks = new boolean[256];
-    private static Integer[] RandomBlocks = new Integer[] { 0, 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82 };
+    private static Integer[] RandomBlocks = new Integer[] { 0, 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
     private static List<String> DisabledWorlds = new ArrayList<String>();
     private static int EngineMode = 2;
     private static int UpdateRadius = 2;
@@ -44,6 +44,7 @@ public class OrebfuscatorConfig
     private static int ProximityHiderID = 1;
     private static int ProximityHiderEnd = 255;
     private static int AirGeneratorMaxChance = 16;
+    private static int OrebfuscatorPriority = 0;
     private static boolean UseProximityHider = true;
     private static boolean UseSpecialBlockForProximityHider = true;
     private static boolean UpdateOnDamage = true;
@@ -132,9 +133,18 @@ public class OrebfuscatorConfig
     {
         if (AirGeneratorMaxChance < 1)
             return 2;
-        if (AirGeneratorMaxChance > 23)
-            return 24;
+        if (AirGeneratorMaxChance > 63)
+            return 64;
         return AirGeneratorMaxChance + 1;
+    }
+    
+    public static int getOrebfuscatorPriority()
+    {
+        if (OrebfuscatorPriority < 0)
+            return 0;
+        if (OrebfuscatorPriority > 2)
+            return 2;
+        return OrebfuscatorPriority;
     }
     
     public static int getAntiHitHackDecrementFactor()
@@ -371,6 +381,12 @@ public class OrebfuscatorConfig
         AirGeneratorMaxChance = data;
     }
     
+    public static void setOrebfuscatorPriority(int data)
+    {
+        setData("Integers.OrebfuscatorPriority", data);
+        OrebfuscatorPriority = data;
+    }
+    
     public static void setUseProximityHider(boolean data)
     {
         setData("Booleans.UseProximityHider", data);
@@ -566,6 +582,7 @@ public class OrebfuscatorConfig
         ProximityHiderID = getInt("Integers.ProximityHiderID", ProximityHiderID);
         ProximityHiderEnd = getInt("Integers.ProximityHiderEnd", ProximityHiderEnd);
         AirGeneratorMaxChance = getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance);
+        OrebfuscatorPriority = getInt("Integers.OrebfuscatorPriority", OrebfuscatorPriority);
         UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
         UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
         UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
@@ -577,8 +594,8 @@ public class OrebfuscatorConfig
         LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
-        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74 })));
-        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116 })));
+        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129 })));
+        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 129 })));
         RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);

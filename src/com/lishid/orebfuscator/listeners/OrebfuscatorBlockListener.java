@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.listeners;
 
-
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -51,7 +50,7 @@ public class OrebfuscatorBlockListener implements Listener
             return;
         }
         
-        if(!OrebfuscatorThreadUpdate.needsUpdate(event.getBlock()))
+        if (!OrebfuscatorThreadUpdate.needsUpdate(event.getBlock()))
         {
             return;
         }
@@ -88,7 +87,7 @@ public class OrebfuscatorBlockListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPistonExtend(BlockPistonExtendEvent event)
     {
-        if (event.isCancelled() )
+        if (event.isCancelled())
         {
             return;
         }

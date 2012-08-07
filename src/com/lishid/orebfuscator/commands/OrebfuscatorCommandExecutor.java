@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.commands;
 
-
 import net.minecraft.server.ChunkCoordIntPair;
 
 import org.bukkit.Chunk;

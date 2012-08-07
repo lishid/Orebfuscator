@@ -1,6 +1,6 @@
 name: Orebfuscator
-main: lishid.orebfuscator.Orebfuscator
-version: 1.5.6
+main: com.lishid.orebfuscator.Orebfuscator
+version: 1.5.7
 author: lishid
 softdepend: [Spout]
 load: startup
@@ -10,20 +10,20 @@ commands:
   ofc:
     description: Manage Orebfuscator.
     usage: |
-           /<command> engine <1/2> - Set engine mode to 1 or 2
-           /<command> initialradius [number] - Set block initial radius
-           /<command> updateradius [number] - Set block update radius
-           /<command> threads [number] - Set allowed processing threads
-           /<command> proximity [number] - Set ProximityHider distance
-           /<command> <enable/disable> world <worldname>
-           /<command> reload - Reload from config file
-           /<command> status - Show status of Orebfuscator
-           /<command> clearcache - Clear all cache
-           /<command> recache - Clear the cache at current chunk
-           /<command> <enable/disable> - Change the state of the plugin
-           /<command> <enable/disable> <Setting> - possible settings:
-           Settings: op, perms, updatethread, proximity, cache,
-            axr, notification
+           /<command> [Command] [Arguments...]
+           ==Commands==
+           engine <1/2> - Set engine mode to 1 or 2
+           initialradius [number] - Set block initial radius
+           updateradius [number] - Set block update radius
+           threads [number] - Set allowed processing threads
+           proximity [number] - Set ProximityHider distance
+           reload - Reload from config file
+           status - Show status of Orebfuscator
+           clearcache - Clear all cache
+           enable/disable - Change the state of the plugin
+           enable/disable world <worldname>
+           enable/disable <Setting> - possible settings:
+           (op, perms, updatethread, proximity, cache, axr, notification)
   rechunk:
     description: Re-send chunks.
     usage: |

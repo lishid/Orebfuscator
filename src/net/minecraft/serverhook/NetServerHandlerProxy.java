@@ -21,7 +21,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import net.minecraft.server.*;
 
-
 public class NetServerHandlerProxy extends NetServerHandler
 {
     public INetworkManager networkManager;
@@ -44,7 +43,7 @@ public class NetServerHandlerProxy extends NetServerHandler
     private void init()
     {
         networkManager = nshInstance.networkManager;
-        //minecraftserver.ac().a(this.nshInstance);
+        // minecraftserver.ac().a(this.nshInstance);
     }
     
     @Override
@@ -126,9 +125,9 @@ public class NetServerHandlerProxy extends NetServerHandler
     }
     
     @Override
-    public boolean chat(String s)
+    public void chat(String s, boolean async)
     {
-        return this.nshInstance.chat(s);
+        this.nshInstance.chat(s, async);
     }
     
     @Override

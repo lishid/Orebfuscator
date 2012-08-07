@@ -34,6 +34,7 @@ import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
+import com.lishid.orebfuscator.threading.OverflowPacketQueue;
 import com.lishid.orebfuscator.utils.MemoryManager;
 
 public class Calculations
@@ -77,16 +78,8 @@ public class Calculations
         
         if (sendPacket)
         {
-            //ChunkCompressionThread.sendPacket(player.getHandle(), packet);
-            OverflowPacketQueue.Queue(player, packet);
-            
-            for (ChunkInfo info : infos)
-            {
-                if (info != null)
-                {
-                    sendTileEntities(info);
-                }
-            }
+            // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
+            OverflowPacketQueue.Queue(player, packet, infos);
         }
         
         // Let MemoryManager do its work
@@ -115,9 +108,8 @@ public class Calculations
         
         if (sendPacket)
         {
-            //ChunkCompressionThread.sendPacket(player.getHandle(), packet);
-            OverflowPacketQueue.Queue(player, packet);
-            sendTileEntities(info);
+            // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
+            OverflowPacketQueue.Queue(player, packet, new ChunkInfo[]{ info });
         }
         
         // Let MemoryManager do its work
@@ -411,12 +403,9 @@ public class Calculations
         
         if ((info.chunkMask & (1 << (y >> 4))) > 0 && x >> 4 == info.chunkX && z >> 4 == info.chunkZ)
         {
-            int cX = x % 16;
-            if (cX < 0)
-                cX += 16;
-            int cZ = z % 16;
-            if (cZ < 0)
-                cZ += 16;
+            int cX = ((x % 16) < 0) ? (x % 16 + 16) : (x % 16);
+            int cZ = ((z % 16) < 0) ? (z % 16 + 16) : (z % 16);
+            
             int index = section * 4096 + (y % 16 << 8) + (cZ << 4) + cX;
             try
             {
@@ -425,6 +414,7 @@ public class Calculations
             }
             catch (Exception e)
             {
+                Orebfuscator.log(e);
             }
         }
         
