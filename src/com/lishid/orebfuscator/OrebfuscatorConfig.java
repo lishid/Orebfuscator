@@ -26,14 +26,16 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
+
 public class OrebfuscatorConfig
 {
     private static Random random = new Random();
     
-    private static final int CONFIG_VERSION = 6;
+    private static final int CONFIG_VERSION = 8;
     private static boolean[] ObfuscateBlocks = new boolean[256];
     private static boolean[] ProximityHiderBlocks = new boolean[256];
-    private static Integer[] RandomBlocks = new Integer[] { 0, 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
+    private static Integer[] RandomBlocks = new Integer[] { 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
     private static List<String> DisabledWorlds = new ArrayList<String>();
     private static int EngineMode = 2;
     private static int UpdateRadius = 2;
@@ -43,7 +45,7 @@ public class OrebfuscatorConfig
     private static int ProximityHiderDistance = 8;
     private static int ProximityHiderID = 1;
     private static int ProximityHiderEnd = 255;
-    private static int AirGeneratorMaxChance = 16;
+    private static int AirGeneratorMaxChance = 43;
     private static int OrebfuscatorPriority = 0;
     private static boolean UseProximityHider = true;
     private static boolean UseSpecialBlockForProximityHider = true;
@@ -133,8 +135,8 @@ public class OrebfuscatorConfig
     {
         if (AirGeneratorMaxChance < 1)
             return 2;
-        if (AirGeneratorMaxChance > 63)
-            return 64;
+        if (AirGeneratorMaxChance > 62)
+            return 63;
         return AirGeneratorMaxChance + 1;
     }
     
@@ -542,6 +544,7 @@ public class OrebfuscatorConfig
         int version = getInt("ConfigVersion", CONFIG_VERSION);
         if (version < CONFIG_VERSION)
         {
+            Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
             File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
             File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
             if (destination.exists())
@@ -556,6 +559,7 @@ public class OrebfuscatorConfig
                 }
             }
             configFile.renameTo(destination);
+            ObfuscatedDataCache.ClearCache();
             reload();
         }
         

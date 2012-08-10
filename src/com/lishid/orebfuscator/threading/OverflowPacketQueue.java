@@ -16,6 +16,8 @@
 
 package com.lishid.orebfuscator.threading;
 
+import java.util.HashMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Deflater;
@@ -36,10 +38,11 @@ import com.lishid.orebfuscator.obfuscation.ChunkInfo;
 
 public class OverflowPacketQueue extends Thread implements Runnable
 {
-    private static final int QUEUE_CAPACITY = 1024 * 10;
+    private static final int QUEUE_CAPACITY = 1024 * 40;
     public static OverflowPacketQueue thread = new OverflowPacketQueue();
     public static Object threadLock = new Object();
     private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
+    private static WeakHashMap<EntityPlayer, Integer> playerNetworkTimeout = new WeakHashMap<EntityPlayer, Integer>();
     
     private final int CHUNK_SIZE = 16 * 256 * 16 * 5 / 2;
     private final int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
@@ -67,9 +70,9 @@ public class OverflowPacketQueue extends Thread implements Runnable
     public static void sendOut(QueuedPacket packet)
     {
         packet.player.netServerHandler.networkManager.queue(packet.packet);
-        for(ChunkInfo info : packet.info)
+        for (ChunkInfo info : packet.info)
         {
-            if(info != null)
+            if (info != null)
             {
                 Calculations.sendTileEntities(info);
             }
@@ -78,7 +81,7 @@ public class OverflowPacketQueue extends Thread implements Runnable
     
     public static void Queue(QueuedPacket packet)
     {
-        synchronized(threadLock)
+        synchronized (threadLock)
         {
             if (thread == null || thread.isInterrupted() || !thread.isAlive())
             {
@@ -91,7 +94,7 @@ public class OverflowPacketQueue extends Thread implements Runnable
                 }
                 catch (Exception e)
                 {
-                    //Orebfuscator.log(e);
+                    // Orebfuscator.log(e);
                 }
             }
         }
@@ -110,6 +113,8 @@ public class OverflowPacketQueue extends Thread implements Runnable
         }
     }
     
+    HashMap<EntityPlayer, Integer> lastCheck = new HashMap<EntityPlayer, Integer>();
+    
     public void run()
     {
         while (!this.isInterrupted() && !kill.get())
@@ -127,6 +132,7 @@ public class OverflowPacketQueue extends Thread implements Runnable
                 int size = queue.size();
                 if (size > 0)
                 {
+                    lastCheck.clear();
                     for (int i = 0; i < size; i++)
                     {
                         QueuedPacket packet = queue.take();
@@ -136,11 +142,29 @@ public class OverflowPacketQueue extends Thread implements Runnable
                             continue;
                         }
                         
-                        NetworkManager nm = (NetworkManager) packet.player.netServerHandler.networkManager;
-                        if (isOverflowing(nm, packet.packet.a()))
+                        boolean isOverflowing = false;
+                        
+                        if (lastCheck.containsKey(packet.player))
                         {
+                            isOverflowing = isOverflowing(lastCheck.get(packet.player));
+                        }
+                        else
+                        {
+                            NetworkManager nm = (NetworkManager) packet.player.netServerHandler.networkManager;
+                            isOverflowing = isOverflowing(nm);
+                        }
+                        
+                        boolean dropPacket = playerOverflowAction(packet.player, isOverflowing);
+                        
+                        
+                        if (isOverflowing)
+                        {
+                            if(dropPacket)
+                            {
+                                continue;
+                            }
                             // If overflowing, then re-queue the packet and wait for a later time to send it
-                            Queue(packet);
+                            queue.put(packet);
                         }
                         else
                         {
@@ -218,10 +242,39 @@ public class OverflowPacketQueue extends Thread implements Runnable
         }
     }
     
-    public static boolean isOverflowing(NetworkManager nm, int size)
+    public static boolean isOverflowing(NetworkManager nm)
     {
         int y = (Integer) CalculationsUtil.getPrivateField(nm, "y");
-        return y > 524288;
+        return isOverflowing(y);
+    }
+    
+    public static boolean isOverflowing(int actual)
+    {
+        return actual > 1572864;
+    }
+    
+    //Return drop packet
+    public static boolean playerOverflowAction(EntityPlayer player, boolean overflowing)
+    {
+        if (!playerNetworkTimeout.containsKey(player))
+        {
+            playerNetworkTimeout.put(player, 0);
+        }
+        
+        if(overflowing)
+        {
+            playerNetworkTimeout.put(player, playerNetworkTimeout.get(player) + 1);
+            
+            if (playerNetworkTimeout.get(player) > 1000 && queue.size() > QUEUE_CAPACITY / 2)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            playerNetworkTimeout.put(player, 0);
+        }
+        return false;
     }
     
     private static class QueuedPacket

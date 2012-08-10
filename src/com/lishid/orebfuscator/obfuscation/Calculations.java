@@ -109,7 +109,7 @@ public class Calculations
         if (sendPacket)
         {
             // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
-            OverflowPacketQueue.Queue(player, packet, new ChunkInfo[]{ info });
+            OverflowPacketQueue.Queue(player, packet, new ChunkInfo[] { info });
         }
         
         // Let MemoryManager do its work
@@ -505,17 +505,28 @@ public class Calculations
             
             while (iterator.hasNext())
             {
-                TileEntity tileentity = (TileEntity) iterator.next();
-                if (tileentity.x >= x && tileentity.z >= z && tileentity.x < x + 16 && tileentity.z < z + 16)
+                try
                 {
-                    if (tileentity != null)
+                    Object o = iterator.next();
+                    if (o == null)
                     {
-                        Packet p = ((TileEntity) tileentity).e();
-                        if (p != null)
+                        continue;
+                    }
+                    TileEntity tileentity = (TileEntity) o;
+                    if (tileentity.x >= x && tileentity.z >= z && tileentity.x < x + 16 && tileentity.z < z + 16)
+                    {
+                        if (tileentity != null)
                         {
-                            info.player.getHandle().netServerHandler.sendPacket(p);
+                            Packet p = ((TileEntity) tileentity).e();
+                            if (p != null)
+                            {
+                                info.player.getHandle().netServerHandler.sendPacket(p);
+                            }
                         }
                     }
+                }
+                catch (Exception e)
+                {
                 }
             }
         }
