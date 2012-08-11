@@ -49,45 +49,14 @@ import com.lishid.orebfuscator.utils.Metrics;
  */
 public class Orebfuscator extends JavaPlugin
 {
-    
-    /**
-     * Block listener
-     */
     private final OrebfuscatorBlockListener blockListener = new OrebfuscatorBlockListener();
-    
-    /**
-     * Entity listener
-     */
     private final OrebfuscatorEntityListener entityListener = new OrebfuscatorEntityListener();
-    
-    /**
-     * Player listener
-     */
     private final OrebfuscatorPlayerListener playerListener = new OrebfuscatorPlayerListener();
-    
-    /**
-     * Player listener to hook to CB's NSH
-     */
     private final OrebfuscatorPlayerListenerHook playerListenerHook = new OrebfuscatorPlayerListenerHook();
-    
-    /**
-     * Logger for debugging.
-     */
-    public static final Logger logger = Logger.getLogger("Minecraft.Orebfuscator");
-    
-    /**
-     * Object containing the instance of Orebfuscator.
-     */
-    public static Orebfuscator instance;
-    
-    /**
-     * PluginMetrics add-on
-     */
     private static Metrics metrics;
     
-    /**
-     * Players list
-     */
+    public static final Logger logger = Logger.getLogger("Minecraft.OFC");
+    public static Orebfuscator instance;
     public static WeakHashMap<Player, Boolean> players = new WeakHashMap<Player, Boolean>();
     
     @Override
@@ -141,13 +110,11 @@ public class Orebfuscator extends JavaPlugin
         {
             // Non-spout method, use Player Join to replace NetServerHandler
             pm.registerEvents(this.playerListenerHook, this);
-            Orebfuscator.log("Spout not found, using non-Spout mode.");
         }
         
         // Metrics
         try
         {
-            Orebfuscator.log("Statistics features enabling...");
             metrics = new Metrics(this);
             metrics.start();
         }

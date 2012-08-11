@@ -227,7 +227,8 @@ public class Calculations
         int maxChance = OrebfuscatorConfig.getAirGeneratorMaxChance();
         int incrementMax = maxChance;
         
-        Integer[] randomBlocks = OrebfuscatorConfig.getRandomBlocks();
+        int randomBlocksLength = OrebfuscatorConfig.getRandomBlocks(false).length;
+        boolean randomAlternate = false;
         
         // Loop over 16x16x16 chunks in the 16x256x16 column
         int dataIndexModifier = 0;
@@ -246,11 +247,11 @@ public class Calculations
                 
                 int tempIndex = 0;
                 
+                OrebfuscatorConfig.shuffleRandomBlocks();
                 for (int y = 0; y < 16; y++)
                 {
                     for (int z = 0; z < 16; z++)
                     {
-                        OrebfuscatorConfig.shuffleRandomBlocks();
                         incrementMax = (maxChance + OrebfuscatorConfig.random(maxChance)) / 2;
                         for (int x = 0; x < 16; x++)
                         {
@@ -320,36 +321,30 @@ public class Calculations
                                     // Proximity hider
                                     info.buffer[index] = (byte) OrebfuscatorConfig.getProximityHiderID();
                                 }
-                                else if (engineMode == 1)
+                                else
                                 {
-                                    // Engine mode 1, replace with stone
-                                    info.buffer[index] = 1;
+                                    randomIncrement2 = CalculationsUtil.increment(randomIncrement2, incrementMax);
                                     
                                     // Anti texturepack and freecam
                                     if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
                                     {
-                                        randomIncrement2 = CalculationsUtil.increment(randomIncrement2, incrementMax);
                                         // Add random air blocks
                                         if (randomIncrement2 == 0)
                                             info.buffer[index] = 0;
                                     }
-                                }
-                                else if (engineMode == 2)
-                                {
-                                    // Ending mode 2, replace with random block
-                                    if (randomBlocks.length > 1)
-                                        randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocks.length);
-                                    info.buffer[index] = OrebfuscatorConfig.getRandomBlock(randomIncrement);
                                     
-                                    // Anti texturepack and freecam
-                                    if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
+                                    if (engineMode == 1)
                                     {
-                                        randomIncrement2 = CalculationsUtil.increment(randomIncrement2, incrementMax);
-                                        // Add random air blocks and stone blocks
-                                        if (randomIncrement2 == 0)
-                                            info.buffer[index] = 0;
-                                        else if (randomIncrement2 == 1)
-                                            info.buffer[index] = 1;
+                                        // Engine mode 1, replace with stone
+                                        info.buffer[index] = 1;
+                                    }
+                                    else if (engineMode == 2)
+                                    {
+                                        // Ending mode 2, replace with random block
+                                        if (randomBlocksLength > 1)
+                                            randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
+                                        info.buffer[index] = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate);
+                                        randomAlternate = !randomAlternate;
                                     }
                                 }
                             }

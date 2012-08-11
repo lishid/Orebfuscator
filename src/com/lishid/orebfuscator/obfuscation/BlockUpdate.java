@@ -20,13 +20,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import net.minecraft.server.Packet;
-import net.minecraft.server.TileEntity;
-
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
@@ -45,10 +41,10 @@ public class BlockUpdate
         
         for (Player player : playerList)
         {
-            double dx = Math.abs(player.getLocation().getX() - block.getX());
-            double dz = Math.abs(player.getLocation().getZ() - block.getZ());
-            double dist = Bukkit.getServer().getViewDistance() * 16;
-            if (dx < dist && dz < dist)
+            double dx = Math.abs((((int)player.getLocation().getX()) >> 4) - (block.getX() >> 4));
+            double dz = Math.abs((((int)player.getLocation().getZ()) >> 4) - (block.getZ() >> 4));
+            double dist = Bukkit.getServer().getViewDistance();
+            if (dx <= dist && dz <= dist)
             {
                 players.add((CraftPlayer) player);
             }
@@ -111,31 +107,9 @@ public class BlockUpdate
         if (block == null)
             return;
         
-        Packet p = null;
-        while (true)
-        {
-            try
-            {
-                TileEntity te = ((CraftWorld) block.getWorld()).getHandle().getTileEntity(block.getX(), block.getY(), block.getZ());
-                if (te != null)
-                {
-                    p = te.e();
-                }
-                break;
-            }
-            catch (Exception e)
-            {
-            } // ConcurrentModificationException
-        }
-        
         for (CraftPlayer player : players)
         {
             player.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
-            
-            if (p != null)
-            {
-                player.getHandle().netServerHandler.sendPacket(p);
-            }
         }
     }
 }

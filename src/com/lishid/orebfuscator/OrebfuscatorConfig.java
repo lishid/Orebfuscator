@@ -36,6 +36,7 @@ public class OrebfuscatorConfig
     private static boolean[] ObfuscateBlocks = new boolean[256];
     private static boolean[] ProximityHiderBlocks = new boolean[256];
     private static Integer[] RandomBlocks = new Integer[] { 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
+    private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
     private static int EngineMode = 2;
     private static int UpdateRadius = 2;
@@ -153,7 +154,7 @@ public class OrebfuscatorConfig
     {
         if (AntiHitHackDecrementFactor < 200)
             return 200;
-        if (AirGeneratorMaxChance > 60000)
+        if (AntiHitHackDecrementFactor > 60000)
             return 60000;
         return AntiHitHackDecrementFactor;
     }
@@ -245,19 +246,21 @@ public class OrebfuscatorConfig
         return CacheLocation;
     }
     
-    public static boolean isBlockTransparent(byte id)
+    public static boolean isBlockTransparent(short id)
     {
-        if (id < 0 || !net.minecraft.server.Block.i(id))
+        if (id < 0)
+            id += 256;
+        if (!net.minecraft.server.Block.i(id))
         {
             return true;
         }
         return false;
     }
     
-    public static boolean isObfuscated(byte id)
+    public static boolean isObfuscated(short id)
     {
         if (id < 0)
-            return false;
+            id += 256;
         
         if (id == 1)
             return true;
@@ -274,10 +277,10 @@ public class OrebfuscatorConfig
         return false;
     }
     
-    public static boolean isProximityObfuscated(byte id)
+    public static boolean isProximityObfuscated(short id)
     {
         if (id < 0)
-            return false;
+            id += 256;
         
         if (ProximityHiderBlocks[id])
             return true;
@@ -304,14 +307,14 @@ public class OrebfuscatorConfig
         return retval.length() > 1 ? retval.substring(0, retval.length() - 2) : retval;
     }
     
-    public static byte getRandomBlock(int index)
+    public static byte getRandomBlock(int index, boolean alternate)
     {
-        return (byte) (int) RandomBlocks[index];
+        return (byte) (int) (alternate ? RandomBlocks2[index] : RandomBlocks[index]);
     }
     
-    public static Integer[] getRandomBlocks()
+    public static Integer[] getRandomBlocks(boolean alternate)
     {
-        return RandomBlocks;
+        return (alternate ? RandomBlocks2 : RandomBlocks);
     }
     
     public static void shuffleRandomBlocks()
@@ -319,6 +322,7 @@ public class OrebfuscatorConfig
         synchronized (RandomBlocks)
         {
             Collections.shuffle(Arrays.asList(RandomBlocks));
+            Collections.shuffle(Arrays.asList(RandomBlocks2));
         }
     }
     
@@ -601,6 +605,7 @@ public class OrebfuscatorConfig
         setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129 })));
         setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 129 })));
         RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
+        RandomBlocks2 = RandomBlocks;
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);

@@ -98,6 +98,17 @@ public class OrebfuscatorBlockListener implements Listener
         }
     }
     
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockPistonRetract(BlockPistonRetractEvent event)
+    {
+        if (event.isCancelled())
+        {
+            return;
+        }
+        
+        OrebfuscatorThreadUpdate.Queue(event.getBlock());
+    }
+    
     private boolean applyphysics(Block block)
     {
         int l = block.getWorld().getBlockTypeIdAt(block.getX(), block.getY() - 1, block.getZ());

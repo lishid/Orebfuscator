@@ -38,7 +38,7 @@ import com.lishid.orebfuscator.obfuscation.ChunkInfo;
 
 public class OverflowPacketQueue extends Thread implements Runnable
 {
-    private static final int QUEUE_CAPACITY = 1024 * 40;
+    private static final int QUEUE_CAPACITY = 1024 * 50;
     public static OverflowPacketQueue thread = new OverflowPacketQueue();
     public static Object threadLock = new Object();
     private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
@@ -160,6 +160,10 @@ public class OverflowPacketQueue extends Thread implements Runnable
                         if (isOverflowing)
                         {
                             if(dropPacket)
+                            {
+                                continue;
+                            }
+                            if(queue.size() >= QUEUE_CAPACITY - 10)
                             {
                                 continue;
                             }

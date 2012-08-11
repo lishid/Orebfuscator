@@ -36,7 +36,6 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
     private static final int QUEUE_CAPACITY = 1024 * 10;
     private static ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
     private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
-    private static int threadID = 0;
     
     public static int getThreads()
     {
@@ -69,17 +68,16 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
             for (int i = 0; i < extra; i++)
             {
                 OrebfuscatorThreadCalculation thread = new OrebfuscatorThreadCalculation();
-                thread.setName("Orebfuscator Calculation Thread " + threadID);
-
-                if(OrebfuscatorConfig.getOrebfuscatorPriority() == 0)
+                thread.setName("Orebfuscator Calculation Thread");
+                
+                if (OrebfuscatorConfig.getOrebfuscatorPriority() == 0)
                     thread.setPriority(Thread.MIN_PRIORITY);
-                if(OrebfuscatorConfig.getOrebfuscatorPriority() == 1)
+                if (OrebfuscatorConfig.getOrebfuscatorPriority() == 1)
                     thread.setPriority(Thread.NORM_PRIORITY);
-                if(OrebfuscatorConfig.getOrebfuscatorPriority() == 2)
+                if (OrebfuscatorConfig.getOrebfuscatorPriority() == 2)
                     thread.setPriority(Thread.MAX_PRIORITY);
                 
                 thread.start();
-                threadID++;
                 threads.add(thread);
             }
         }
