@@ -31,7 +31,6 @@ import net.minecraft.server.Packet56MapChunkBulk;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
 import com.lishid.orebfuscator.obfuscation.ChunkInfo;
@@ -121,6 +120,10 @@ public class OverflowPacketQueue extends Thread implements Runnable
         {
             try
             {
+                QueuedPacket packet = queue.take();
+                CompressChunk(packet.packet);
+                sendOut(packet);
+                /*
                 // Wait until necessary
                 long timeWait = lastExecute + OrebfuscatorConfig.getOverflowPacketCheckRate() - System.currentTimeMillis();
                 lastExecute = System.currentTimeMillis();
@@ -177,7 +180,7 @@ public class OverflowPacketQueue extends Thread implements Runnable
                             sendOut(packet);
                         }
                     }
-                }
+                }*/
             }
             catch (Exception e)
             {

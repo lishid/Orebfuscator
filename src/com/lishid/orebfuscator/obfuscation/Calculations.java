@@ -325,14 +325,6 @@ public class Calculations
                                 {
                                     randomIncrement2 = CalculationsUtil.increment(randomIncrement2, incrementMax);
                                     
-                                    // Anti texturepack and freecam
-                                    if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
-                                    {
-                                        // Add random air blocks
-                                        if (randomIncrement2 == 0)
-                                            info.buffer[index] = 0;
-                                    }
-                                    
                                     if (engineMode == 1)
                                     {
                                         // Engine mode 1, replace with stone
@@ -345,6 +337,13 @@ public class Calculations
                                             randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
                                         info.buffer[index] = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate);
                                         randomAlternate = !randomAlternate;
+                                    }
+                                    // Anti texturepack and freecam
+                                    if (OrebfuscatorConfig.getAntiTexturePackAndFreecam())
+                                    {
+                                        // Add random air blocks
+                                        if (randomIncrement2 == 0)
+                                            info.buffer[index] = 0;
                                     }
                                 }
                             }

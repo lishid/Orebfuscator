@@ -17,6 +17,7 @@
 package com.lishid.orebfuscator.threading;
 
 import java.util.ArrayList;
+import java.util.WeakHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,32 +35,32 @@ import net.minecraft.server.Packet56MapChunkBulk;
 public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 {
     private static final int QUEUE_CAPACITY = 1024 * 10;
-    private static ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
-    private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
+    private static ArrayList<ProcessingQueue> queues = new ArrayList<ProcessingQueue>();
     
     public static int getThreads()
     {
-        return threads.size();
+        return queues.size();
     }
     
     public static void terminateAll()
     {
-        for (int i = 0; i < threads.size(); i++)
+        for (int i = 0; i < queues.size(); i++)
         {
-            threads.get(i).kill.set(true);
+            queues.get(i).thread.kill.set(true);
         }
     }
     
     public static synchronized void SyncThreads()
     {
-        int extra = threads.size() - OrebfuscatorConfig.getProcessingThreads();
+        int extra = queues.size() - OrebfuscatorConfig.getProcessingThreads();
         
         if (extra > 0)
         {
             for (int i = extra - 1; i >= 0; i--)
             {
-                threads.get(i).kill.set(true);
-                threads.remove(i);
+                queues.get(i).thread.kill.set(true);
+                queues.get(0).thread.queue.addAll(queues.get(i).thread.queue);
+                queues.remove(i);
             }
         }
         else if (extra < 0)
@@ -76,54 +77,42 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
                     thread.setPriority(Thread.NORM_PRIORITY);
                 if (OrebfuscatorConfig.getOrebfuscatorPriority() == 2)
                     thread.setPriority(Thread.MAX_PRIORITY);
-                
+
+                queues.add(new ProcessingQueue(thread));
                 thread.start();
-                threads.add(thread);
             }
         }
     }
     
     public static void Queue(Packet56MapChunkBulk packet, CraftPlayer player)
     {
-        while (true)
-        {
-            try
-            {
-                queue.put(new QueuedPacket(player, packet));
-                return;
-            }
-            catch (Exception e)
-            {
-                Orebfuscator.log(e);
-            }
-        }
+        getPlayerQueue(player).Queue(new QueuedPacket(player, packet));
     }
     
     public static void Queue(Packet51MapChunk packet, CraftPlayer player)
     {
-        while (true)
+        getPlayerQueue(player).Queue(new QueuedPacket(player, packet));
+    }
+    
+    public static ProcessingQueue getPlayerQueue(CraftPlayer player)
+    {
+        ProcessingQueue smallestQueue = queues.get(0);
+        for (ProcessingQueue queue : queues)
         {
-            try
+            if(queue.packetsWaiting < smallestQueue.packetsWaiting)
+                smallestQueue = queue;
+            if (queue.playersInvolved.containsKey(player))
             {
-                if (Math.abs(packet.a - player.getLocation().getChunk().getX()) <= 1 && Math.abs(packet.b - player.getLocation().getChunk().getZ()) <= 1)
-                {
-                    queue.putFirst(new QueuedPacket(player, packet));
-                }
-                else
-                {
-                    queue.put(new QueuedPacket(player, packet));
-                }
-                return;
-            }
-            catch (Exception e)
-            {
-                Orebfuscator.log(e);
+                return queue;
             }
         }
+        return smallestQueue;
     }
     
     private AtomicBoolean kill = new AtomicBoolean(false);
     private byte[] chunkBuffer = new byte[65536];
+    LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
+    ProcessingQueue processor;
     
     public void run()
     {
@@ -132,7 +121,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
             try
             {
                 // Take a package from the queue
-                QueuedPacket packet = queue.take();
+                QueuedPacket packet = processor.Take();
                 
                 // Don't waste CPU if the player is gone
                 if (packet.player.getHandle().netServerHandler.disconnected)
@@ -171,8 +160,53 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
                 Orebfuscator.log(e);
             }
         }
+    }
+    
+    private static class ProcessingQueue
+    {
+        OrebfuscatorThreadCalculation thread;
+        WeakHashMap<CraftPlayer, Integer> playersInvolved = new WeakHashMap<CraftPlayer, Integer>();
+        int packetsWaiting = 0;
         
-        threads.remove(this);
+        ProcessingQueue(OrebfuscatorThreadCalculation thread)
+        {
+            thread.processor = this;
+            this.thread = thread;
+        }
+        
+        void Queue(QueuedPacket packet)
+        {
+            packetsWaiting++;
+            
+            while (true)
+            {
+                try
+                {
+                    thread.queue.add(packet);
+                    return;
+                }
+                catch (Exception e)
+                {
+                    Orebfuscator.log(e);
+                }
+            }
+        }
+        
+        QueuedPacket Take()
+        {
+            packetsWaiting--;
+            while (true)
+            {
+                try
+                {
+                    return thread.queue.take();
+                }
+                catch (Exception e)
+                {
+                    Orebfuscator.log(e);
+                }
+            }
+        }
     }
     
     private static class QueuedPacket
