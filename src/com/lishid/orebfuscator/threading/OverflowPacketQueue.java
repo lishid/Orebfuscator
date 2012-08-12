@@ -61,11 +61,6 @@ public class OverflowPacketQueue extends Thread implements Runnable
         }
     }
     
-    public static void Queue(CraftPlayer player, Packet packet, ChunkInfo[] info)
-    {
-        Queue(new QueuedPacket(player.getHandle(), packet, info));
-    }
-    
     public static void sendOut(QueuedPacket packet)
     {
         packet.player.netServerHandler.networkManager.queue(packet.packet);
@@ -76,6 +71,11 @@ public class OverflowPacketQueue extends Thread implements Runnable
                 Calculations.sendTileEntities(info);
             }
         }
+    }
+    
+    public static void Queue(CraftPlayer player, Packet packet, ChunkInfo[] info)
+    {
+        Queue(new QueuedPacket(player.getHandle(), packet, info));
     }
     
     public static void Queue(QueuedPacket packet)

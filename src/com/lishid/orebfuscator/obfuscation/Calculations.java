@@ -34,17 +34,21 @@ import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
-import com.lishid.orebfuscator.threading.OverflowPacketQueue;
 import com.lishid.orebfuscator.utils.MemoryManager;
 
 public class Calculations
 {
     public static void Obfuscate(Packet56MapChunkBulk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
     {
+        Obfuscate(packet, player, chunkBuffer, false);
+    }
+    
+    public static ChunkInfo[] Obfuscate(Packet56MapChunkBulk packet, CraftPlayer player, byte[] chunkBuffer, boolean returnInfo)
+    {
         
         NetServerHandler nsh = player.getHandle().netServerHandler;
         if (nsh == null || nsh.disconnected || nsh.networkManager == null)
-            return;
+            return new ChunkInfo[0];
         
         ChunkInfo[] infos = new ChunkInfo[packet.d()];
         
@@ -76,21 +80,34 @@ public class Calculations
             dataStartIndex += info.size;
         }
         
-        if (sendPacket)
+        /*if (sendPacket)
         {
             // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
-            OverflowPacketQueue.Queue(player, packet, infos);
-        }
+            //OverflowPacketQueue.Queue(player, packet, infos);
+        }*/
         
         // Let MemoryManager do its work
         MemoryManager.CheckAndCollect();
+
+        if(!returnInfo)
+        {
+            return new ChunkInfo[0];
+        }
+        return infos;
     }
     
     public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
     {
+        Obfuscate(packet, player, chunkBuffer, false);
+    }
+    
+    public static ChunkInfo[] Obfuscate(Packet51MapChunk packet, CraftPlayer player, byte[] chunkBuffer, boolean returnInfo)
+    {
         NetServerHandler nsh = player.getHandle().netServerHandler;
         if (nsh == null || nsh.disconnected || nsh.networkManager == null)
-            return;
+        {
+            return new ChunkInfo[0];
+        }
         
         // Create an info objects
         ChunkInfo info = new ChunkInfo();
@@ -106,14 +123,20 @@ public class Calculations
         
         ComputeChunkInfoAndObfuscate(info, packet.inflatedBuffer);
         
-        if (sendPacket)
+        /*if (sendPacket)
         {
             // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
-            OverflowPacketQueue.Queue(player, packet, new ChunkInfo[] { info });
-        }
+            //OverflowPacketQueue.Queue(player, packet);
+        }*/
         
         // Let MemoryManager do its work
         MemoryManager.CheckAndCollect();
+        
+        if(!returnInfo)
+        {
+            return new ChunkInfo[0];
+        }
+        return new ChunkInfo[] { info };
     }
     
     public static void ComputeChunkInfoAndObfuscate(ChunkInfo info, byte[] returnData)

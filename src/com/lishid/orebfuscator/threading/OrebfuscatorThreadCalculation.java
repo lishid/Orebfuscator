@@ -17,15 +17,16 @@
 package com.lishid.orebfuscator.threading;
 
 import java.util.ArrayList;
-import java.util.WeakHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.Deflater;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
 import com.lishid.orebfuscator.obfuscation.ChunkInfo;
 
 import net.minecraft.server.Packet;
@@ -35,32 +36,32 @@ import net.minecraft.server.Packet56MapChunkBulk;
 public class OrebfuscatorThreadCalculation extends Thread implements Runnable
 {
     private static final int QUEUE_CAPACITY = 1024 * 10;
-    private static ArrayList<ProcessingQueue> queues = new ArrayList<ProcessingQueue>();
+    private static ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
+    private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
     
     public static int getThreads()
     {
-        return queues.size();
+        return threads.size();
     }
     
     public static void terminateAll()
     {
-        for (int i = 0; i < queues.size(); i++)
+        for (int i = 0; i < threads.size(); i++)
         {
-            queues.get(i).thread.kill.set(true);
+            threads.get(i).kill.set(true);
         }
     }
     
     public static synchronized void SyncThreads()
     {
-        int extra = queues.size() - OrebfuscatorConfig.getProcessingThreads();
+        int extra = threads.size() - OrebfuscatorConfig.getProcessingThreads();
         
         if (extra > 0)
         {
             for (int i = extra - 1; i >= 0; i--)
             {
-                queues.get(i).thread.kill.set(true);
-                queues.get(0).thread.queue.addAll(queues.get(i).thread.queue);
-                queues.remove(i);
+                threads.get(i).kill.set(true);
+                threads.remove(i);
             }
         }
         else if (extra < 0)
@@ -77,42 +78,79 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
                     thread.setPriority(Thread.NORM_PRIORITY);
                 if (OrebfuscatorConfig.getOrebfuscatorPriority() == 2)
                     thread.setPriority(Thread.MAX_PRIORITY);
-
-                queues.add(new ProcessingQueue(thread));
+                
                 thread.start();
+                threads.add(thread);
             }
         }
     }
     
     public static void Queue(Packet56MapChunkBulk packet, CraftPlayer player)
     {
-        getPlayerQueue(player).Queue(new QueuedPacket(player, packet));
+        int[] x = (int[]) CalculationsUtil.getPrivateField(packet, "c");
+        int[] z = (int[]) CalculationsUtil.getPrivateField(packet, "d");
+        boolean isImportant = false;
+        for (int i = 0; i < x.length; i++)
+        {
+            if (Math.abs(x[i] - (((int)player.getLocation().getX()) >> 4)) == 0 && Math.abs(z[i] - (((int)player.getLocation().getZ())) >> 4) == 0)
+            {
+                isImportant = true;
+                break;
+            }
+        }
+        while (true)
+        {
+            try
+            {
+                if (isImportant)
+                {
+                    queue.putFirst(new QueuedPacket(player, packet));
+                }
+                else
+                {
+                    queue.put(new QueuedPacket(player, packet));
+                }
+                return;
+            }
+            catch (Exception e)
+            {
+                Orebfuscator.log(e);
+            }
+        }
     }
     
     public static void Queue(Packet51MapChunk packet, CraftPlayer player)
     {
-        getPlayerQueue(player).Queue(new QueuedPacket(player, packet));
-    }
-    
-    public static ProcessingQueue getPlayerQueue(CraftPlayer player)
-    {
-        ProcessingQueue smallestQueue = queues.get(0);
-        for (ProcessingQueue queue : queues)
+        while (true)
         {
-            if(queue.packetsWaiting < smallestQueue.packetsWaiting)
-                smallestQueue = queue;
-            if (queue.playersInvolved.containsKey(player))
+            try
             {
-                return queue;
+                if (Math.abs(packet.a - (((int)player.getLocation().getX()) >> 4)) == 0 && Math.abs(packet.b - (((int)player.getLocation().getZ())) >> 4) == 0)
+                {
+                    queue.putFirst(new QueuedPacket(player, packet));
+                }
+                else
+                {
+                    queue.put(new QueuedPacket(player, packet));
+                }
+                return;
+            }
+            catch (Exception e)
+            {
+                Orebfuscator.log(e);
             }
         }
-        return smallestQueue;
     }
     
     private AtomicBoolean kill = new AtomicBoolean(false);
     private byte[] chunkBuffer = new byte[65536];
-    LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
-    ProcessingQueue processor;
+
+    private final int CHUNK_SIZE = 16 * 256 * 16 * 5 / 2;
+    private final int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
+    private final int DEFLATE_LEVEL_CHUNKS = 6;
+    private final int DEFLATE_LEVEL_PARTS = 1;
+    private final Deflater deflater = new Deflater();
+    private byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
     
     public void run()
     {
@@ -121,7 +159,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
             try
             {
                 // Take a package from the queue
-                QueuedPacket packet = processor.Take();
+                QueuedPacket packet = queue.take();
                 
                 // Don't waste CPU if the player is gone
                 if (packet.player.getHandle().netServerHandler.disconnected)
@@ -138,15 +176,19 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
                 
                 try
                 {
+                    ChunkInfo[] infos = null;
                     // Try to obfuscate and send the packet
                     if (packet.packet instanceof Packet56MapChunkBulk)
                     {
-                        Calculations.Obfuscate((Packet56MapChunkBulk) packet.packet, packet.player, true, chunkBuffer);
+                        infos = Calculations.Obfuscate((Packet56MapChunkBulk) packet.packet, packet.player, chunkBuffer, true);
                     }
                     else if (packet.packet instanceof Packet51MapChunk)
                     {
-                        Calculations.Obfuscate((Packet51MapChunk) packet.packet, packet.player, true, chunkBuffer);
+                        infos = Calculations.Obfuscate((Packet51MapChunk) packet.packet, packet.player, chunkBuffer, true);
                     }
+                    
+                    CompressChunk(packet.packet);
+                    sendOut(packet, infos);
                 }
                 catch (Throwable e)
                 {
@@ -160,52 +202,79 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
                 Orebfuscator.log(e);
             }
         }
+        
+        threads.remove(this);
     }
     
-    private static class ProcessingQueue
+    public static void sendOut(QueuedPacket packet, ChunkInfo[] infos)
     {
-        OrebfuscatorThreadCalculation thread;
-        WeakHashMap<CraftPlayer, Integer> playersInvolved = new WeakHashMap<CraftPlayer, Integer>();
-        int packetsWaiting = 0;
-        
-        ProcessingQueue(OrebfuscatorThreadCalculation thread)
+        packet.player.getHandle().netServerHandler.networkManager.queue(packet.packet);
+        for (ChunkInfo info : infos)
         {
-            thread.processor = this;
-            this.thread = thread;
+            if (info != null)
+            {
+                Calculations.sendTileEntities(info);
+            }
         }
-        
-        void Queue(QueuedPacket packet)
+    }
+
+    private void CompressChunk(Packet packet)
+    {
+        if (packet instanceof Packet56MapChunkBulk)
         {
-            packetsWaiting++;
+            Packet56MapChunkBulk newPacket = (Packet56MapChunkBulk) packet;
+            if (newPacket.buffer != null)
+            {
+                return;
+            }
+            int dataSize = newPacket.buildBuffer.length;
+            if (deflateBuffer.length < dataSize + 100)
+            {
+                deflateBuffer = new byte[dataSize + 100];
+            }
             
-            while (true)
+            deflater.reset();
+            deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
+            deflater.setInput(newPacket.buildBuffer);
+            deflater.finish();
+            int size = deflater.deflate(deflateBuffer);
+            if (size == 0)
             {
-                try
-                {
-                    thread.queue.add(packet);
-                    return;
-                }
-                catch (Exception e)
-                {
-                    Orebfuscator.log(e);
-                }
+                size = deflater.deflate(deflateBuffer);
             }
+            
+            // copy compressed data to packet
+            newPacket.buffer = new byte[size];
+            newPacket.size = size;
+            System.arraycopy(deflateBuffer, 0, newPacket.buffer, 0, size);
         }
-        
-        QueuedPacket Take()
+        else if (packet instanceof Packet51MapChunk)
         {
-            packetsWaiting--;
-            while (true)
+            Packet51MapChunk newPacket = (Packet51MapChunk) packet;
+            if (newPacket.buffer != null)
             {
-                try
-                {
-                    return thread.queue.take();
-                }
-                catch (Exception e)
-                {
-                    Orebfuscator.log(e);
-                }
+                return;
             }
+            int dataSize = newPacket.inflatedBuffer.length;
+            if (deflateBuffer.length < dataSize + 100)
+            {
+                deflateBuffer = new byte[dataSize + 100];
+            }
+            
+            deflater.reset();
+            deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
+            deflater.setInput(newPacket.inflatedBuffer);
+            deflater.finish();
+            int size = deflater.deflate(deflateBuffer);
+            if (size == 0)
+            {
+                size = deflater.deflate(deflateBuffer);
+            }
+            
+            // copy compressed data to packet
+            newPacket.buffer = new byte[size];
+            newPacket.size = size;
+            System.arraycopy(deflateBuffer, 0, newPacket.buffer, 0, size);
         }
     }
     
