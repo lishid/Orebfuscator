@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.threading;
 
-import java.util.HashMap;
 import java.util.WeakHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,27 +30,16 @@ import net.minecraft.server.Packet56MapChunkBulk;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
 import com.lishid.orebfuscator.obfuscation.ChunkInfo;
 
-public class OverflowPacketQueue extends Thread implements Runnable
+public class ChunkCompressionThread extends Thread implements Runnable
 {
     private static final int QUEUE_CAPACITY = 1024 * 50;
-    public static OverflowPacketQueue thread = new OverflowPacketQueue();
-    public static Object threadLock = new Object();
     private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
-    private static WeakHashMap<EntityPlayer, Integer> playerNetworkTimeout = new WeakHashMap<EntityPlayer, Integer>();
-    
-    private final int CHUNK_SIZE = 16 * 256 * 16 * 5 / 2;
-    private final int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
-    private final int DEFLATE_LEVEL_CHUNKS = 6;
-    private final int DEFLATE_LEVEL_PARTS = 1;
-    private final Deflater deflater = new Deflater();
-    private byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
-    
-    public long lastExecute = System.currentTimeMillis();
-    public AtomicBoolean kill = new AtomicBoolean(false);
+    private static final Object threadLock = new Object();
     
     public static void terminate()
     {
@@ -64,7 +52,7 @@ public class OverflowPacketQueue extends Thread implements Runnable
     public static void sendOut(QueuedPacket packet)
     {
         packet.player.netServerHandler.networkManager.queue(packet.packet);
-        for (ChunkInfo info : packet.info)
+        for (ChunkInfo info : packet.infos)
         {
             if (info != null)
             {
@@ -73,9 +61,9 @@ public class OverflowPacketQueue extends Thread implements Runnable
         }
     }
     
-    public static void Queue(CraftPlayer player, Packet packet, ChunkInfo[] info)
+    public static void Queue(CraftPlayer player, Packet packet, ChunkInfo[] infos)
     {
-        Queue(new QueuedPacket(player.getHandle(), packet, info));
+        Queue(new QueuedPacket(player.getHandle(), packet, infos));
     }
     
     public static void Queue(QueuedPacket packet)
@@ -84,8 +72,8 @@ public class OverflowPacketQueue extends Thread implements Runnable
         {
             if (thread == null || thread.isInterrupted() || !thread.isAlive())
             {
-                thread = new OverflowPacketQueue();
-                thread.setName("OverflowPacketMonitor Thread");
+                thread = new ChunkCompressionThread();
+                thread.setName("Orebfuscator ChunkCompressionThread Thread");
                 thread.setPriority(Thread.MIN_PRIORITY);
                 try
                 {
@@ -98,11 +86,28 @@ public class OverflowPacketQueue extends Thread implements Runnable
             }
         }
         
+        boolean isImportant = false;
+        for (ChunkInfo info : packet.infos)
+        {
+            if (Math.abs(info.chunkX - (((int) packet.player.locX) >> 4)) == 0 && Math.abs(info.chunkZ - (((int) packet.player.locZ)) >> 4) == 0)
+            {
+                isImportant = true;
+                break;
+            }
+        }
+        
         while (true)
         {
             try
             {
-                queue.put(packet);
+                if (isImportant)
+                {
+                    queue.putFirst(packet);
+                }
+                else
+                {
+                    queue.put(packet);
+                }
                 return;
             }
             catch (Exception e)
@@ -112,7 +117,20 @@ public class OverflowPacketQueue extends Thread implements Runnable
         }
     }
     
-    HashMap<EntityPlayer, Integer> lastCheck = new HashMap<EntityPlayer, Integer>();
+    private static ChunkCompressionThread thread = new ChunkCompressionThread();
+    
+    private final int CHUNK_SIZE = 16 * 256 * 16 * 5 / 2;
+    private final int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
+    private final int DEFLATE_LEVEL_CHUNKS = 6;
+    private final int DEFLATE_LEVEL_PARTS = 1;
+    private final Deflater deflater = new Deflater();
+    private byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
+    
+    public long lastExecute = System.currentTimeMillis();
+    public AtomicBoolean kill = new AtomicBoolean(false);
+    
+    private static WeakHashMap<EntityPlayer, Integer> lastCheck = new WeakHashMap<EntityPlayer, Integer>();
+    private static WeakHashMap<EntityPlayer, Integer> playerNetworkTimeout = new WeakHashMap<EntityPlayer, Integer>();
     
     public void run()
     {
@@ -120,10 +138,6 @@ public class OverflowPacketQueue extends Thread implements Runnable
         {
             try
             {
-                QueuedPacket packet = queue.take();
-                CompressChunk(packet.packet);
-                sendOut(packet);
-                /*
                 // Wait until necessary
                 long timeWait = lastExecute + OrebfuscatorConfig.getOverflowPacketCheckRate() - System.currentTimeMillis();
                 lastExecute = System.currentTimeMillis();
@@ -159,7 +173,6 @@ public class OverflowPacketQueue extends Thread implements Runnable
                         
                         boolean dropPacket = playerOverflowAction(packet.player, isOverflowing);
                         
-                        
                         if (isOverflowing)
                         {
                             if(dropPacket)
@@ -180,7 +193,7 @@ public class OverflowPacketQueue extends Thread implements Runnable
                             sendOut(packet);
                         }
                     }
-                }*/
+                }
             }
             catch (Exception e)
             {
@@ -288,13 +301,13 @@ public class OverflowPacketQueue extends Thread implements Runnable
     {
         final EntityPlayer player;
         final Packet packet;
-        final ChunkInfo[] info;
+        final ChunkInfo[] infos;
         
         QueuedPacket(EntityPlayer player, Packet packet, ChunkInfo[] info)
         {
             this.player = player;
             this.packet = packet;
-            this.info = info;
+            this.infos = info;
         }
     }
 }

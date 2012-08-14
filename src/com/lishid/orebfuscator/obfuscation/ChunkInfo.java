@@ -22,21 +22,21 @@ import net.minecraft.server.WorldServer;
 
 public class ChunkInfo
 {
-    boolean useCache;
-    int chunkX;
-    int chunkZ;
-    int chunkMask;
-    int extraMask;
-    int chunkSectionNumber;
-    int extraSectionNumber;
-    boolean canUseCache;
-    int[] chunkSectionToIndexMap = new int[16];
-    int[] extraSectionToIndexMap = new int[16];
-    WorldServer world;
-    byte[] data;
-    byte[] buffer;
-    CraftPlayer player;
-    int startIndex;
-    int size;
-    int blockSize;
+    public boolean useCache;
+    public int chunkX;
+    public int chunkZ;
+    public int chunkMask;
+    public int extraMask;
+    public int chunkSectionNumber;
+    public int extraSectionNumber;
+    public boolean canUseCache;
+    public int[] chunkSectionToIndexMap = new int[16];
+    public int[] extraSectionToIndexMap = new int[16];
+    public WorldServer world;
+    public byte[] data;
+    public byte[] buffer;
+    public CraftPlayer player;
+    public int startIndex;
+    public int size;
+    public int blockSize;
 }

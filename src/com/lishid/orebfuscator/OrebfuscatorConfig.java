@@ -53,8 +53,8 @@ public class OrebfuscatorConfig
     private static boolean UpdateOnDamage = true;
     private static boolean UpdateThread = true;
     private static boolean DarknessHideBlocks = true;
-    private static boolean NoObfuscationForOps = true;
-    private static boolean NoObfuscationForPermission = true;
+    private static boolean NoObfuscationForOps = false;
+    private static boolean NoObfuscationForPermission = false;
     private static boolean LoginNotification = true;
     private static boolean AntiTexturePackAndFreecam = true;
     private static boolean UseCache = true;

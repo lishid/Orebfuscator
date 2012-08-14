@@ -37,9 +37,9 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
+import com.lishid.orebfuscator.threading.ChunkCompressionThread;
 import com.lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
 import com.lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
-import com.lishid.orebfuscator.threading.OverflowPacketQueue;
 import com.lishid.orebfuscator.utils.Metrics;
 
 /**
@@ -143,7 +143,7 @@ public class Orebfuscator extends JavaPlugin
         ObfuscatedDataCache.clearCache();
         OrebfuscatorThreadCalculation.terminateAll();
         OrebfuscatorThreadUpdate.terminate();
-        OverflowPacketQueue.terminate();
+        ChunkCompressionThread.terminate();
         ProximityHider.terminate();
         ProximityHider.proximityHiderTracker.clear();
         ProximityHider.playersToCheck.clear();

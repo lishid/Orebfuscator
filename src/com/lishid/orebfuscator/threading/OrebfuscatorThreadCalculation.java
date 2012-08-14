@@ -19,7 +19,6 @@ package com.lishid.orebfuscator.threading;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.zip.Deflater;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
@@ -92,7 +91,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
         boolean isImportant = false;
         for (int i = 0; i < x.length; i++)
         {
-            if (Math.abs(x[i] - (((int)player.getLocation().getX()) >> 4)) == 0 && Math.abs(z[i] - (((int)player.getLocation().getZ())) >> 4) == 0)
+            if (Math.abs(x[i] - (((int) player.getLocation().getX()) >> 4)) == 0 && Math.abs(z[i] - (((int) player.getLocation().getZ())) >> 4) == 0)
             {
                 isImportant = true;
                 break;
@@ -125,7 +124,7 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
         {
             try
             {
-                if (Math.abs(packet.a - (((int)player.getLocation().getX()) >> 4)) == 0 && Math.abs(packet.b - (((int)player.getLocation().getZ())) >> 4) == 0)
+                if (Math.abs(packet.a - (((int) player.getLocation().getX()) >> 4)) == 0 && Math.abs(packet.b - (((int) player.getLocation().getZ())) >> 4) == 0)
                 {
                     queue.putFirst(new QueuedPacket(player, packet));
                 }
@@ -144,13 +143,6 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
     
     private AtomicBoolean kill = new AtomicBoolean(false);
     private byte[] chunkBuffer = new byte[65536];
-
-    private final int CHUNK_SIZE = 16 * 256 * 16 * 5 / 2;
-    private final int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
-    private final int DEFLATE_LEVEL_CHUNKS = 6;
-    private final int DEFLATE_LEVEL_PARTS = 1;
-    private final Deflater deflater = new Deflater();
-    private byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
     
     public void run()
     {
@@ -176,25 +168,21 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
                 
                 try
                 {
-                    ChunkInfo[] infos = null;
                     // Try to obfuscate and send the packet
                     if (packet.packet instanceof Packet56MapChunkBulk)
                     {
-                        infos = Calculations.Obfuscate((Packet56MapChunkBulk) packet.packet, packet.player, chunkBuffer, true);
+                        Calculations.Obfuscate((Packet56MapChunkBulk) packet.packet, packet.player, true, chunkBuffer);
                     }
                     else if (packet.packet instanceof Packet51MapChunk)
                     {
-                        infos = Calculations.Obfuscate((Packet51MapChunk) packet.packet, packet.player, chunkBuffer, true);
+                        Calculations.Obfuscate((Packet51MapChunk) packet.packet, packet.player, true, chunkBuffer);
                     }
-                    
-                    CompressChunk(packet.packet);
-                    sendOut(packet, infos);
                 }
                 catch (Throwable e)
                 {
                     Orebfuscator.log(e);
                     // If we run into problems, just send the packet.
-                    OverflowPacketQueue.Queue(packet.player, packet.packet, new ChunkInfo[0]);
+                    ChunkCompressionThread.Queue(packet.player, packet.packet, new ChunkInfo[0]);
                 }
             }
             catch (Exception e)
@@ -204,78 +192,6 @@ public class OrebfuscatorThreadCalculation extends Thread implements Runnable
         }
         
         threads.remove(this);
-    }
-    
-    public static void sendOut(QueuedPacket packet, ChunkInfo[] infos)
-    {
-        packet.player.getHandle().netServerHandler.networkManager.queue(packet.packet);
-        for (ChunkInfo info : infos)
-        {
-            if (info != null)
-            {
-                Calculations.sendTileEntities(info);
-            }
-        }
-    }
-
-    private void CompressChunk(Packet packet)
-    {
-        if (packet instanceof Packet56MapChunkBulk)
-        {
-            Packet56MapChunkBulk newPacket = (Packet56MapChunkBulk) packet;
-            if (newPacket.buffer != null)
-            {
-                return;
-            }
-            int dataSize = newPacket.buildBuffer.length;
-            if (deflateBuffer.length < dataSize + 100)
-            {
-                deflateBuffer = new byte[dataSize + 100];
-            }
-            
-            deflater.reset();
-            deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
-            deflater.setInput(newPacket.buildBuffer);
-            deflater.finish();
-            int size = deflater.deflate(deflateBuffer);
-            if (size == 0)
-            {
-                size = deflater.deflate(deflateBuffer);
-            }
-            
-            // copy compressed data to packet
-            newPacket.buffer = new byte[size];
-            newPacket.size = size;
-            System.arraycopy(deflateBuffer, 0, newPacket.buffer, 0, size);
-        }
-        else if (packet instanceof Packet51MapChunk)
-        {
-            Packet51MapChunk newPacket = (Packet51MapChunk) packet;
-            if (newPacket.buffer != null)
-            {
-                return;
-            }
-            int dataSize = newPacket.inflatedBuffer.length;
-            if (deflateBuffer.length < dataSize + 100)
-            {
-                deflateBuffer = new byte[dataSize + 100];
-            }
-            
-            deflater.reset();
-            deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
-            deflater.setInput(newPacket.inflatedBuffer);
-            deflater.finish();
-            int size = deflater.deflate(deflateBuffer);
-            if (size == 0)
-            {
-                size = deflater.deflate(deflateBuffer);
-            }
-            
-            // copy compressed data to packet
-            newPacket.buffer = new byte[size];
-            newPacket.size = size;
-            System.arraycopy(deflateBuffer, 0, newPacket.buffer, 0, size);
-        }
     }
     
     private static class QueuedPacket
