@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.hook;
 
-
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;

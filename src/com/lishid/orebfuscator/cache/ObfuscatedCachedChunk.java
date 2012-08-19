@@ -25,6 +25,8 @@ import java.io.File;
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
 
+import com.lishid.orebfuscator.Orebfuscator;
+
 public class ObfuscatedCachedChunk
 {
     File path;
@@ -73,7 +75,8 @@ public class ObfuscatedCachedChunk
         }
         catch (Exception e)
         {
-            // Orebfuscator.log("Error reading Orebfuscator Chunk cache hash: " + e.getMessage());
+            Orebfuscator.log("Error reading Cache HashFile: " + e.getMessage());
+            e.printStackTrace();
         }
         
         return 0L;
@@ -102,7 +105,8 @@ public class ObfuscatedCachedChunk
         }
         catch (Exception e)
         {
-            // Orebfuscator.log("Error reading Orebfuscator Chunk cache data: " + e.getMessage());
+            Orebfuscator.log("Error reading Cache DataFile: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -128,7 +132,8 @@ public class ObfuscatedCachedChunk
         }
         catch (Exception e)
         {
-            // Orebfuscator.log("Error writing Orebfuscator Chunk cache hash: " + e.getMessage());
+            Orebfuscator.log("Error writing Cache HashFile: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -147,7 +152,8 @@ public class ObfuscatedCachedChunk
         }
         catch (Exception e)
         {
-            // Orebfuscator.log("Error writing Orebfuscator Chunk cache data: " + e.getMessage());
+            Orebfuscator.log("Error writing Cache DataFile: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

@@ -23,7 +23,7 @@ import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.Packet56MapChunkBulk;
-import net.minecraft.serverhook.NetServerHandlerProxy;
+import net.minecraftserverhook.NetServerHandlerProxy;
 
 public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
 {
