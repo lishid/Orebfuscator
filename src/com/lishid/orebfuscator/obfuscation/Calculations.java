@@ -145,7 +145,7 @@ public class Calculations
                 !OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && // World not
                 OrebfuscatorConfig.obfuscateForPlayer(info.player) && // Should the player have obfuscation?
                 OrebfuscatorConfig.getEnabled() && // Plugin enabled
-                CalculationsUtil.isChunkLoaded(info.world, info.chunkX, info.chunkZ))// Make sure the chunk is loaded
+                CalculationsUtil.isChunkLoaded(info.world, info.chunkX, info.chunkZ)) // Make sure the chunk is loaded
         {
             byte[] obfuscated = Obfuscate(info);
             // Copy the data out of the buffer

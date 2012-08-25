@@ -65,7 +65,7 @@ public class OrebfuscatorThreadUpdate extends Thread implements Runnable
         {
             thread = new OrebfuscatorThreadUpdate();
             thread.setName("Orebfuscator Update Thread");
-            thread.setPriority(Thread.MIN_PRIORITY);
+            thread.setPriority(Thread.MAX_PRIORITY);
             thread.start();
         }
         

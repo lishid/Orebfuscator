@@ -49,7 +49,7 @@ public class ProximityHider extends Thread implements Runnable
         {
             thread = new ProximityHider();
             thread.setName("ProximityHider Thread");
-            thread.setPriority(Thread.MIN_PRIORITY);
+            thread.setPriority(Thread.NORM_PRIORITY);
             thread.start();
         }
     }

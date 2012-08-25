@@ -18,9 +18,9 @@ package com.lishid.orebfuscator.utils;
 
 public class MemoryManager
 {
-    public static int MaxCollectPercent = 80;
-    public static int AutoCollectPercent = 90;
-    public static int cooldown = 0;
+    public static int MaxCollectPercent = 70;
+    public static int AutoCollectPercent = 80;
+    public static long lastCollect = System.currentTimeMillis();
     
     public static void CheckAndCollect()
     {
@@ -36,23 +36,14 @@ public class MemoryManager
         {
             Collect();
         }
-        else
-        {
-            cooldown = 0;
-        }
     }
     
     public static void Collect()
     {
-        if (cooldown <= 0)
+        if (System.currentTimeMillis() > lastCollect + 5000)
         {
-            cooldown = 5;
-            // Orebfuscator.log("Memory is low, performing optimizations.");
+            lastCollect = System.currentTimeMillis();
             System.gc();
-        }
-        else
-        {
-            cooldown--;
         }
     }
 }

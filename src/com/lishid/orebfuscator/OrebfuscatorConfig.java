@@ -71,7 +71,13 @@ public class OrebfuscatorConfig
     public static File getCacheFolder()
     {
         if (!CacheFolder.exists())
+        {
+            CacheFolder.mkdirs();
+        }
+        if (!CacheFolder.exists())
+        {
             CacheFolder = new File("orebfuscator_cache");
+        }
         return CacheFolder;
     }
     
@@ -99,8 +105,8 @@ public class OrebfuscatorConfig
     {
         if (ProcessingThreads <= 0)
             return 1;
-        if (ProcessingThreads > 16)
-            return 16;
+        if (ProcessingThreads > Runtime.getRuntime().availableProcessors())
+            return Runtime.getRuntime().availableProcessors();
         return ProcessingThreads;
     }
     
@@ -539,6 +545,10 @@ public class OrebfuscatorConfig
         for (int i = 0; i < boolArray.length; i++)
         {
             boolArray[i] = blocks.contains(i);
+            if(boolArray[i] && isBlockTransparent((short) i))
+            {
+                boolArray[i] = false;
+            }
         }
     }
     

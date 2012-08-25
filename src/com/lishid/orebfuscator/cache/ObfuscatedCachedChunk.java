@@ -129,6 +129,15 @@ public class ObfuscatedCachedChunk
             
             DataOutputStream stream = ObfuscatedDataCache.getOutputStream(hashPath, x, z);
             NBTCompressedStreamTools.a(nbt, (DataOutput) stream);
+            
+            try
+            {
+                stream.close();
+            }
+            catch (Exception e)
+            {
+                
+            }
         }
         catch (Exception e)
         {
@@ -149,6 +158,15 @@ public class ObfuscatedCachedChunk
             
             DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
             NBTCompressedStreamTools.a(nbt, (DataOutput) stream);
+            
+            try
+            {
+                stream.close();
+            }
+            catch (Exception e)
+            {
+                
+            }
         }
         catch (Exception e)
         {

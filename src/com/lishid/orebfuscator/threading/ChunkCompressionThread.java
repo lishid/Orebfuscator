@@ -134,6 +134,9 @@ public class ChunkCompressionThread extends Thread implements Runnable
     
     public void run()
     {
+        // Set the deflateBuffer from CB's ChunkCompressionThread to save memory
+        CalculationsUtil.setChunkCompressionThreadBuffer(deflateBuffer);
+        
         while (!this.isInterrupted() && !kill.get())
         {
             try
@@ -175,11 +178,11 @@ public class ChunkCompressionThread extends Thread implements Runnable
                         
                         if (isOverflowing)
                         {
-                            if(dropPacket)
+                            if (dropPacket)
                             {
                                 continue;
                             }
-                            if(queue.size() >= QUEUE_CAPACITY - 10)
+                            if (queue.size() >= QUEUE_CAPACITY - 10)
                             {
                                 continue;
                             }
@@ -273,7 +276,7 @@ public class ChunkCompressionThread extends Thread implements Runnable
         return actual > 1572864;
     }
     
-    //Return drop packet
+    // Return drop packet
     public static boolean playerOverflowAction(EntityPlayer player, boolean overflowing)
     {
         if (!playerNetworkTimeout.containsKey(player))
@@ -281,7 +284,7 @@ public class ChunkCompressionThread extends Thread implements Runnable
             playerNetworkTimeout.put(player, 0);
         }
         
-        if(overflowing)
+        if (overflowing)
         {
             playerNetworkTimeout.put(player, playerNetworkTimeout.get(player) + 1);
             
