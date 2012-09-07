@@ -21,6 +21,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
@@ -132,9 +133,10 @@ public class ObfuscatedCachedChunk
             
             try
             {
+                ObfuscatedDataCache.getRegionFile(hashPath, x, z);
                 stream.close();
             }
-            catch (Exception e)
+            catch (IOException e)
             {
                 
             }
@@ -161,9 +163,10 @@ public class ObfuscatedCachedChunk
             
             try
             {
+                ObfuscatedDataCache.getRegionFile(path, x, z);
                 stream.close();
             }
-            catch (Exception e)
+            catch (IOException e)
             {
                 
             }

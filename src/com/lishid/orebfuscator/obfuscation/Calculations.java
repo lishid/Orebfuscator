@@ -140,6 +140,11 @@ public class Calculations
         info.size = 2048 * (5 * info.chunkSectionNumber + info.extraSectionNumber) + 256;
         info.blockSize = 4096 * info.chunkSectionNumber;
         
+        if(info.startIndex + info.blockSize > info.data.length)
+        {
+            return;
+        }
+        
         // Obfuscate
         if (info.world.getWorld().getEnvironment() == Environment.NORMAL && // Is overworld
                 !OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && // World not
