@@ -32,13 +32,14 @@ import com.lishid.orebfuscator.cache.ObfuscatedHashCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.OrebfuscatorPlayerListenerHook;
+import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.hook.SpoutLoader;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
 import com.lishid.orebfuscator.threading.ChunkCompressionThread;
-import com.lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
+import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 import com.lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import com.lishid.orebfuscator.utils.Metrics;
 
@@ -58,6 +59,8 @@ public class Orebfuscator extends JavaPlugin
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
     public static WeakHashMap<Player, Boolean> players = new WeakHashMap<Player, Boolean>();
+    
+    private ProtocolLibHook protocolHook;
     
     @Override
     public void onEnable()
@@ -80,8 +83,14 @@ public class Orebfuscator extends JavaPlugin
         pm.registerEvents(this.entityListener, this);
         pm.registerEvents(this.blockListener, this);
         
+        // ProtocolLib is compatible with Spout
+        if (pm.getPlugin("ProtocolLib") != null) 
+        {
+        	protocolHook = new ProtocolLibHook();
+        	protocolHook.register(this);
+        }
         // Using Spout
-        if (pm.getPlugin("Spout") != null)
+        else if (pm.getPlugin("Spout") != null)
         {
             // Try to load spout 10 times...
             Throwable t = null;
@@ -105,8 +114,8 @@ public class Orebfuscator extends JavaPlugin
                 Orebfuscator.log("Spout loading error.");
                 t.printStackTrace();
             }
-        }
-        else
+        } 
+        else 
         {
             // Non-spout method, use Player Join to replace NetServerHandler
             pm.registerEvents(this.playerListenerHook, this);
@@ -141,7 +150,7 @@ public class Orebfuscator extends JavaPlugin
         
         ObfuscatedHashCache.clearCache();
         ObfuscatedDataCache.clearCache();
-        OrebfuscatorThreadCalculation.terminateAll();
+        OrebfuscatorScheduler.getScheduler().terminateAll();
         OrebfuscatorThreadUpdate.terminate();
         ChunkCompressionThread.terminate();
         ProximityHider.terminate();

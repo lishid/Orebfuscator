@@ -27,7 +27,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
+import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 
 public class OrebfuscatorCommandExecutor
 {
@@ -170,7 +170,7 @@ public class OrebfuscatorCommandExecutor
                 return true;
             }
             OrebfuscatorConfig.setProcessingThreads(threads);
-            OrebfuscatorThreadCalculation.SyncThreads();
+            OrebfuscatorScheduler.getScheduler().SyncThreads();
             Orebfuscator.message(sender, "Processing Threads set to: " + threads);
             return true;
         }
@@ -269,7 +269,7 @@ public class OrebfuscatorCommandExecutor
             Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.getEnabled() ? "Enabled" : "Disabled"));
             Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
             
-            Orebfuscator.message(sender, "Executing Threads: " + OrebfuscatorThreadCalculation.getThreads());
+            Orebfuscator.message(sender, "Executing Threads: " + OrebfuscatorScheduler.getScheduler().getThreads());
             Orebfuscator.message(sender, "Processing Threads Max: " + OrebfuscatorConfig.getProcessingThreads());
             Orebfuscator.message(sender, "Extra Update Thread: " + (OrebfuscatorConfig.getUpdateThread() ? "Enabled" : "Disabled"));
             

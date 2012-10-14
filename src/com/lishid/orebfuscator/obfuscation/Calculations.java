@@ -25,6 +25,7 @@ import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.Packet56MapChunkBulk;
 import net.minecraft.server.TileEntity;
+import net.minecraft.server.WorldServer;
 
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
@@ -41,12 +42,35 @@ public class Calculations
 {
     public static void Obfuscate(Packet56MapChunkBulk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
     {
-        
         NetServerHandler nsh = player.getHandle().netServerHandler;
         if (nsh == null || nsh.disconnected || nsh.networkManager == null)
             return;
         
+        ChunkInfo[] infos = getInfo(packet, player);
+        
+        for (int chunkNum = 0; chunkNum < infos.length; chunkNum++)
+        {
+            // Create an info objects
+            ChunkInfo info = infos[chunkNum];
+            infos[chunkNum] = info;
+            info.buffer = chunkBuffer;
+            ComputeChunkInfoAndObfuscate(info, packet.buildBuffer);
+        }
+        
+        if (sendPacket)
+        {
+            // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
+            ChunkCompressionThread.Queue(player, packet, infos);
+        }
+        
+        // Let MemoryManager do its work
+        MemoryManager.CheckAndCollect();
+    }
+    
+    public static ChunkInfo[] getInfo(Packet56MapChunkBulk packet, CraftPlayer player) {
+    	
         ChunkInfo[] infos = new ChunkInfo[packet.d()];
+        WorldServer server = player.getHandle().world.getWorld().getHandle();
         
         int dataStartIndex = 0;
         
@@ -61,37 +85,23 @@ public class Calculations
             // Create an info objects
             ChunkInfo info = new ChunkInfo();
             infos[chunkNum] = info;
-            info.world = player.getHandle().world.getWorld().getHandle();
+            info.world = server;
             info.player = player;
             info.chunkX = x[chunkNum];
             info.chunkZ = z[chunkNum];
             info.chunkMask = chunkMask[chunkNum];
             info.extraMask = extraMask[chunkNum];
-            info.buffer = chunkBuffer;
             info.data = packet.buildBuffer;
             info.startIndex = dataStartIndex;
-            
-            ComputeChunkInfoAndObfuscate(info, packet.buildBuffer);
             
             dataStartIndex += info.size;
         }
         
-        if (sendPacket)
-        {
-            // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
-            ChunkCompressionThread.Queue(player, packet, infos);
-        }
-        
-        // Let MemoryManager do its work
-        MemoryManager.CheckAndCollect();
+        return infos;
     }
     
-    public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
-    {
-        NetServerHandler nsh = player.getHandle().netServerHandler;
-        if (nsh == null || nsh.disconnected || nsh.networkManager == null)
-            return;
-        
+    public static ChunkInfo getInfo(Packet51MapChunk packet, CraftPlayer player) {
+    	
         // Create an info objects
         ChunkInfo info = new ChunkInfo();
         info.world = player.getHandle().world.getWorld().getHandle();
@@ -100,9 +110,19 @@ public class Calculations
         info.chunkZ = packet.b;
         info.chunkMask = packet.c;
         info.extraMask = packet.d;
-        info.buffer = chunkBuffer;
         info.data = packet.inflatedBuffer;
         info.startIndex = 0;
+        return info;
+    }
+    
+    public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
+    {
+        NetServerHandler nsh = player.getHandle().netServerHandler;
+        if (nsh == null || nsh.disconnected || nsh.networkManager == null)
+            return;
+        
+        ChunkInfo info = getInfo(packet, player);
+        info.buffer = chunkBuffer;
         
         ComputeChunkInfoAndObfuscate(info, packet.inflatedBuffer);
         

@@ -26,7 +26,7 @@ import org.getspout.spoutapi.SpoutManager;
 import org.getspout.spoutapi.packet.listener.PacketListener;
 import org.getspout.spoutapi.packet.standard.MCPacket;
 
-import com.lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
+import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 
 public class SpoutLoader
 {
@@ -45,15 +45,15 @@ public class SpoutLoader
                 if (((MCCraftPacket) mcpacket).getPacket() instanceof Packet51MapChunk)
                 {
                     // Obfuscate packet
-                    OrebfuscatorThreadCalculation.SyncThreads();
-                    OrebfuscatorThreadCalculation.Queue((Packet51MapChunk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
+                	OrebfuscatorScheduler.getScheduler().SyncThreads();
+                    OrebfuscatorScheduler.getScheduler().Queue((Packet51MapChunk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
                     return false;
                 }
                 if (((MCCraftPacket) mcpacket).getPacket() instanceof Packet56MapChunkBulk)
                 {
                     // Obfuscate packet
-                    OrebfuscatorThreadCalculation.SyncThreads();
-                    OrebfuscatorThreadCalculation.Queue((Packet56MapChunkBulk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
+                	OrebfuscatorScheduler.getScheduler().SyncThreads();
+                	OrebfuscatorScheduler.getScheduler().Queue((Packet56MapChunkBulk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
                     return false;
                 }
                 return true;

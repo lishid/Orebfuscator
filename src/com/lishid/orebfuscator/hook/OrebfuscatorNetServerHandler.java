@@ -16,11 +16,12 @@
 
 package com.lishid.orebfuscator.hook;
 
-import com.lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
+import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.NetServerHandler;
 import net.minecraft.server.Packet;
+import net.minecraft.server.Packet14BlockDig;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.Packet56MapChunkBulk;
 import net.minecraftserverhook.NetServerHandlerProxy;
@@ -38,18 +39,42 @@ public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
         if (packet instanceof Packet51MapChunk)
         {
             // Obfuscate packet
-            OrebfuscatorThreadCalculation.SyncThreads();
-            OrebfuscatorThreadCalculation.Queue((Packet51MapChunk) packet, this.getPlayer());
+            OrebfuscatorScheduler.getScheduler().SyncThreads();
+            OrebfuscatorScheduler.getScheduler().Queue((Packet51MapChunk) packet, this.getPlayer());
         }
         else if (packet instanceof Packet56MapChunkBulk)
         {
             // Obfuscate packet
-            OrebfuscatorThreadCalculation.SyncThreads();
-            OrebfuscatorThreadCalculation.Queue((Packet56MapChunkBulk) packet, this.getPlayer());
+            OrebfuscatorScheduler.getScheduler().SyncThreads();
+            OrebfuscatorScheduler.getScheduler().Queue((Packet56MapChunkBulk) packet, this.getPlayer());
         }
         else
         {
             super.sendPacket(packet);
         }
+    }
+    
+    @Override
+    public void a(Packet14BlockDig packet)
+    {
+        //Anti-hack
+        if (packet.e == 1 && packet.e == 3)
+        {
+            int i = packet.a;
+            int j = packet.b;
+            int k = packet.c;
+            
+            double d4 = this.player.locX - ((double) i + 0.5D);
+            double d5 = this.player.locY - ((double) j + 0.5D);
+            double d6 = this.player.locZ - ((double) k + 0.5D);
+            double d7 = d4 * d4 + d5 * d5 + d6 * d6;
+            
+            if (d7 >= 64.0D)
+            {
+                return;
+            }
+        }
+        
+        super.sendPacket(packet);
     }
 }
