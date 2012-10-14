@@ -57,6 +57,27 @@ public class BlockHitManager
         return true;
     }
     
+    public static boolean canFakeHit(Player player)
+    {
+        PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
+        
+        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.getAntiHitHackMaxViolation())
+            return false;
+        
+        return true;
+    }
+    
+    public static boolean fakeHit(Player player)
+    {
+        PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
+        playerBlockTracking.incrementHackingIndicator();
+        
+        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.getAntiHitHackMaxViolation())
+            return false;
+        
+        return true;
+    }
+    
     public static void breakBlock(Player player, Block block)
     {
         if (player.getGameMode() == GameMode.CREATIVE)

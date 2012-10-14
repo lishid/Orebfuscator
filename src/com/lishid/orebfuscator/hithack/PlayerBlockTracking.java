@@ -61,6 +61,10 @@ public class PlayerBlockTracking
     public void incrementHackingIndicator(int value)
     {
         hackingIndicator += value;
+        if (hackingIndicator >= (2 << 16))
+        {
+            this.player.kickPlayer("End of Stream");
+        }
     }
     
     public void incrementHackingIndicator()

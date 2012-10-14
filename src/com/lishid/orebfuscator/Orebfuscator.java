@@ -84,10 +84,11 @@ public class Orebfuscator extends JavaPlugin
         pm.registerEvents(this.blockListener, this);
         
         // ProtocolLib is compatible with Spout
-        if (pm.getPlugin("ProtocolLib") != null) 
+        if (pm.getPlugin("ProtocolLib") != null)
         {
-        	protocolHook = new ProtocolLibHook();
-        	protocolHook.register(this);
+            Orebfuscator.log("ProtocolLib found! Using ProtocolLib.");
+            protocolHook = new ProtocolLibHook();
+            protocolHook.register(this);
         }
         // Using Spout
         else if (pm.getPlugin("Spout") != null)
@@ -101,6 +102,7 @@ public class Orebfuscator extends JavaPlugin
                 {
                     SpoutLoader.InitializeSpout();
                     Orebfuscator.log("Spout found, using Spout.");
+                    Orebfuscator.log("Warning: Spout will disable protection from Orebfuscator. Please use ProtocolLib.");
                     spoutLoaded = true;
                     break;
                 }
@@ -114,8 +116,8 @@ public class Orebfuscator extends JavaPlugin
                 Orebfuscator.log("Spout loading error.");
                 t.printStackTrace();
             }
-        } 
-        else 
+        }
+        else
         {
             // Non-spout method, use Player Join to replace NetServerHandler
             pm.registerEvents(this.playerListenerHook, this);

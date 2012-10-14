@@ -16,6 +16,7 @@
 
 package com.lishid.orebfuscator.hook;
 
+import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 
 import net.minecraft.server.MinecraftServer;
@@ -57,24 +58,30 @@ public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
     @Override
     public void a(Packet14BlockDig packet)
     {
-        //Anti-hack
-        if (packet.e == 1 && packet.e == 3)
+        if(packet.e == 1 || packet.e == 3)
         {
+            if(!BlockHitManager.canFakeHit(this.getPlayer()))
+            {
+                return;
+            }
+            
+            //Anti-hack
             int i = packet.a;
             int j = packet.b;
             int k = packet.c;
             
-            double d4 = this.player.locX - ((double) i + 0.5D);
-            double d5 = this.player.locY - ((double) j + 0.5D);
-            double d6 = this.player.locZ - ((double) k + 0.5D);
+            double d4 = this.getPlayer().getHandle().locX - ((double) i + 0.5D);
+            double d5 = this.getPlayer().getHandle().locY - ((double) j + 0.5D);
+            double d6 = this.getPlayer().getHandle().locZ - ((double) k + 0.5D);
             double d7 = d4 * d4 + d5 * d5 + d6 * d6;
             
-            if (d7 >= 64.0D)
+            if (d7 >= 256.0D)
             {
+                BlockHitManager.fakeHit(this.getPlayer());
                 return;
             }
         }
         
-        super.sendPacket(packet);
+        super.a(packet);
     }
 }
