@@ -19,12 +19,16 @@ package com.lishid.orebfuscator;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
+import net.minecraft.server.NetServerHandler;
+import net.minecraftserverhook.NetServerHandlerProxy;
+
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
@@ -121,6 +125,10 @@ public class Orebfuscator extends JavaPlugin
         {
             // Non-spout method, use Player Join to replace NetServerHandler
             pm.registerEvents(this.playerListenerHook, this);
+            for (Player p : players.keySet())
+            {
+                playerListenerHook.TryUpdateNetServerHandler(p);
+            }
         }
         
         // Metrics
@@ -161,6 +169,20 @@ public class Orebfuscator extends JavaPlugin
         BlockHitManager.clearAll();
         
         Orebfuscator.instance.getServer().getScheduler().cancelAllTasks();
+        
+        for (Player p : players.keySet())
+        {
+            if (p.isOnline())
+            {
+                CraftPlayer p2 = (CraftPlayer) p;
+                if(p2.getHandle().netServerHandler instanceof NetServerHandlerProxy)
+                {
+                    NetServerHandler oldNetServerHandler = ((NetServerHandlerProxy)p2.getHandle().netServerHandler).nshInstance;
+                    p2.getHandle().netServerHandler = oldNetServerHandler;
+                    oldNetServerHandler.networkManager.a(oldNetServerHandler);
+                }
+            }
+        }
         
         // Output
         PluginDescriptionFile pdfFile = this.getDescription();
