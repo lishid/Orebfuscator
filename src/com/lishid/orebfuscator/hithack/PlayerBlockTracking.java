@@ -19,6 +19,8 @@ package com.lishid.orebfuscator.hithack;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.Orebfuscator;
+
 public class PlayerBlockTracking
 {
     private Block block;
@@ -61,8 +63,10 @@ public class PlayerBlockTracking
     public void incrementHackingIndicator(int value)
     {
         hackingIndicator += value;
-        if (hackingIndicator >= (2 << 16))
+        if (hackingIndicator >= (1 << 18))
         {
+            Orebfuscator.log("Player \"" + this.player.getName() + "\" tried to hack with packet spamming.");
+            Orebfuscator.log("Player \"" + this.player.getName() + "\" kicked.");
             this.player.kickPlayer("End of Stream");
         }
     }
