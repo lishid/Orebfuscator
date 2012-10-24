@@ -25,7 +25,7 @@ import org.bukkit.event.block.*;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
+import com.lishid.orebfuscator.obfuscation.BlockDeobfuscator;
 
 public class OrebfuscatorBlockListener implements Listener
 {
@@ -38,7 +38,7 @@ public class OrebfuscatorBlockListener implements Listener
             return;
         }
         
-        OrebfuscatorThreadUpdate.Queue(event.getBlock());
+        BlockDeobfuscator.Update(event.getBlock());
         BlockHitManager.breakBlock(event.getPlayer(), event.getBlock());
     }
     
@@ -50,7 +50,7 @@ public class OrebfuscatorBlockListener implements Listener
             return;
         }
         
-        if (!OrebfuscatorThreadUpdate.needsUpdate(event.getBlock()))
+        if (!BlockDeobfuscator.needsUpdate(event.getBlock()))
         {
             return;
         }
@@ -60,7 +60,7 @@ public class OrebfuscatorBlockListener implements Listener
             return;
         }
         
-        OrebfuscatorThreadUpdate.Queue(event.getBlock());
+        BlockDeobfuscator.Update(event.getBlock());
     }
     
     @EventHandler(priority = EventPriority.MONITOR)
@@ -81,7 +81,7 @@ public class OrebfuscatorBlockListener implements Listener
             return;
         }
         
-        OrebfuscatorThreadUpdate.Queue(event.getBlock());
+        BlockDeobfuscator.Update(event.getBlock());
     }
     
     @EventHandler(priority = EventPriority.MONITOR)
@@ -94,7 +94,7 @@ public class OrebfuscatorBlockListener implements Listener
         
         for (Block b : event.getBlocks())
         {
-            OrebfuscatorThreadUpdate.Queue(b);
+            BlockDeobfuscator.Update(b);
         }
     }
     
@@ -106,7 +106,7 @@ public class OrebfuscatorBlockListener implements Listener
             return;
         }
         
-        OrebfuscatorThreadUpdate.Queue(event.getBlock());
+        BlockDeobfuscator.Update(event.getBlock());
     }
     
     private boolean applyphysics(Block block)

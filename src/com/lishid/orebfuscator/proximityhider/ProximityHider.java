@@ -103,7 +103,7 @@ public class ProximityHider extends Thread implements Runnable
                     }
                     
                     // Player didn't actually move
-                    if (loc1.getBlock().equals((loc2.getBlock())))
+                    if (loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ())
                     {
                         continue;
                     }

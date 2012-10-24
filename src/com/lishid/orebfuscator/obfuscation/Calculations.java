@@ -27,7 +27,6 @@ import net.minecraft.server.Packet56MapChunkBulk;
 import net.minecraft.server.TileEntity;
 import net.minecraft.server.WorldServer;
 
-import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
@@ -166,8 +165,7 @@ public class Calculations
         }
         
         // Obfuscate
-        if (info.world.getWorld().getEnvironment() == Environment.NORMAL && // Is overworld
-                !OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && // World not
+        if (!OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && // World not enabled
                 OrebfuscatorConfig.obfuscateForPlayer(info.player) && // Should the player have obfuscation?
                 OrebfuscatorConfig.getEnabled() && // Plugin enabled
                 CalculationsUtil.isChunkLoaded(info.world, info.chunkX, info.chunkZ)) // Make sure the chunk is loaded

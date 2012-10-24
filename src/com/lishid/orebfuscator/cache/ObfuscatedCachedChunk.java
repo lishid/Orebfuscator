@@ -21,12 +21,14 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
+import net.minecraft.server.RegionFile;
 
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public class ObfuscatedCachedChunk
 {
@@ -61,7 +63,7 @@ public class ObfuscatedCachedChunk
     {
         try
         {
-            DataInputStream stream = ObfuscatedDataCache.getInputStream(hashPath, x, z);
+            DataInputStream stream = ObfuscatedHashCache.getInputStream(hashPath, x, z);
             if (stream != null)
             {
                 NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput) stream);
@@ -127,16 +129,22 @@ public class ObfuscatedCachedChunk
             nbt.setInt("IR", initialRadius);
             nbt.setBoolean("PH", proximityHider);
             nbt.setLong("Hash", hash);
-            
-            DataOutputStream stream = ObfuscatedDataCache.getOutputStream(hashPath, x, z);
+
+            RegionFile r = ObfuscatedHashCache.getRegionFile(path, x, z);
+            DataOutputStream stream = ObfuscatedHashCache.getOutputStream(hashPath, x, z);
             NBTCompressedStreamTools.a(nbt, (DataOutput) stream);
             
             try
             {
-                ObfuscatedDataCache.getRegionFile(hashPath, x, z);
+                Object file = ReflectionHelper.getPrivateField(r, "c");
+                if(file instanceof RandomAccessFile)
+                {
+                    ((RandomAccessFile)file).length();
+                    //if stream is closed then an error occurs here and gets caught.
+                }
                 stream.close();
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 
             }
@@ -157,18 +165,24 @@ public class ObfuscatedCachedChunk
             nbt.setInt("Z", z);
             nbt.setByteArray("Data", data);
             nbt.setIntArray("ProximityBlockList", proximityBlockList);
-            
+
+            RegionFile r = ObfuscatedDataCache.getRegionFile(path, x, z);
             DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
             NBTCompressedStreamTools.a(nbt, (DataOutput) stream);
             
             try
             {
-                ObfuscatedDataCache.getRegionFile(path, x, z);
+                Object file = ReflectionHelper.getPrivateField(r, "c");
+                if(file instanceof RandomAccessFile)
+                {
+                    ((RandomAccessFile)file).length();
+                    //if stream is closed then an error occurs here and gets caught.
+                }
                 stream.close();
             }
-            catch (IOException e)
+            catch (Exception e)
             {
-                
+                //Ignore any exception during file saving, this occurs when all files have been closed.
             }
         }
         catch (Exception e)

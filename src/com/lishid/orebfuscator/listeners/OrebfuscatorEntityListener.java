@@ -22,7 +22,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 
-import com.lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
+import com.lishid.orebfuscator.obfuscation.BlockDeobfuscator;
 
 public class OrebfuscatorEntityListener implements Listener
 {
@@ -36,7 +36,7 @@ public class OrebfuscatorEntityListener implements Listener
         
         for (Block block : event.blockList())
         {
-            OrebfuscatorThreadUpdate.Queue(block);
+            BlockDeobfuscator.Update(block);
         }
     }
 }

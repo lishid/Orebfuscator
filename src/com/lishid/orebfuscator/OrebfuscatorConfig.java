@@ -51,7 +51,6 @@ public class OrebfuscatorConfig
     private static boolean UseProximityHider = true;
     private static boolean UseSpecialBlockForProximityHider = true;
     private static boolean UpdateOnDamage = true;
-    private static boolean UpdateThread = true;
     private static boolean DarknessHideBlocks = true;
     private static boolean NoObfuscationForOps = false;
     private static boolean NoObfuscationForPermission = false;
@@ -205,11 +204,6 @@ public class OrebfuscatorConfig
     public static boolean getUpdateOnDamage()
     {
         return UpdateOnDamage;
-    }
-    
-    public static boolean getUpdateThread()
-    {
-        return UpdateThread;
     }
     
     public static boolean getDarknessHideBlocks()
@@ -417,12 +411,6 @@ public class OrebfuscatorConfig
         UpdateOnDamage = data;
     }
     
-    public static void setUpdateThread(boolean data)
-    {
-        setData("Booleans.UpdateThread", data);
-        UpdateThread = data;
-    }
-    
     public static void setDarknessHideBlocks(boolean data)
     {
         setData("Booleans.DarknessHideBlocks", data);
@@ -545,7 +533,7 @@ public class OrebfuscatorConfig
         for (int i = 0; i < boolArray.length; i++)
         {
             boolArray[i] = blocks.contains(i);
-            if(boolArray[i] && isBlockTransparent((short) i))
+            if (boolArray[i] && isBlockTransparent((short) i))
             {
                 boolArray[i] = false;
             }
@@ -604,7 +592,6 @@ public class OrebfuscatorConfig
         UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
         UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
         UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
-        UpdateThread = getBoolean("Booleans.UpdateThread", UpdateThread);
         DarknessHideBlocks = getBoolean("Booleans.DarknessHideBlocks", DarknessHideBlocks);
         NoObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
         NoObfuscationForPermission = getBoolean("Booleans.NoObfuscationForPermission", NoObfuscationForPermission);
@@ -614,11 +601,22 @@ public class OrebfuscatorConfig
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129 })));
         setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 129 })));
-        RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
-        RandomBlocks2 = RandomBlocks;
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
+        
+        RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
+        
+        // Validate RandomBlocks
+        for (int i = 0; i < RandomBlocks.length; i++)
+        {
+            //Don't want people to put chests and other stuff that lags the hell out of players.
+            if (OrebfuscatorConfig.isBlockTransparent((short) (int) RandomBlocks[i]))
+            {
+                RandomBlocks[i] = 0;
+            }
+        }
+        RandomBlocks2 = RandomBlocks;
         
         save();
     }
@@ -648,7 +646,8 @@ public class OrebfuscatorConfig
         }
         catch (Exception e)
         {
-            Orebfuscator.log("Error while obtaining OP status for player" + player.getName() + ": " + e.getMessage());
+            Orebfuscator.log("Error while obtaining Operator status for player" + player.getName() + ": " + e.getMessage());
+            e.printStackTrace();
         }
         return ret;
     }
@@ -663,6 +662,7 @@ public class OrebfuscatorConfig
         catch (Exception e)
         {
             Orebfuscator.log("Error while obtaining permissions for player" + player.getName() + ": " + e.getMessage());
+            e.printStackTrace();
         }
         return ret;
     }

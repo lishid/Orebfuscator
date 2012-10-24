@@ -44,7 +44,6 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
 import com.lishid.orebfuscator.threading.ChunkCompressionThread;
 import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
-import com.lishid.orebfuscator.threading.OrebfuscatorThreadUpdate;
 import com.lishid.orebfuscator.utils.Metrics;
 
 /**
@@ -106,7 +105,7 @@ public class Orebfuscator extends JavaPlugin
                 {
                     SpoutLoader.InitializeSpout();
                     Orebfuscator.log("Spout found, using Spout.");
-                    Orebfuscator.log("Warning: Spout will disable protection from Orebfuscator. Please use ProtocolLib.");
+                    Orebfuscator.log("Warning: Spout will disable several protection from Orebfuscator. Please use ProtocolLib.");
                     spoutLoaded = true;
                     break;
                 }
@@ -161,7 +160,6 @@ public class Orebfuscator extends JavaPlugin
         ObfuscatedHashCache.clearCache();
         ObfuscatedDataCache.clearCache();
         OrebfuscatorScheduler.getScheduler().terminateAll();
-        OrebfuscatorThreadUpdate.terminate();
         ChunkCompressionThread.terminate();
         ProximityHider.terminate();
         ProximityHider.proximityHiderTracker.clear();

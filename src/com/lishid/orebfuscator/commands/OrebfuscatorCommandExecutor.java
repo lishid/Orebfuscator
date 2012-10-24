@@ -210,12 +210,7 @@ public class OrebfuscatorCommandExecutor
             
             if (args.length > 1)
             {
-                if (args[1].equalsIgnoreCase("updatethread"))
-                {
-                    OrebfuscatorConfig.setUpdateThread(data);
-                    Orebfuscator.message(sender, "Extra update thread " + (data ? "enabled" : "disabled. Updates will be processed in the main thread instead") + ".");
-                }
-                else if (args[1].equalsIgnoreCase("darknesshide"))
+                if (args[1].equalsIgnoreCase("darknesshide"))
                 {
                     OrebfuscatorConfig.setDarknessHideBlocks(data);
                     Orebfuscator.message(sender, "Darkness obfuscation " + (data ? "enabled" : "disabled") + ".");
@@ -271,7 +266,6 @@ public class OrebfuscatorCommandExecutor
             
             Orebfuscator.message(sender, "Executing Threads: " + OrebfuscatorScheduler.getScheduler().getThreads());
             Orebfuscator.message(sender, "Processing Threads Max: " + OrebfuscatorConfig.getProcessingThreads());
-            Orebfuscator.message(sender, "Extra Update Thread: " + (OrebfuscatorConfig.getUpdateThread() ? "Enabled" : "Disabled"));
             
             Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache() ? "Enabled" : "Disabled"));
             Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider() ? "Enabled" : "Disabled"));
