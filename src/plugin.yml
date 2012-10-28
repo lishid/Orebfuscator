@@ -23,7 +23,7 @@ commands:
            enable/disable - Change the state of the plugin
            enable/disable world <worldname>
            enable/disable <Setting> - possible settings:
-           (op, perms, updatethread, proximity, cache, axr, notification)
+           (op, perms, proximity, cache, axr, notification)
   rechunk:
     description: Re-send chunks.
     usage: |

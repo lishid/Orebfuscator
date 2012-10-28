@@ -534,7 +534,7 @@ public class Calculations
                     {
                         if (tileentity != null)
                         {
-                            Packet p = ((TileEntity) tileentity).e();
+                            Packet p = ((TileEntity) tileentity).l();
                             if (p != null)
                             {
                                 info.player.getHandle().netServerHandler.sendPacket(p);
