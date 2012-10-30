@@ -32,7 +32,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.cache.ObfuscatedHashCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.OrebfuscatorPlayerListenerHook;
@@ -157,7 +156,6 @@ public class Orebfuscator extends JavaPlugin
             players.clear();
         }
         
-        ObfuscatedHashCache.clearCache();
         ObfuscatedDataCache.clearCache();
         OrebfuscatorScheduler.getScheduler().terminateAll();
         ChunkCompressionThread.terminate();

@@ -98,7 +98,6 @@ public class ObfuscatedDataCache
     public static void ClearCache()
     {
         ObfuscatedDataCache.clearCache();
-        ObfuscatedHashCache.clearCache();
         File dir = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
         try
         {

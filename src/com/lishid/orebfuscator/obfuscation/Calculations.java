@@ -209,11 +209,12 @@ public class Calculations
             hash = CalculationsUtil.Hash(info.buffer, info.blockSize);
             
             // Check if hash is consistent
+            cache.Read();
+            
             long storedHash = cache.getHash();
-            if (storedHash != 0L && hash == storedHash)
+            if (storedHash == hash)
             {
                 // Get data
-                cache.getDataAndProximityList();
                 byte[] data = cache.data;
                 int[] chestList = cache.proximityBlockList;
                 if (data != null)

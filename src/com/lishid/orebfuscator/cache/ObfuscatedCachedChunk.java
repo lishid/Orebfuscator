@@ -21,26 +21,23 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.RandomAccessFile;
 
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
-import net.minecraft.server.RegionFile;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public class ObfuscatedCachedChunk
 {
     File path;
-    File hashPath;
     int x;
     int z;
     public int initialRadius;
     public boolean proximityHider;
     public byte[] data;
     public int[] proximityBlockList;
-    public boolean isValid = true;
+    public long hash = 0L;
+    private boolean loaded = false;
     
     public ObfuscatedCachedChunk(File file, int x, int z, int initialRadius, boolean proximityHider)
     {
@@ -49,44 +46,29 @@ public class ObfuscatedCachedChunk
         this.initialRadius = initialRadius;
         this.proximityHider = proximityHider;
         this.path = new File(file, "data");
-        this.hashPath = new File(file, "hash");
         path.mkdirs();
-        hashPath.mkdirs();
     }
     
     public void Invalidate()
     {
-        setHash(0L);
+        Write(0L, new byte[0], new int[0]);
     }
     
     public long getHash()
     {
-        try
-        {
-            DataInputStream stream = ObfuscatedHashCache.getInputStream(hashPath, x, z);
-            if (stream != null)
-            {
-                NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput) stream);
-                
-                // Check if data makes sense
-                if (nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR") || proximityHider != nbt.getBoolean("PH"))
-                    return 0L;
-                
-                // Return data
-                return nbt.getLong("Hash");
-            }
-        }
-        catch (Exception e)
-        {
-            Orebfuscator.log("Error reading Cache HashFile: " + e.getMessage());
-            e.printStackTrace();
-        }
+        Read();
         
-        return 0L;
+        if(!loaded)
+            return 0L;
+        
+        return hash;
     }
     
-    public void getDataAndProximityList()
+    public void Read()
     {
+        if (loaded)
+            return;
+        
         try
         {
             DataInputStream stream = ObfuscatedDataCache.getInputStream(path, x, z);
@@ -94,54 +76,53 @@ public class ObfuscatedCachedChunk
             {
                 NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput) stream);
                 
-                // Check if data makes sense
-                if (nbt.getInt("X") != x || nbt.getInt("Z") != z)
+                // Check if statuses makes sense
+                if (nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR") || proximityHider != nbt.getBoolean("PH"))
                     return;
                 
-                // Retrieve data
+                // Get Hash
+                hash = nbt.getLong("Hash");
+                
+                // Get Data
                 data = nbt.getByteArray("Data");
                 if (proximityHider)
                     proximityBlockList = nbt.getIntArray("ProximityBlockList");
                 else
                     proximityBlockList = new int[0];
+                loaded = true;
             }
         }
         catch (Exception e)
         {
-            Orebfuscator.log("Error reading Cache DataFile: " + e.getMessage());
-            e.printStackTrace();
+            // Orebfuscator.log("Error reading Cache: " + e.getMessage());
+            // e.printStackTrace();
+            loaded = false;
         }
     }
     
     public void Write(long hash, byte[] data, int[] proximityBlockList)
     {
-        setHash(hash);
-        setData(data, proximityBlockList);
-    }
-    
-    public void setHash(long hash)
-    {
         try
         {
             NBTTagCompound nbt = new NBTTagCompound();
+            // Set status indicator
             nbt.setInt("X", x);
             nbt.setInt("Z", z);
             nbt.setInt("IR", initialRadius);
             nbt.setBoolean("PH", proximityHider);
+            
+            // Set hash
             nbt.setLong("Hash", hash);
-
-            RegionFile r = ObfuscatedHashCache.getRegionFile(path, x, z);
-            DataOutputStream stream = ObfuscatedHashCache.getOutputStream(hashPath, x, z);
+            
+            // Set data
+            nbt.setByteArray("Data", data);
+            nbt.setIntArray("ProximityBlockList", proximityBlockList);
+            
+            DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
             NBTCompressedStreamTools.a(nbt, (DataOutput) stream);
             
             try
             {
-                Object file = ReflectionHelper.getPrivateField(r, "c");
-                if(file instanceof RandomAccessFile)
-                {
-                    ((RandomAccessFile)file).length();
-                    //if stream is closed then an error occurs here and gets caught.
-                }
                 stream.close();
             }
             catch (Exception e)
@@ -151,43 +132,7 @@ public class ObfuscatedCachedChunk
         }
         catch (Exception e)
         {
-            Orebfuscator.log("Error writing Cache HashFile: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    public void setData(byte[] data, int[] proximityBlockList)
-    {
-        try
-        {
-            NBTTagCompound nbt = new NBTTagCompound();
-            nbt.setInt("X", x);
-            nbt.setInt("Z", z);
-            nbt.setByteArray("Data", data);
-            nbt.setIntArray("ProximityBlockList", proximityBlockList);
-
-            RegionFile r = ObfuscatedDataCache.getRegionFile(path, x, z);
-            DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
-            NBTCompressedStreamTools.a(nbt, (DataOutput) stream);
-            
-            try
-            {
-                Object file = ReflectionHelper.getPrivateField(r, "c");
-                if(file instanceof RandomAccessFile)
-                {
-                    ((RandomAccessFile)file).length();
-                    //if stream is closed then an error occurs here and gets caught.
-                }
-                stream.close();
-            }
-            catch (Exception e)
-            {
-                //Ignore any exception during file saving, this occurs when all files have been closed.
-            }
-        }
-        catch (Exception e)
-        {
-            Orebfuscator.log("Error writing Cache DataFile: " + e.getMessage());
+            Orebfuscator.log("Error writing Cache: " + e.getMessage());
             e.printStackTrace();
         }
     }
