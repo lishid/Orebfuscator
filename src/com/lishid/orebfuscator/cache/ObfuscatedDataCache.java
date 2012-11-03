@@ -25,8 +25,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
 
-import org.bukkit.Bukkit;
-
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 
@@ -38,31 +36,45 @@ public class ObfuscatedDataCache
     {
         File path = new File(folder, "region");
         File file = new File(path, "r." + (x >> 5) + "." + (z >> 5) + ".mcr");
-        
-        Reference<RegionFile> reference = cachedRegionFiles.get(file);
-        
-        if (reference != null)
+        try
         {
-            RegionFile regionFile = (RegionFile) reference.get();
-            if (regionFile != null)
+            Reference<RegionFile> reference = cachedRegionFiles.get(file);
+            
+            if (reference != null)
             {
-                return regionFile;
+                RegionFile regionFile = (RegionFile) reference.get();
+                if (regionFile != null)
+                {
+                    return regionFile;
+                }
+            }
+            
+            if (!path.exists())
+            {
+                path.mkdirs();
+            }
+            
+            if (cachedRegionFiles.size() >= OrebfuscatorConfig.getMaxLoadedCacheFiles())
+            {
+                clearCache();
+            }
+            
+            RegionFile regionFile = new RegionFile(file);
+            cachedRegionFiles.put(file, new SoftReference<RegionFile>(regionFile));
+            return regionFile;
+        }
+        catch (Exception e)
+        {
+            try
+            {
+                file.delete();
+            }
+            catch (Exception e2)
+            {
+                Orebfuscator.log(e);
             }
         }
-        
-        if (!path.exists())
-        {
-            path.mkdirs();
-        }
-        
-        if (cachedRegionFiles.size() >= OrebfuscatorConfig.getMaxLoadedCacheFiles())
-        {
-            clearCache();
-        }
-        
-        RegionFile regionFile = new RegionFile(file);
-        cachedRegionFiles.put(file, new SoftReference<RegionFile>(regionFile));
-        return regionFile;
+        return null;
     }
     
     public static synchronized void clearCache()
@@ -98,10 +110,9 @@ public class ObfuscatedDataCache
     public static void ClearCache()
     {
         ObfuscatedDataCache.clearCache();
-        File dir = new File(Bukkit.getServer().getWorldContainer(), "orebfuscator_cache");
         try
         {
-            DeleteDir(dir);
+            DeleteDir(OrebfuscatorConfig.getCacheFolder());
         }
         catch (Exception e)
         {

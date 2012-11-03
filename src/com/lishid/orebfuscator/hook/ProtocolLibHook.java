@@ -180,6 +180,7 @@ public class ProtocolLibHook
                 try
                 {
                     AsyncMarker marker = event.getAsyncMarker();
+                    marker.setTimeout(Long.MAX_VALUE);
                     OrebfuscatorThreadCalculation thread = getWorker(marker);
                     
                     CraftPlayer player = (CraftPlayer) event.getPlayer();

@@ -25,8 +25,6 @@ import java.io.File;
 import net.minecraft.server.NBTCompressedStreamTools;
 import net.minecraft.server.NBTTagCompound;
 
-import com.lishid.orebfuscator.Orebfuscator;
-
 public class ObfuscatedCachedChunk
 {
     File path;
@@ -132,8 +130,8 @@ public class ObfuscatedCachedChunk
         }
         catch (Exception e)
         {
-            Orebfuscator.log("Error writing Cache: " + e.getMessage());
-            e.printStackTrace();
+            // Orebfuscator.log("Error reading Cache: " + e.getMessage());
+            // e.printStackTrace();
         }
     }
 }

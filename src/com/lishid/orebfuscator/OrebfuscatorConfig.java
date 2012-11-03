@@ -32,7 +32,7 @@ public class OrebfuscatorConfig
 {
     private static Random random = new Random();
     
-    private static final int CONFIG_VERSION = 8;
+    private static final int CONFIG_VERSION = 9;
     private static boolean[] ObfuscateBlocks = new boolean[256];
     private static boolean[] ProximityHiderBlocks = new boolean[256];
     private static Integer[] RandomBlocks = new Integer[] { 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
@@ -546,6 +546,7 @@ public class OrebfuscatorConfig
         int version = getInt("ConfigVersion", CONFIG_VERSION);
         if (version < CONFIG_VERSION)
         {
+            /*
             Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
             File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
             File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
@@ -561,9 +562,12 @@ public class OrebfuscatorConfig
                 }
             }
             configFile.renameTo(destination);
-            ObfuscatedDataCache.ClearCache();
             reload();
+            */
+            ObfuscatedDataCache.ClearCache();
+            setData("ConfigVersion", CONFIG_VERSION);
         }
+        
         
         EngineMode = getInt("Integers.EngineMode", EngineMode);
         if (EngineMode != 1 && EngineMode != 2)
