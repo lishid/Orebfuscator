@@ -42,9 +42,11 @@ public class ProximityHider extends Thread implements Runnable
     
     public long lastExecute = System.currentTimeMillis();
     public AtomicBoolean kill =  new AtomicBoolean(false);
+    public static boolean running = false;
     
     public static void Load()
     {
+        running = true;
         if (thread == null || thread.isInterrupted() || !thread.isAlive())
         {
             thread = new ProximityHider();
@@ -75,7 +77,10 @@ public class ProximityHider extends Thread implements Runnable
                 }
                 
                 if (!OrebfuscatorConfig.getUseProximityHider())
-                    continue;
+                {
+                    running = false;
+                    return;
+                }
                 
                 HashMap<Player, Location> newPlayers = new HashMap<Player, Location>();
                 
@@ -156,10 +161,28 @@ public class ProximityHider extends Thread implements Runnable
                 Orebfuscator.log(e);
             }
         }
+
+        running = false;
+    }
+    
+    public static void restart()
+    {
+        synchronized(thread)
+        {
+            if(thread.isInterrupted() || !thread.isAlive())
+                running = false;
+            
+            if(!running && OrebfuscatorConfig.getUseProximityHider())
+            {
+                // Load ProximityHider
+                ProximityHider.Load();
+            }
+        }
     }
     
     public static void AddProximityBlocks(CraftPlayer player, ArrayList<Block> blocks)
     {
+        restart();
         synchronized (BlockLock)
         {
             if (!proximityHiderTracker.containsKey(player))

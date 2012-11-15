@@ -19,21 +19,18 @@ package com.lishid.orebfuscator.threading;
 import java.util.WeakHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.zip.Deflater;
 
 import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
-import net.minecraft.server.Packet51MapChunk;
-import net.minecraft.server.Packet56MapChunkBulk;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.obfuscation.Calculations;
-import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
 import com.lishid.orebfuscator.obfuscation.ChunkInfo;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public class ChunkCompressionThread extends Thread implements Runnable
 {
@@ -73,7 +70,7 @@ public class ChunkCompressionThread extends Thread implements Runnable
             if (thread == null || thread.isInterrupted() || !thread.isAlive())
             {
                 thread = new ChunkCompressionThread();
-                thread.setName("Orebfuscator ChunkCompressionThread Thread");
+                thread.setName("Orebfuscator Chunk Compression Thread");
                 thread.setPriority(Thread.MIN_PRIORITY);
                 try
                 {
@@ -118,14 +115,14 @@ public class ChunkCompressionThread extends Thread implements Runnable
     }
     
     private static ChunkCompressionThread thread = new ChunkCompressionThread();
-    
+    /*
     private final int CHUNK_SIZE = 16 * 256 * 16 * 5 / 2;
     private final int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
     private final int DEFLATE_LEVEL_CHUNKS = 6;
     private final int DEFLATE_LEVEL_PARTS = 1;
     private final Deflater deflater = new Deflater();
     private byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
-    
+    */
     public long lastExecute = System.currentTimeMillis();
     public AtomicBoolean kill = new AtomicBoolean(false);
     
@@ -134,9 +131,6 @@ public class ChunkCompressionThread extends Thread implements Runnable
     
     public void run()
     {
-        // Set the deflateBuffer from CB's ChunkCompressionThread to save memory
-        CalculationsUtil.setChunkCompressionThreadBuffer(deflateBuffer);
-        
         while (!this.isInterrupted() && !kill.get())
         {
             try
@@ -192,7 +186,6 @@ public class ChunkCompressionThread extends Thread implements Runnable
                         else
                         {
                             // If not overflowing then send the packet out
-                            CompressChunk(packet.packet);
                             sendOut(packet);
                         }
                     }
@@ -204,13 +197,14 @@ public class ChunkCompressionThread extends Thread implements Runnable
             }
         }
     }
-    
+    /*
     private void CompressChunk(Packet packet)
     {
         if (packet instanceof Packet56MapChunkBulk)
         {
             Packet56MapChunkBulk newPacket = (Packet56MapChunkBulk) packet;
-            if (newPacket.buffer != null)
+            
+            if ((byte[])ReflectionHelper.getPrivateField(newPacket, "buffer") != null)
             {
                 return;
             }
@@ -238,6 +232,7 @@ public class ChunkCompressionThread extends Thread implements Runnable
         else if (packet instanceof Packet51MapChunk)
         {
             Packet51MapChunk newPacket = (Packet51MapChunk) packet;
+
             if (newPacket.buffer != null)
             {
                 return;
@@ -263,11 +258,11 @@ public class ChunkCompressionThread extends Thread implements Runnable
             newPacket.size = size;
             System.arraycopy(deflateBuffer, 0, newPacket.buffer, 0, size);
         }
-    }
+    }*/
     
     public static boolean isOverflowing(NetworkManager nm)
     {
-        int y = (Integer) CalculationsUtil.getPrivateField(nm, "y");
+        int y = (Integer) ReflectionHelper.getPrivateField(nm, "y");
         return isOverflowing(y);
     }
     

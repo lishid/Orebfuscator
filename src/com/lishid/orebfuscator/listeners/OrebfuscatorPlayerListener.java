@@ -28,7 +28,7 @@ import org.bukkit.event.player.*;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.obfuscation.BlockDeobfuscator;
+import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
 
 public class OrebfuscatorPlayerListener implements Listener
@@ -83,7 +83,7 @@ public class OrebfuscatorPlayerListener implements Listener
                 && ((event.getItem().getType() == Material.WOOD_HOE) || (event.getItem().getType() == Material.IRON_HOE) || (event.getItem().getType() == Material.GOLD_HOE) || (event.getItem()
                         .getType() == Material.DIAMOND_HOE)))
         {
-            BlockDeobfuscator.Update(event.getClickedBlock());
+            BlockUpdate.Update(event.getClickedBlock());
         }
     }
     

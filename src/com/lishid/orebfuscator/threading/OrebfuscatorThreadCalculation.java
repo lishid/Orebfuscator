@@ -50,7 +50,9 @@ public abstract class OrebfuscatorThreadCalculation extends Thread implements Ru
     
     public void processPacket(Packet packet, CraftPlayer player) {
         try
-        {            
+        {
+            sendPacket(packet, player);
+            
         	// Don't waste CPU if the player is gone
             if (player.getHandle().netServerHandler.disconnected)
             {

@@ -36,6 +36,7 @@ import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
 import com.lishid.orebfuscator.threading.ChunkCompressionThread;
 import com.lishid.orebfuscator.utils.MemoryManager;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public class Calculations
 {
@@ -51,14 +52,12 @@ public class Calculations
         {
             // Create an info objects
             ChunkInfo info = infos[chunkNum];
-            infos[chunkNum] = info;
             info.buffer = chunkBuffer;
-            ComputeChunkInfoAndObfuscate(info, packet.buildBuffer);
+            ComputeChunkInfoAndObfuscate(info, (byte[]) ReflectionHelper.getPrivateField(packet, "buildBuffer"));
         }
         
         if (sendPacket)
         {
-            // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
             ChunkCompressionThread.Queue(player, packet, infos);
         }
         
@@ -66,15 +65,18 @@ public class Calculations
         MemoryManager.CheckAndCollect();
     }
     
-    public static ChunkInfo[] getInfo(Packet56MapChunkBulk packet, CraftPlayer player) {
-    	
+    public static ChunkInfo[] getInfo(Packet56MapChunkBulk packet, CraftPlayer player)
+    {
+        
         ChunkInfo[] infos = new ChunkInfo[packet.d()];
         WorldServer server = player.getHandle().world.getWorld().getHandle();
         
         int dataStartIndex = 0;
         
-        int[] x = (int[]) CalculationsUtil.getPrivateField(packet, "c");
-        int[] z = (int[]) CalculationsUtil.getPrivateField(packet, "d");
+        int[] x = (int[]) ReflectionHelper.getPrivateField(packet, "c");
+        int[] z = (int[]) ReflectionHelper.getPrivateField(packet, "d");
+        
+        byte[][] inflatedBuffers = (byte[][]) ReflectionHelper.getPrivateField(packet, "inflatedBuffers");
         
         int[] chunkMask = packet.a;
         int[] extraMask = packet.b;
@@ -90,28 +92,14 @@ public class Calculations
             info.chunkZ = z[chunkNum];
             info.chunkMask = chunkMask[chunkNum];
             info.extraMask = extraMask[chunkNum];
-            info.data = packet.buildBuffer;
+            info.data = (byte[]) ReflectionHelper.getPrivateField(packet, "buildBuffer");
             info.startIndex = dataStartIndex;
+            info.size = inflatedBuffers[chunkNum].length;
             
             dataStartIndex += info.size;
         }
         
         return infos;
-    }
-    
-    public static ChunkInfo getInfo(Packet51MapChunk packet, CraftPlayer player) {
-    	
-        // Create an info objects
-        ChunkInfo info = new ChunkInfo();
-        info.world = player.getHandle().world.getWorld().getHandle();
-        info.player = player;
-        info.chunkX = packet.a;
-        info.chunkZ = packet.b;
-        info.chunkMask = packet.c;
-        info.extraMask = packet.d;
-        info.data = packet.inflatedBuffer;
-        info.startIndex = 0;
-        return info;
     }
     
     public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
@@ -123,16 +111,37 @@ public class Calculations
         ChunkInfo info = getInfo(packet, player);
         info.buffer = chunkBuffer;
         
-        ComputeChunkInfoAndObfuscate(info, packet.inflatedBuffer);
+        if(info.chunkMask == 0 && info.extraMask == 0)
+        {
+            player.getHandle().netServerHandler.networkManager.queue(packet);
+            return;
+        }
+        
+        ComputeChunkInfoAndObfuscate(info, (byte[]) ReflectionHelper.getPrivateField(packet, "inflatedBuffer"));
         
         if (sendPacket)
         {
-            // ChunkCompressionThread.sendPacket(player.getHandle(), packet);
             ChunkCompressionThread.Queue(player, packet, new ChunkInfo[] { info });
         }
         
         // Let MemoryManager do its work
         MemoryManager.CheckAndCollect();
+    }
+    
+    public static ChunkInfo getInfo(Packet51MapChunk packet, CraftPlayer player)
+    {
+        
+        // Create an info objects
+        ChunkInfo info = new ChunkInfo();
+        info.world = player.getHandle().world.getWorld().getHandle();
+        info.player = player;
+        info.chunkX = packet.a;
+        info.chunkZ = packet.b;
+        info.chunkMask = packet.c;
+        info.extraMask = packet.d;
+        info.data = (byte[]) ReflectionHelper.getPrivateField(packet, "inflatedBuffer");
+        info.startIndex = 0;
+        return info;
     }
     
     public static void ComputeChunkInfoAndObfuscate(ChunkInfo info, byte[] returnData)
@@ -159,7 +168,7 @@ public class Calculations
         info.size = 2048 * (5 * info.chunkSectionNumber + info.extraSectionNumber) + 256;
         info.blockSize = 4096 * info.chunkSectionNumber;
         
-        if(info.startIndex + info.blockSize > info.data.length)
+        if (info.startIndex + info.blockSize > info.data.length)
         {
             return;
         }
@@ -301,8 +310,19 @@ public class Calculations
                             {
                                 if (initialRadius == 0)
                                 {
-                                    // Obfuscate all blocks
-                                    obfuscate = true;
+                                    //Do not interfere with PH
+                                    if(OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(data))
+                                    {
+                                        if (!areAjacentBlocksTransparent(info, startX + x, (i << 4) + y, startZ + z, 1))
+                                        {
+                                            obfuscate = true;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Obfuscate all blocks
+                                        obfuscate = true;
+                                    }
                                 }
                                 else
                                 {
@@ -315,7 +335,7 @@ public class Calculations
                             }
                             
                             // Check if the block should be obfuscated because of proximity check
-                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(info.data[info.startIndex + index])
+                            if (!obfuscate && OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(data)
                                     && ((i << 4) + y) <= OrebfuscatorConfig.getProximityHiderEnd())
                             {
                                 proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
@@ -384,7 +404,7 @@ public class Calculations
                 // }
             }
         }
-        
+
         ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
         
         // If cache is still allowed
@@ -535,7 +555,7 @@ public class Calculations
                     {
                         if (tileentity != null)
                         {
-                            Packet p = ((TileEntity) tileentity).l();
+                            Packet p = ((TileEntity) tileentity).getUpdatePacket();
                             if (p != null)
                             {
                                 info.player.getHandle().netServerHandler.sendPacket(p);

@@ -58,6 +58,7 @@ public class OrebfuscatorConfig
     private static boolean AntiTexturePackAndFreecam = true;
     private static boolean UseCache = true;
     private static boolean Enabled = true;
+    private static boolean LiteMode = false;
     private static String CacheLocation = "orebfuscator_cache";
     private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
     
@@ -193,6 +194,8 @@ public class OrebfuscatorConfig
     
     public static boolean getUseProximityHider()
     {
+        if(LiteMode)
+            return false;
         return UseProximityHider;
     }
     
@@ -228,6 +231,8 @@ public class OrebfuscatorConfig
     
     public static boolean getAntiTexturePackAndFreecam()
     {
+        if(LiteMode)
+            return false;
         return AntiTexturePackAndFreecam;
     }
     
@@ -239,6 +244,11 @@ public class OrebfuscatorConfig
     public static boolean getEnabled()
     {
         return Enabled;
+    }
+
+    public static boolean getLiteMode()
+    {
+        return LiteMode;
     }
     
     public static String getCacheLocation()
@@ -453,6 +463,12 @@ public class OrebfuscatorConfig
         Enabled = data;
     }
     
+    public static void setLiteMode(boolean data)
+    {
+        setData("Booleans.LiteMode", data);
+        LiteMode = data;
+    }
+    
     public static void setCacheLocation(String data)
     {
         setData("Strings.CacheLocation", data);
@@ -528,12 +544,12 @@ public class OrebfuscatorConfig
         }
     }
     
-    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks, boolean removeTransparent)
     {
         for (int i = 0; i < boolArray.length; i++)
         {
             boolArray[i] = blocks.contains(i);
-            if (boolArray[i] && isBlockTransparent((short) i))
+            if (removeTransparent && boolArray[i] && isBlockTransparent((short) i))
             {
                 boolArray[i] = false;
             }
@@ -603,8 +619,9 @@ public class OrebfuscatorConfig
         LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
-        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129 })));
-        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 129 })));
+        LiteMode = getBoolean("Booleans.LiteMode", LiteMode);
+        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })), true);
+        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 129, 130, 145 })), false);
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
@@ -617,7 +634,7 @@ public class OrebfuscatorConfig
             //Don't want people to put chests and other stuff that lags the hell out of players.
             if (OrebfuscatorConfig.isBlockTransparent((short) (int) RandomBlocks[i]))
             {
-                RandomBlocks[i] = 0;
+                RandomBlocks[i] = 1;
             }
         }
         RandomBlocks2 = RandomBlocks;

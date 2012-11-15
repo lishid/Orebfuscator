@@ -16,26 +16,38 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
-import org.bukkit.Bukkit;
+import net.minecraft.server.WorldServer;
+
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.entity.Player;
+import org.bukkit.craftbukkit.CraftWorld;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 
 public class BlockUpdate
 {
+    public static boolean needsUpdate(Block block)
+    {
+        byte id = (byte) block.getTypeId();
+        return !OrebfuscatorConfig.isBlockTransparent(id);
+    }
+    
+    public static void Update(Block block)
+    {
+        if (!needsUpdate(block))
+            return;
+        
+        UpdateBlocksNearby(block);
+    }
+    
     public static void UpdateBlocksNearby(Block block)
     {
         HashSet<Block> blocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius());
         
-        HashSet<CraftPlayer> players = new HashSet<CraftPlayer>();
+        WorldServer worldServer = ((CraftWorld)block.getWorld()).getHandle();
+        /*HashSet<CraftPlayer> players = new HashSet<CraftPlayer>();
         
         List<Player> playerList = getPlayers(block.getWorld());
         
@@ -48,13 +60,14 @@ public class BlockUpdate
             {
                 players.add((CraftPlayer) player);
             }
-        }
+        }*/
         
         blocks.remove(block);
         
         for (Block nearbyBlock : blocks)
         {
-            UpdateBlock(nearbyBlock, players);
+            worldServer.notify(nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
+            //UpdateBlock(nearbyBlock, players);
         }
     }
     
@@ -85,6 +98,7 @@ public class BlockUpdate
             allBlocks.add(block);
         }
     }
+    /*
     
     public static List<Player> getPlayers(World world)
     {
@@ -107,9 +121,11 @@ public class BlockUpdate
         if (block == null)
             return;
         
+        ((CraftWorld)block.getWorld()).getHandle().notify(block.getX(), block.getY(), block.getZ());
+        
         for (CraftPlayer player : players)
         {
             player.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
         }
-    }
+    }*/
 }

@@ -18,10 +18,16 @@ package com.lishid.orebfuscator.hook;
 
 import java.lang.reflect.InvocationTargetException;
 
+import net.minecraft.server.EntityPlayer;
+import net.minecraft.server.INetworkManager;
 import net.minecraft.server.Packet;
+import net.minecraft.server.Packet130UpdateSign;
+import net.minecraft.server.Packet132TileEntityData;
 import net.minecraft.server.Packet14BlockDig;
 import net.minecraft.server.Packet51MapChunk;
+import net.minecraft.server.Packet53BlockChange;
 import net.minecraft.server.Packet56MapChunkBulk;
+import net.minecraft.server.World;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -46,6 +52,7 @@ import com.lishid.orebfuscator.threading.ChunkCompressionThread;
 import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 import com.lishid.orebfuscator.threading.OrebfuscatorSchedulerProtocolLib;
 import com.lishid.orebfuscator.threading.OrebfuscatorThreadCalculation;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public class ProtocolLibHook
 {
@@ -108,6 +115,7 @@ public class ProtocolLibHook
         
         Integer[] packets = new Integer[] { Packets.Server.MAP_CHUNK, Packets.Server.MAP_CHUNK_BULK };
         Integer[] packets2 = new Integer[] { Packets.Client.BLOCK_DIG };
+        Integer[] packets3 = new Integer[] { Packets.Server.UPDATE_SIGN, Packets.Server.TILE_ENTITY_DATA };
         
         manager = ProtocolLibrary.getProtocolManager();
         stream = new ChunkCompressorStream();
@@ -160,10 +168,37 @@ public class ProtocolLibHook
             @Override
             public void onPacketSending(PacketEvent event)
             {
+                EntityPlayer player = ((CraftPlayer)event.getPlayer()).getHandle();
+                INetworkManager networkManager = ((CraftPlayer)event.getPlayer()).getHandle().netServerHandler.networkManager;
                 switch (event.getPacketID())
                 {
                     case Packets.Server.MAP_CHUNK:
+                        
+                        //Send pre-chunk
+                        Packet51MapChunk packet2 = (Packet51MapChunk) event.getPacket().getHandle();
+                        
+                        //if ((info.chunkMask == 0) && (info.extraMask == 0))  
+                        if ((packet2.c == 0) && (packet2.d == 0)) 
+                        {
+                            event.getAsyncMarker().setAsyncCancelled(true);
+                        }
+                        else
+                        {
+                            //networkManager.queue(OrebfuscatorNetServerHandler.preChunk(packet2.a, packet2.b, player));
+                            scheduler.SyncThreads();
+                        }
+                        break;
                     case Packets.Server.MAP_CHUNK_BULK:
+                        //Send pre-chunk
+                        Packet56MapChunkBulk packet3 = (Packet56MapChunkBulk) event.getPacket().getHandle();
+                        int[] x = (int[]) ReflectionHelper.getPrivateField(packet3, "c");
+                        int[] z = (int[]) ReflectionHelper.getPrivateField(packet3, "d");
+                        
+                        for (int i = 0; i < x.length; i++)
+                        {
+                            networkManager.queue(OrebfuscatorNetServerHandler.preChunk(x[i], z[i], player));
+                        }
+                        
                         // Create or remove more workers now
                         scheduler.SyncThreads();
                         break;
@@ -171,9 +206,37 @@ public class ProtocolLibHook
             }
         });
         
+        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets3)
+        {
+            @Override
+            public void onPacketSending(PacketEvent event)
+            {
+                World world = ((CraftPlayer)event.getPlayer()).getHandle().world;
+                INetworkManager networkManager = ((CraftPlayer)event.getPlayer()).getHandle().netServerHandler.networkManager;
+                switch (event.getPacketID())
+                {
+                    case Packets.Server.UPDATE_SIGN:
+                        if (event.getPacket().getHandle() instanceof Packet130UpdateSign)
+                        {
+                            Packet130UpdateSign newPacket = (Packet130UpdateSign)event.getPacket().getHandle();
+
+                            networkManager.queue(new Packet53BlockChange(newPacket.x, newPacket.y, newPacket.z, world));
+                        }
+                        break;
+                    case Packets.Server.TILE_ENTITY_DATA:
+                        if(event.getPacket().getHandle() instanceof Packet132TileEntityData)
+                        {
+                            Packet132TileEntityData newPacket = (Packet132TileEntityData)event.getPacket().getHandle();
+
+                            networkManager.queue(new Packet53BlockChange(newPacket.a, newPacket.b, newPacket.c, world));
+                        }
+                        break;
+                }
+            }
+        });
+        
         asyncHandler = manager.getAsynchronousManager().registerAsyncHandler(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, ListenerPriority.HIGH, packets)
         {
-            
             @Override
             public void onPacketSending(PacketEvent event)
             {
@@ -191,7 +254,7 @@ public class ProtocolLibHook
                         System.out.println("Cannot find worker " + marker.getWorkerID());
                         return;
                     }
-                    
+                    /*
                     // Set priority too
                     if (packet instanceof Packet51MapChunk)
                     {
@@ -207,7 +270,7 @@ public class ProtocolLibHook
                     {
                         throw new IllegalArgumentException("Cannot process packet ID " + event.getPacketID());
                     }
-                    
+                    */
                     marker.setPacketStream(stream);
                     thread.processPacket(packet, player);
                     

@@ -16,17 +16,13 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import java.lang.reflect.Field;
 import java.util.zip.CRC32;
 
 import net.minecraft.server.WorldServer;
 
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.ChunkCompressionThread;
 import org.bukkit.craftbukkit.CraftWorld;
-
-import com.lishid.orebfuscator.Orebfuscator;
 
 public class CalculationsUtil
 {
@@ -64,24 +60,7 @@ public class CalculationsUtil
         return (current + 1) % max;
     }
     
-    public static Object getPrivateField(Object object, String fieldName)
-    {
-        Field field;
-        Object newObject = new int[0];
-        try
-        {
-            field = object.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            newObject = field.get(object);
-        }
-        catch (Exception e)
-        {
-            Orebfuscator.log(e);
-        }
-        
-        return newObject;
-    }
-    
+    /*
     public static void setChunkCompressionThreadBuffer(byte[] buffer)
     {
         try
@@ -97,5 +76,5 @@ public class CalculationsUtil
         {
             Orebfuscator.log(e);
         }
-    }
+    }*/
 }

@@ -9,7 +9,7 @@ import net.minecraft.server.Packet56MapChunkBulk;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public abstract class OrebfuscatorScheduler {
 	
@@ -94,8 +94,8 @@ public abstract class OrebfuscatorScheduler {
     public abstract void Queue(Packet51MapChunk packet, CraftPlayer player);
     
 	public boolean isImportant(Packet56MapChunkBulk packet, CraftPlayer player) {
-        int[] x = (int[]) CalculationsUtil.getPrivateField(packet, "c");
-        int[] z = (int[]) CalculationsUtil.getPrivateField(packet, "d");
+        int[] x = (int[]) ReflectionHelper.getPrivateField(packet, "c");
+        int[] z = (int[]) ReflectionHelper.getPrivateField(packet, "d");
        
         for (int i = 0; i < x.length; i++)
         {

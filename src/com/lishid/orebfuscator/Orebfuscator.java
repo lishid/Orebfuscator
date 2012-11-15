@@ -140,9 +140,6 @@ public class Orebfuscator extends JavaPlugin
             Orebfuscator.log(e);
         }
         
-        // Load ProximityHider
-        ProximityHider.Load();
-        
         // Output
         PluginDescriptionFile pdfFile = this.getDescription();
         Orebfuscator.log("Version " + pdfFile.getVersion() + " enabled!");
