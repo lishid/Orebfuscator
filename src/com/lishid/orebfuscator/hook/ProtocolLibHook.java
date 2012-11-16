@@ -19,15 +19,12 @@ package com.lishid.orebfuscator.hook;
 import java.lang.reflect.InvocationTargetException;
 
 import net.minecraft.server.EntityPlayer;
-import net.minecraft.server.INetworkManager;
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet130UpdateSign;
 import net.minecraft.server.Packet132TileEntityData;
 import net.minecraft.server.Packet14BlockDig;
 import net.minecraft.server.Packet51MapChunk;
-import net.minecraft.server.Packet53BlockChange;
 import net.minecraft.server.Packet56MapChunkBulk;
-import net.minecraft.server.World;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -112,13 +109,61 @@ public class ProtocolLibHook
     
     public void register(Plugin plugin)
     {
-        
-        Integer[] packets = new Integer[] { Packets.Server.MAP_CHUNK, Packets.Server.MAP_CHUNK_BULK };
-        Integer[] packets2 = new Integer[] { Packets.Client.BLOCK_DIG };
-        Integer[] packets3 = new Integer[] { Packets.Server.UPDATE_SIGN, Packets.Server.TILE_ENTITY_DATA };
-        
         manager = ProtocolLibrary.getProtocolManager();
         stream = new ChunkCompressorStream();
+        
+        //Process Chunk packets
+        Integer[] packets = new Integer[] { Packets.Server.MAP_CHUNK, Packets.Server.MAP_CHUNK_BULK };
+        
+        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets)
+        {
+            @Override
+            public void onPacketSending(PacketEvent event)
+            {
+                EntityPlayer player = ((CraftPlayer) event.getPlayer()).getHandle();
+                switch (event.getPacketID())
+                {
+                    case Packets.Server.MAP_CHUNK:
+                        
+                        Packet51MapChunk packet2 = (Packet51MapChunk) event.getPacket().getHandle();
+                        
+                        // If empty chunk, then send it out directly
+                        if ((packet2.c == 0) && (packet2.d == 0))
+                        {
+                            event.getAsyncMarker().setAsyncCancelled(true);
+                        }
+                        else
+                        {
+                            // Tell the Chunk Manager that we're processing that chunk, so that we can delay any TileEntity updates
+                            ChunkCompressionThread.QueueChunkProcessing(player, player.world.getChunkAt(packet2.a, packet2.b));
+                            // Synchronize threading
+                            scheduler.SyncThreads();
+                        }
+                        break;
+                    
+                    case Packets.Server.MAP_CHUNK_BULK:
+                        
+                        Packet56MapChunkBulk packet3 = (Packet56MapChunkBulk) event.getPacket().getHandle();
+                        
+                        // Get X and Z coords of chunks within the packet
+                        int[] x = (int[]) ReflectionHelper.getPrivateField(packet3, "c");
+                        int[] z = (int[]) ReflectionHelper.getPrivateField(packet3, "d");
+                        
+                        for (int i = 0; i < x.length; i++)
+                        {
+                            // Tell the Chunk Manager that we're processing that chunk, so that we can delay any TileEntity updates
+                            ChunkCompressionThread.QueueChunkProcessing(player, player.world.getChunkAt(x[i], z[i]));
+                        }
+                        
+                        // Synchronize threading
+                        scheduler.SyncThreads();
+                        break;
+                }
+            }
+        });
+
+        // This is to fix a bukkit security hole causing raw block IDs being sent to clients
+        Integer[] packets2 = new Integer[] { Packets.Client.BLOCK_DIG };
         
         manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.CLIENT_SIDE, packets2)
         {
@@ -133,15 +178,16 @@ public class ProtocolLibHook
                         
                         if (packet.e == 1 || packet.e == 3)
                         {
-                            if (!BlockHitManager.canFakeHit(event.getPlayer()))
-                            {
-                                BlockHitManager.fakeHit(event.getPlayer());
-                                event.setCancelled(true);
-                            }
-                            
                             if (event != null && event.getPlayer() != null)
                             {
-                                // Anti-hack
+                                if (!BlockHitManager.canFakeHit(event.getPlayer()))
+                                {
+                                    BlockHitManager.fakeHit(event.getPlayer());
+                                    event.setCancelled(true);
+                                    break;
+                                }
+                                
+                                // Find distance to player
                                 int i = packet.a;
                                 int j = packet.b;
                                 int k = packet.c;
@@ -162,73 +208,41 @@ public class ProtocolLibHook
                 }
             }
         });
-        
-        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets)
-        {
-            @Override
-            public void onPacketSending(PacketEvent event)
-            {
-                EntityPlayer player = ((CraftPlayer)event.getPlayer()).getHandle();
-                INetworkManager networkManager = ((CraftPlayer)event.getPlayer()).getHandle().netServerHandler.networkManager;
-                switch (event.getPacketID())
-                {
-                    case Packets.Server.MAP_CHUNK:
-                        
-                        //Send pre-chunk
-                        Packet51MapChunk packet2 = (Packet51MapChunk) event.getPacket().getHandle();
-                        
-                        //if ((info.chunkMask == 0) && (info.extraMask == 0))  
-                        if ((packet2.c == 0) && (packet2.d == 0)) 
-                        {
-                            event.getAsyncMarker().setAsyncCancelled(true);
-                        }
-                        else
-                        {
-                            //networkManager.queue(OrebfuscatorNetServerHandler.preChunk(packet2.a, packet2.b, player));
-                            scheduler.SyncThreads();
-                        }
-                        break;
-                    case Packets.Server.MAP_CHUNK_BULK:
-                        //Send pre-chunk
-                        Packet56MapChunkBulk packet3 = (Packet56MapChunkBulk) event.getPacket().getHandle();
-                        int[] x = (int[]) ReflectionHelper.getPrivateField(packet3, "c");
-                        int[] z = (int[]) ReflectionHelper.getPrivateField(packet3, "d");
-                        
-                        for (int i = 0; i < x.length; i++)
-                        {
-                            networkManager.queue(OrebfuscatorNetServerHandler.preChunk(x[i], z[i], player));
-                        }
-                        
-                        // Create or remove more workers now
-                        scheduler.SyncThreads();
-                        break;
-                }
-            }
-        });
+
+        // Intercept all TileEntity updates
+        Integer[] packets3 = new Integer[] { Packets.Server.UPDATE_SIGN, Packets.Server.TILE_ENTITY_DATA };
         
         manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets3)
         {
             @Override
             public void onPacketSending(PacketEvent event)
             {
-                World world = ((CraftPlayer)event.getPlayer()).getHandle().world;
-                INetworkManager networkManager = ((CraftPlayer)event.getPlayer()).getHandle().netServerHandler.networkManager;
+                EntityPlayer player = ((CraftPlayer) event.getPlayer()).getHandle();
+                
                 switch (event.getPacketID())
                 {
                     case Packets.Server.UPDATE_SIGN:
                         if (event.getPacket().getHandle() instanceof Packet130UpdateSign)
                         {
-                            Packet130UpdateSign newPacket = (Packet130UpdateSign)event.getPacket().getHandle();
+                            Packet130UpdateSign newPacket = (Packet130UpdateSign) event.getPacket().getHandle();
 
-                            networkManager.queue(new Packet53BlockChange(newPacket.x, newPacket.y, newPacket.z, world));
+                            // Check if the chunk is being processed. If so, the packet is saved to be sent later.
+                            if (!ChunkCompressionThread.CheckChunkPacket(player, player.world.getChunkAt(newPacket.x >> 4, newPacket.z >> 4), newPacket))
+                            {
+                                event.setCancelled(true);
+                            }
                         }
                         break;
                     case Packets.Server.TILE_ENTITY_DATA:
-                        if(event.getPacket().getHandle() instanceof Packet132TileEntityData)
+                        if (event.getPacket().getHandle() instanceof Packet132TileEntityData)
                         {
-                            Packet132TileEntityData newPacket = (Packet132TileEntityData)event.getPacket().getHandle();
+                            Packet132TileEntityData newPacket = (Packet132TileEntityData) event.getPacket().getHandle();
 
-                            networkManager.queue(new Packet53BlockChange(newPacket.a, newPacket.b, newPacket.c, world));
+                            // Check if the chunk is being processed. If so, the packet is saved to be sent later.
+                            if (!ChunkCompressionThread.CheckChunkPacket(player, player.world.getChunkAt(newPacket.a >> 4, newPacket.b >> 4), newPacket))
+                            {
+                                event.setCancelled(true);
+                            }
                         }
                         break;
                 }
@@ -254,23 +268,7 @@ public class ProtocolLibHook
                         System.out.println("Cannot find worker " + marker.getWorkerID());
                         return;
                     }
-                    /*
-                    // Set priority too
-                    if (packet instanceof Packet51MapChunk)
-                    {
-                        if (scheduler.isImportant((Packet51MapChunk) packet, player))
-                            marker.setNewSendingIndex(0);
-                    }
-                    else if (packet instanceof Packet56MapChunkBulk)
-                    {
-                        if (scheduler.isImportant((Packet56MapChunkBulk) packet, player))
-                            marker.setNewSendingIndex(0);
-                    }
-                    else
-                    {
-                        throw new IllegalArgumentException("Cannot process packet ID " + event.getPacketID());
-                    }
-                    */
+                    
                     marker.setPacketStream(stream);
                     thread.processPacket(packet, player);
                     

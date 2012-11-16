@@ -16,6 +16,7 @@
 
 package com.lishid.orebfuscator.threading;
 
+import java.util.HashSet;
 import java.util.WeakHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,12 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
+import  net.minecraft.server.Chunk;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.obfuscation.ChunkInfo;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 
@@ -37,6 +38,77 @@ public class ChunkCompressionThread extends Thread implements Runnable
     private static final int QUEUE_CAPACITY = 1024 * 50;
     private static final LinkedBlockingDeque<QueuedPacket> queue = new LinkedBlockingDeque<QueuedPacket>(QUEUE_CAPACITY);
     private static final Object threadLock = new Object();
+    
+    private static WeakHashMap<EntityPlayer, PendingPackets> chunkPacketQueue = new WeakHashMap<EntityPlayer, PendingPackets>();
+    
+    private static class PendingPackets {
+        EntityPlayer player;
+        WeakHashMap<Chunk, HashSet<Packet>> packetsHashMap = new WeakHashMap<Chunk, HashSet<Packet>>();
+        
+        public PendingPackets(EntityPlayer player)
+        {
+            this.player = player;
+        }
+        
+        public void QueueChunkProcessing(Chunk chunk)
+        {
+            packetsHashMap.put(chunk, new HashSet<Packet>());
+        }
+        
+        //Return false if the packet should be queued instead of sent
+        public boolean CheckChunkPacket(Chunk chunk, Packet packet)
+        {
+            if(packetsHashMap.containsKey(chunk))
+            {
+                packetsHashMap.get(chunk).add(packet);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        public void FinalizeChunkProcessing(Chunk chunk)
+        {
+            if(packetsHashMap.containsKey(chunk))
+            {
+                HashSet<Packet> packets = packetsHashMap.get(chunk);
+                packetsHashMap.remove(chunk);
+                for(Packet p : packets)
+                {
+                    player.netServerHandler.networkManager.queue(p);
+                }
+            }
+        }
+        
+        
+    }
+    public static void QueueChunkProcessing(EntityPlayer player, Chunk chunk)
+    {
+        if(!chunkPacketQueue.containsKey(player))
+        {
+            chunkPacketQueue.put(player, new PendingPackets(player));
+        }
+        chunkPacketQueue.get(player).QueueChunkProcessing(chunk);
+    }
+    
+    //Return false if the packet should be queued instead of sent
+    public static boolean CheckChunkPacket(EntityPlayer player, Chunk chunk, Packet packet)
+    {
+        if(!chunkPacketQueue.containsKey(player))
+        {
+            return true;
+        }
+        return chunkPacketQueue.get(player).CheckChunkPacket(chunk, packet);
+    }
+    
+    public static void FinalizeChunkProcessing(EntityPlayer player, Chunk chunk)
+    {
+        if(chunkPacketQueue.containsKey(player))
+        {
+            chunkPacketQueue.get(player).FinalizeChunkProcessing(chunk);
+        }
+    }
+    
     
     public static void terminate()
     {
@@ -49,12 +121,16 @@ public class ChunkCompressionThread extends Thread implements Runnable
     public static void sendOut(QueuedPacket packet)
     {
         packet.player.netServerHandler.networkManager.queue(packet.packet);
+        
         for (ChunkInfo info : packet.infos)
         {
+            FinalizeChunkProcessing(packet.player, info.world.getChunkAt(info.chunkX, info.chunkZ));
+            
+            /*
             if (info != null)
             {
                 Calculations.sendTileEntities(info);
-            }
+            }*/
         }
     }
     
@@ -115,14 +191,7 @@ public class ChunkCompressionThread extends Thread implements Runnable
     }
     
     private static ChunkCompressionThread thread = new ChunkCompressionThread();
-    /*
-    private final int CHUNK_SIZE = 16 * 256 * 16 * 5 / 2;
-    private final int REDUCED_DEFLATE_THRESHOLD = CHUNK_SIZE / 4;
-    private final int DEFLATE_LEVEL_CHUNKS = 6;
-    private final int DEFLATE_LEVEL_PARTS = 1;
-    private final Deflater deflater = new Deflater();
-    private byte[] deflateBuffer = new byte[CHUNK_SIZE + 100];
-    */
+    
     public long lastExecute = System.currentTimeMillis();
     public AtomicBoolean kill = new AtomicBoolean(false);
     
@@ -197,68 +266,6 @@ public class ChunkCompressionThread extends Thread implements Runnable
             }
         }
     }
-    /*
-    private void CompressChunk(Packet packet)
-    {
-        if (packet instanceof Packet56MapChunkBulk)
-        {
-            Packet56MapChunkBulk newPacket = (Packet56MapChunkBulk) packet;
-            
-            if ((byte[])ReflectionHelper.getPrivateField(newPacket, "buffer") != null)
-            {
-                return;
-            }
-            int dataSize = newPacket.buildBuffer.length;
-            if (deflateBuffer.length < dataSize + 100)
-            {
-                deflateBuffer = new byte[dataSize + 100];
-            }
-            
-            deflater.reset();
-            deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
-            deflater.setInput(newPacket.buildBuffer);
-            deflater.finish();
-            int size = deflater.deflate(deflateBuffer);
-            if (size == 0)
-            {
-                size = deflater.deflate(deflateBuffer);
-            }
-            
-            // copy compressed data to packet
-            newPacket.buffer = new byte[size];
-            newPacket.size = size;
-            System.arraycopy(deflateBuffer, 0, newPacket.buffer, 0, size);
-        }
-        else if (packet instanceof Packet51MapChunk)
-        {
-            Packet51MapChunk newPacket = (Packet51MapChunk) packet;
-
-            if (newPacket.buffer != null)
-            {
-                return;
-            }
-            int dataSize = newPacket.inflatedBuffer.length;
-            if (deflateBuffer.length < dataSize + 100)
-            {
-                deflateBuffer = new byte[dataSize + 100];
-            }
-            
-            deflater.reset();
-            deflater.setLevel(dataSize < REDUCED_DEFLATE_THRESHOLD ? DEFLATE_LEVEL_PARTS : DEFLATE_LEVEL_CHUNKS);
-            deflater.setInput(newPacket.inflatedBuffer);
-            deflater.finish();
-            int size = deflater.deflate(deflateBuffer);
-            if (size == 0)
-            {
-                size = deflater.deflate(deflateBuffer);
-            }
-            
-            // copy compressed data to packet
-            newPacket.buffer = new byte[size];
-            newPacket.size = size;
-            System.arraycopy(deflateBuffer, 0, newPacket.buffer, 0, size);
-        }
-    }*/
     
     public static boolean isOverflowing(NetworkManager nm)
     {

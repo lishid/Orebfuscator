@@ -17,6 +17,7 @@
 package com.lishid.orebfuscator.hook;
 
 import com.lishid.orebfuscator.hithack.BlockHitManager;
+import com.lishid.orebfuscator.threading.ChunkCompressionThread;
 import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 
@@ -28,102 +29,90 @@ import net.minecraft.server.Packet130UpdateSign;
 import net.minecraft.server.Packet132TileEntityData;
 import net.minecraft.server.Packet14BlockDig;
 import net.minecraft.server.Packet51MapChunk;
-import net.minecraft.server.Packet53BlockChange;
 import net.minecraft.server.Packet56MapChunkBulk;
 import net.minecraftserverhook.NetServerHandlerProxy;
 
 public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
 {
-    public static byte[] buffer;
-    public static int size;
-    public static int initialized = 0;
-    
-    static
-    {
-        byte[] buffer2 = new byte[10240 + 256];
-        java.util.Arrays.fill(buffer2, 0, buffer2.length, (byte) 0);
-        
-        Packet51MapChunk prechunk = new Packet51MapChunk();
-        ReflectionHelper.setPrivateField(prechunk, "inflatedBuffer", buffer2);
-        prechunk.compress();
-        buffer = (byte[]) ReflectionHelper.getPrivateField(prechunk, "buffer");
-        size = (int) (Integer) ReflectionHelper.getPrivateField(prechunk, "size");
-    }
-    
     public OrebfuscatorNetServerHandler(MinecraftServer minecraftserver, NetServerHandler instance)
     {
         super(minecraftserver, instance);
     }
     
-    public static Packet51MapChunk preChunk(int x, int z, EntityPlayer player)
-    {
-        Packet51MapChunk prechunk = new Packet51MapChunk();
-        
-        prechunk.a = x;
-        prechunk.b = z;
-        prechunk.c = 1;
-        
-        ReflectionHelper.setPrivateField(prechunk, "e", true);
-        ReflectionHelper.setPrivateField(prechunk, "buffer", buffer);
-        ReflectionHelper.setPrivateField(prechunk, "size", size);
-        
-        return prechunk;
-    }
-    
     @Override
     public void sendPacket(Packet packet)
     {
+        EntityPlayer player = this.getPlayer().getHandle();
+        
         if (packet instanceof Packet51MapChunk)
         {
-            
             Packet51MapChunk packet2 = (Packet51MapChunk) packet;
-            if ((packet2.c == 0) && (packet2.d == 0)) 
+            
+            // If empty chunk, then send it out directly
+            if ((packet2.c == 0) && (packet2.d == 0))
             {
                 super.sendPacket(packet);
             }
             else
             {
-                // Send pre-chunk
-                // networkManager.queue(preChunk(packet2.a, packet2.b, this.player));
-                // Obfuscate packet
+                // Tell the Chunk Manager that we're processing that chunk, so that we can delay any TileEntity updates
+                ChunkCompressionThread.QueueChunkProcessing(player, player.world.getChunkAt(packet2.a, packet2.b));
+                // Synchronize threading
                 OrebfuscatorScheduler.getScheduler().SyncThreads();
+                // Obfuscate packet
                 OrebfuscatorScheduler.getScheduler().Queue((Packet51MapChunk) packet, this.getPlayer());
             }
             
         }
         else if (packet instanceof Packet56MapChunkBulk)
         {
-            // Send pre-chunk
             Packet56MapChunkBulk packet2 = (Packet56MapChunkBulk) packet;
+            
+            // Get X and Z coords of chunks within the packet
             int[] x = (int[]) ReflectionHelper.getPrivateField(packet2, "c");
             int[] z = (int[]) ReflectionHelper.getPrivateField(packet2, "d");
             
             for (int i = 0; i < x.length; i++)
             {
-                networkManager.queue(preChunk(x[i], z[i], this.player));
+                // Tell the Chunk Manager that we're processing that chunk, so that we can delay any TileEntity updates
+                ChunkCompressionThread.QueueChunkProcessing(player, player.world.getChunkAt(x[i], z[i]));
             }
             
-            // Obfuscate packet
+            // Synchronize threading
             OrebfuscatorScheduler.getScheduler().SyncThreads();
+            // Obfuscate packet
             OrebfuscatorScheduler.getScheduler().Queue((Packet56MapChunkBulk) packet, this.getPlayer());
         }
         else
         {
+            // Intercept all TileEntity updates
             if (packet instanceof Packet130UpdateSign)
             {
                 Packet130UpdateSign newPacket = (Packet130UpdateSign) packet;
-                networkManager.queue(new Packet53BlockChange(newPacket.x, newPacket.y, newPacket.z, this.player.world));
+                
+                // Check if the chunk is being processed. If so, the packet is saved to be sent later.
+                if (!ChunkCompressionThread.CheckChunkPacket(player, player.world.getChunkAt(newPacket.x >> 4, newPacket.z >> 4), newPacket))
+                {
+                    return;
+                }
             }
             else if (packet instanceof Packet132TileEntityData)
             {
                 Packet132TileEntityData newPacket = (Packet132TileEntityData) packet;
-                networkManager.queue(new Packet53BlockChange(newPacket.a, newPacket.b, newPacket.c, this.player.world));
+                
+                // Check if the chunk is being processed. If so, the packet is saved to be sent later.
+                if (!ChunkCompressionThread.CheckChunkPacket(player, player.world.getChunkAt(newPacket.a >> 4, newPacket.b >> 4), newPacket))
+                {
+                    return;
+                }
             }
             
+            // Send the packet if it does not need processing
             super.sendPacket(packet);
         }
     }
     
+    // This is to fix a bukkit security hole causing raw block IDs being sent to clients
     @Override
     public void a(Packet14BlockDig packet)
     {
@@ -134,7 +123,7 @@ public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
                 return;
             }
             
-            // Anti-hack
+            // Find distance to player
             int i = packet.a;
             int j = packet.b;
             int k = packet.c;
@@ -146,6 +135,7 @@ public class OrebfuscatorNetServerHandler extends NetServerHandlerProxy
             
             if (d7 >= 256.0D)
             {
+                // Anti-hack
                 BlockHitManager.fakeHit(this.getPlayer());
                 return;
             }
