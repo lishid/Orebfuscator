@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2011-2012 lishid.  All rights reserved.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation,  version 3.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.lishid.orebfuscator.threading;
 
 import java.util.ArrayList;
@@ -11,8 +27,8 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 
-public abstract class OrebfuscatorScheduler {
-	
+public abstract class OrebfuscatorScheduler
+{
     static class QueuedPacket
     {
         final CraftPlayer player;
@@ -24,19 +40,21 @@ public abstract class OrebfuscatorScheduler {
             this.packet = packet;
         }
     }
-
+    
     // Start by using the default scheduler
     private static OrebfuscatorScheduler scheduler = new OrebfuscatorSchedulerDefault();
-
-    public static OrebfuscatorScheduler getScheduler() {
-		return scheduler;
-	}
-
-	public static void setScheduler(OrebfuscatorScheduler scheduler) {
-		OrebfuscatorScheduler.scheduler = scheduler;
-	}
-
-	protected ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
+    
+    public static OrebfuscatorScheduler getScheduler()
+    {
+        return scheduler;
+    }
+    
+    public static void setScheduler(OrebfuscatorScheduler scheduler)
+    {
+        OrebfuscatorScheduler.scheduler = scheduler;
+    }
+    
+    protected ArrayList<OrebfuscatorThreadCalculation> threads = new ArrayList<OrebfuscatorThreadCalculation>();
     
     public int getThreads()
     {
@@ -51,8 +69,9 @@ public abstract class OrebfuscatorScheduler {
         }
     }
     
-    public void removeThread(OrebfuscatorThreadCalculation thread) {
-    	threads.remove(thread);
+    public void removeThread(OrebfuscatorThreadCalculation thread)
+    {
+        threads.remove(thread);
     }
     
     public synchronized void SyncThreads()
@@ -91,25 +110,27 @@ public abstract class OrebfuscatorScheduler {
     protected abstract OrebfuscatorThreadCalculation createThread();
     
     public abstract void Queue(Packet56MapChunkBulk packet, CraftPlayer player);
+    
     public abstract void Queue(Packet51MapChunk packet, CraftPlayer player);
     
-	public boolean isImportant(Packet56MapChunkBulk packet, CraftPlayer player) {
+    public boolean isImportant(Packet56MapChunkBulk packet, CraftPlayer player)
+    {
         int[] x = (int[]) ReflectionHelper.getPrivateField(packet, "c");
         int[] z = (int[]) ReflectionHelper.getPrivateField(packet, "d");
-       
+        
         for (int i = 0; i < x.length; i++)
         {
             if (Math.abs(x[i] - (((int) player.getLocation().getX()) >> 4)) == 0 && Math.abs(z[i] - (((int) player.getLocation().getZ())) >> 4) == 0)
             {
-            	return true;
+                return true;
             }
         }
-		
+        
         return false;
-	}
-	
-	public boolean isImportant(Packet51MapChunk packet, CraftPlayer player) {
-		return Math.abs(packet.a - (((int) player.getLocation().getX()) >> 4)) == 0 && 
-			   Math.abs(packet.b - (((int) player.getLocation().getZ())) >> 4) == 0;
-	}
+    }
+    
+    public boolean isImportant(Packet51MapChunk packet, CraftPlayer player)
+    {
+        return Math.abs(packet.a - (((int) player.getLocation().getX()) >> 4)) == 0 && Math.abs(packet.b - (((int) player.getLocation().getZ())) >> 4) == 0;
+    }
 }

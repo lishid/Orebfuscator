@@ -45,15 +45,15 @@ public class SpoutLoader
                 if (((MCCraftPacket) mcpacket).getPacket() instanceof Packet51MapChunk)
                 {
                     // Obfuscate packet
-                	OrebfuscatorScheduler.getScheduler().SyncThreads();
+                    OrebfuscatorScheduler.getScheduler().SyncThreads();
                     OrebfuscatorScheduler.getScheduler().Queue((Packet51MapChunk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
                     return false;
                 }
                 if (((MCCraftPacket) mcpacket).getPacket() instanceof Packet56MapChunkBulk)
                 {
                     // Obfuscate packet
-                	OrebfuscatorScheduler.getScheduler().SyncThreads();
-                	OrebfuscatorScheduler.getScheduler().Queue((Packet56MapChunkBulk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
+                    OrebfuscatorScheduler.getScheduler().SyncThreads();
+                    OrebfuscatorScheduler.getScheduler().Queue((Packet56MapChunkBulk) ((MCCraftPacket) mcpacket).getPacket(), (CraftPlayer) player);
                     return false;
                 }
                 return true;
@@ -61,6 +61,4 @@ public class SpoutLoader
         };
         SpoutManager.getPacketManager().addListener(51, listener);
     }
-    
-    
 }

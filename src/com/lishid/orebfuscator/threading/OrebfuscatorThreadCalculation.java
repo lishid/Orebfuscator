@@ -33,27 +33,31 @@ public abstract class OrebfuscatorThreadCalculation extends Thread implements Ru
 {
     protected AtomicBoolean kill = new AtomicBoolean(false);
     protected byte[] chunkBuffer = new byte[65536];
- 
+    
     protected boolean queueForSending = true;
     
-    public OrebfuscatorThreadCalculation(boolean queueForSending) {
-		this.queueForSending = queueForSending;
-	}
-
-	public void kill() {
-    	kill.set(true);
+    public OrebfuscatorThreadCalculation(boolean queueForSending)
+    {
+        this.queueForSending = queueForSending;
     }
     
-    protected void processPacket(QueuedPacket packet) {
-    	processPacket(packet.packet, packet.player);
+    public void kill()
+    {
+        kill.set(true);
     }
     
-    public void processPacket(Packet packet, CraftPlayer player) {
+    protected void processPacket(QueuedPacket packet)
+    {
+        processPacket(packet.packet, packet.player);
+    }
+    
+    public void processPacket(Packet packet, CraftPlayer player)
+    {
         try
         {
             sendPacket(packet, player);
             
-        	// Don't waste CPU if the player is gone
+            // Don't waste CPU if the player is gone
             if (player.getHandle().netServerHandler.disconnected)
             {
                 return;
@@ -63,7 +67,7 @@ public abstract class OrebfuscatorThreadCalculation extends Thread implements Ru
             {
                 if (!Orebfuscator.players.containsKey(player))
                 {
-                	return;
+                    return;
                 }
             }
             
@@ -82,7 +86,7 @@ public abstract class OrebfuscatorThreadCalculation extends Thread implements Ru
             catch (Throwable e)
             {
                 Orebfuscator.log(e);
-
+                
                 // If we run into problems, just send the packet.
                 sendPacket(packet, player);
             }
@@ -94,11 +98,13 @@ public abstract class OrebfuscatorThreadCalculation extends Thread implements Ru
         }
     }
     
-    protected void sendPacket(Packet packet, CraftPlayer player) {
+    protected void sendPacket(Packet packet, CraftPlayer player)
+    {
         ChunkCompressionThread.Queue(player, packet, new ChunkInfo[0]);
     }
-
-    protected void cleanup() {
-    	OrebfuscatorScheduler.getScheduler().removeThread(this);
+    
+    protected void cleanup()
+    {
+        OrebfuscatorScheduler.getScheduler().removeThread(this);
     }
 }

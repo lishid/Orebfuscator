@@ -56,7 +56,7 @@ public class ObfuscatedCachedChunk
     {
         Read();
         
-        if(!loaded)
+        if (!loaded)
             return 0L;
         
         return hash;

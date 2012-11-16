@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.listeners;
 
-import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -34,9 +33,6 @@ public class OrebfuscatorEntityListener implements Listener
             return;
         }
         
-        for (Block block : event.blockList())
-        {
-            BlockUpdate.Update(block);
-        }
+        BlockUpdate.Update(event.blockList());
     }
 }

@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.NetworkManager;
 import net.minecraft.server.Packet;
-import  net.minecraft.server.Chunk;
+import net.minecraft.server.Chunk;
 
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 
@@ -41,7 +41,8 @@ public class ChunkCompressionThread extends Thread implements Runnable
     
     private static WeakHashMap<EntityPlayer, PendingPackets> chunkPacketQueue = new WeakHashMap<EntityPlayer, PendingPackets>();
     
-    private static class PendingPackets {
+    private static class PendingPackets
+    {
         EntityPlayer player;
         WeakHashMap<Chunk, HashSet<Packet>> packetsHashMap = new WeakHashMap<Chunk, HashSet<Packet>>();
         
@@ -52,16 +53,22 @@ public class ChunkCompressionThread extends Thread implements Runnable
         
         public void QueueChunkProcessing(Chunk chunk)
         {
-            packetsHashMap.put(chunk, new HashSet<Packet>());
+            synchronized (packetsHashMap)
+            {
+                packetsHashMap.put(chunk, new HashSet<Packet>());
+            }
         }
         
-        //Return false if the packet should be queued instead of sent
+        // Return false if the packet should be queued instead of sent
         public boolean CheckChunkPacket(Chunk chunk, Packet packet)
         {
-            if(packetsHashMap.containsKey(chunk))
+            synchronized (packetsHashMap)
             {
-                packetsHashMap.get(chunk).add(packet);
-                return false;
+                if (packetsHashMap.containsKey(chunk))
+                {
+                    packetsHashMap.get(chunk).add(packet);
+                    return false;
+                }
             }
             
             return true;
@@ -69,46 +76,58 @@ public class ChunkCompressionThread extends Thread implements Runnable
         
         public void FinalizeChunkProcessing(Chunk chunk)
         {
-            if(packetsHashMap.containsKey(chunk))
+            if (packetsHashMap.containsKey(chunk))
             {
                 HashSet<Packet> packets = packetsHashMap.get(chunk);
-                packetsHashMap.remove(chunk);
-                for(Packet p : packets)
+                
+                synchronized (packetsHashMap)
+                {
+                    packetsHashMap.remove(chunk);
+                }
+                
+                for (Packet p : packets)
                 {
                     player.netServerHandler.networkManager.queue(p);
                 }
             }
         }
-        
-        
-    }
-    public static void QueueChunkProcessing(EntityPlayer player, Chunk chunk)
-    {
-        if(!chunkPacketQueue.containsKey(player))
-        {
-            chunkPacketQueue.put(player, new PendingPackets(player));
-        }
-        chunkPacketQueue.get(player).QueueChunkProcessing(chunk);
     }
     
-    //Return false if the packet should be queued instead of sent
+    public static void QueueChunkProcessing(EntityPlayer player, Chunk chunk)
+    {
+        synchronized (chunkPacketQueue)
+        {
+            if (!chunkPacketQueue.containsKey(player))
+            {
+                chunkPacketQueue.put(player, new PendingPackets(player));
+            }
+            chunkPacketQueue.get(player).QueueChunkProcessing(chunk);
+        }
+    }
+    
+    // Return false if the packet should be queued instead of sent
     public static boolean CheckChunkPacket(EntityPlayer player, Chunk chunk, Packet packet)
     {
-        if(!chunkPacketQueue.containsKey(player))
+        synchronized (chunkPacketQueue)
         {
-            return true;
+            if (!chunkPacketQueue.containsKey(player))
+            {
+                return true;
+            }
+            return chunkPacketQueue.get(player).CheckChunkPacket(chunk, packet);
         }
-        return chunkPacketQueue.get(player).CheckChunkPacket(chunk, packet);
     }
     
     public static void FinalizeChunkProcessing(EntityPlayer player, Chunk chunk)
     {
-        if(chunkPacketQueue.containsKey(player))
+        synchronized (chunkPacketQueue)
         {
-            chunkPacketQueue.get(player).FinalizeChunkProcessing(chunk);
+            if (chunkPacketQueue.containsKey(player))
+            {
+                chunkPacketQueue.get(player).FinalizeChunkProcessing(chunk);
+            }
         }
     }
-    
     
     public static void terminate()
     {
@@ -127,10 +146,11 @@ public class ChunkCompressionThread extends Thread implements Runnable
             FinalizeChunkProcessing(packet.player, info.world.getChunkAt(info.chunkX, info.chunkZ));
             
             /*
-            if (info != null)
-            {
-                Calculations.sendTileEntities(info);
-            }*/
+             * if (info != null)
+             * {
+             * Calculations.sendTileEntities(info);
+             * }
+             */
         }
     }
     

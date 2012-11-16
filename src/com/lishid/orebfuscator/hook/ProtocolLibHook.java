@@ -112,7 +112,7 @@ public class ProtocolLibHook
         manager = ProtocolLibrary.getProtocolManager();
         stream = new ChunkCompressorStream();
         
-        //Process Chunk packets
+        // Process Chunk packets
         Integer[] packets = new Integer[] { Packets.Server.MAP_CHUNK, Packets.Server.MAP_CHUNK_BULK };
         
         manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets)
@@ -161,7 +161,7 @@ public class ProtocolLibHook
                 }
             }
         });
-
+        
         // This is to fix a bukkit security hole causing raw block IDs being sent to clients
         Integer[] packets2 = new Integer[] { Packets.Client.BLOCK_DIG };
         
@@ -208,7 +208,7 @@ public class ProtocolLibHook
                 }
             }
         });
-
+        
         // Intercept all TileEntity updates
         Integer[] packets3 = new Integer[] { Packets.Server.UPDATE_SIGN, Packets.Server.TILE_ENTITY_DATA };
         
@@ -225,7 +225,7 @@ public class ProtocolLibHook
                         if (event.getPacket().getHandle() instanceof Packet130UpdateSign)
                         {
                             Packet130UpdateSign newPacket = (Packet130UpdateSign) event.getPacket().getHandle();
-
+                            
                             // Check if the chunk is being processed. If so, the packet is saved to be sent later.
                             if (!ChunkCompressionThread.CheckChunkPacket(player, player.world.getChunkAt(newPacket.x >> 4, newPacket.z >> 4), newPacket))
                             {
@@ -237,7 +237,7 @@ public class ProtocolLibHook
                         if (event.getPacket().getHandle() instanceof Packet132TileEntityData)
                         {
                             Packet132TileEntityData newPacket = (Packet132TileEntityData) event.getPacket().getHandle();
-
+                            
                             // Check if the chunk is being processed. If so, the packet is saved to be sent later.
                             if (!ChunkCompressionThread.CheckChunkPacket(player, player.world.getChunkAt(newPacket.a >> 4, newPacket.b >> 4), newPacket))
                             {

@@ -194,7 +194,7 @@ public class OrebfuscatorConfig
     
     public static boolean getUseProximityHider()
     {
-        if(LiteMode)
+        if (LiteMode)
             return false;
         return UseProximityHider;
     }
@@ -231,7 +231,7 @@ public class OrebfuscatorConfig
     
     public static boolean getAntiTexturePackAndFreecam()
     {
-        if(LiteMode)
+        if (LiteMode)
             return false;
         return AntiTexturePackAndFreecam;
     }
@@ -245,7 +245,7 @@ public class OrebfuscatorConfig
     {
         return Enabled;
     }
-
+    
     public static boolean getLiteMode()
     {
         return LiteMode;
@@ -563,27 +563,26 @@ public class OrebfuscatorConfig
         if (version < CONFIG_VERSION)
         {
             /*
-            Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
-            File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
-            File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
-            if (destination.exists())
-            {
-                try
-                {
-                    destination.delete();
-                }
-                catch (Exception e)
-                {
-                    Orebfuscator.log(e);
-                }
-            }
-            configFile.renameTo(destination);
-            reload();
-            */
+             * Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
+             * File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
+             * File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
+             * if (destination.exists())
+             * {
+             * try
+             * {
+             * destination.delete();
+             * }
+             * catch (Exception e)
+             * {
+             * Orebfuscator.log(e);
+             * }
+             * }
+             * configFile.renameTo(destination);
+             * reload();
+             */
             ObfuscatedDataCache.ClearCache();
             setData("ConfigVersion", CONFIG_VERSION);
         }
-        
         
         EngineMode = getInt("Integers.EngineMode", EngineMode);
         if (EngineMode != 1 && EngineMode != 2)
@@ -631,7 +630,7 @@ public class OrebfuscatorConfig
         // Validate RandomBlocks
         for (int i = 0; i < RandomBlocks.length; i++)
         {
-            //Don't want people to put chests and other stuff that lags the hell out of players.
+            // Don't want people to put chests and other stuff that lags the hell out of players.
             if (OrebfuscatorConfig.isBlockTransparent((short) (int) RandomBlocks[i]))
             {
                 RandomBlocks[i] = 1;

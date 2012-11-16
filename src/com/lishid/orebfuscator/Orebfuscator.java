@@ -168,9 +168,9 @@ public class Orebfuscator extends JavaPlugin
             if (p.isOnline())
             {
                 CraftPlayer p2 = (CraftPlayer) p;
-                if(p2.getHandle().netServerHandler instanceof NetServerHandlerProxy)
+                if (p2.getHandle().netServerHandler instanceof NetServerHandlerProxy)
                 {
-                    NetServerHandler oldNetServerHandler = ((NetServerHandlerProxy)p2.getHandle().netServerHandler).nshInstance;
+                    NetServerHandler oldNetServerHandler = ((NetServerHandlerProxy) p2.getHandle().netServerHandler).nshInstance;
                     p2.getHandle().netServerHandler = oldNetServerHandler;
                     oldNetServerHandler.networkManager.a(oldNetServerHandler);
                 }

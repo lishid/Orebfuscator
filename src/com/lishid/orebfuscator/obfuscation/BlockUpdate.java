@@ -16,6 +16,7 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
+import java.util.List;
 import java.util.HashSet;
 
 import net.minecraft.server.WorldServer;
@@ -39,35 +40,37 @@ public class BlockUpdate
         if (!needsUpdate(block))
             return;
         
-        UpdateBlocksNearby(block);
-    }
-    
-    public static void UpdateBlocksNearby(Block block)
-    {
-        HashSet<Block> blocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius());
+        HashSet<Block> updateBlocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius());
         
-        WorldServer worldServer = ((CraftWorld)block.getWorld()).getHandle();
-        /*HashSet<CraftPlayer> players = new HashSet<CraftPlayer>();
+        WorldServer worldServer = ((CraftWorld) block.getWorld()).getHandle();
         
-        List<Player> playerList = getPlayers(block.getWorld());
+        updateBlocks.remove(block);
         
-        for (Player player : playerList)
-        {
-            double dx = Math.abs((((int)player.getLocation().getX()) >> 4) - (block.getX() >> 4));
-            double dz = Math.abs((((int)player.getLocation().getZ()) >> 4) - (block.getZ() >> 4));
-            double dist = Bukkit.getServer().getViewDistance();
-            if (dx <= dist && dz <= dist)
-            {
-                players.add((CraftPlayer) player);
-            }
-        }*/
-        
-        blocks.remove(block);
-        
-        for (Block nearbyBlock : blocks)
+        for (Block nearbyBlock : updateBlocks)
         {
             worldServer.notify(nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
-            //UpdateBlock(nearbyBlock, players);
+        }
+    }
+    
+    public static void Update(List<Block> blocks)
+    {
+        if (blocks.size() <= 0)
+            return;
+        
+        HashSet<Block> updateBlocks = new HashSet<Block>();
+        for (Block block : blocks)
+        {
+            if (needsUpdate(block))
+            {
+                updateBlocks.addAll(GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius()));
+            }
+        }
+        
+        WorldServer worldServer = ((CraftWorld) blocks.get(0).getWorld()).getHandle();
+        
+        for (Block nearbyBlock : updateBlocks)
+        {
+            worldServer.notify(nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
         }
     }
     
@@ -98,34 +101,4 @@ public class BlockUpdate
             allBlocks.add(block);
         }
     }
-    /*
-    
-    public static List<Player> getPlayers(World world)
-    {
-        List<Player> players = new ArrayList<Player>();
-        
-        synchronized (Orebfuscator.players)
-        {
-            for (Player p : Orebfuscator.players.keySet())
-            {
-                if (p.getWorld().getName().equals(world.getName()))
-                    players.add(p);
-            }
-        }
-        
-        return players;
-    }
-    
-    public static void UpdateBlock(Block block, HashSet<CraftPlayer> players)
-    {
-        if (block == null)
-            return;
-        
-        ((CraftWorld)block.getWorld()).getHandle().notify(block.getX(), block.getY(), block.getZ());
-        
-        for (CraftPlayer player : players)
-        {
-            player.sendBlockChange(block.getLocation(), block.getTypeId(), block.getData());
-        }
-    }*/
 }
