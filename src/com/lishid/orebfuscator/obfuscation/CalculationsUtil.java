@@ -51,30 +51,11 @@ public class CalculationsUtil
         CRC32 crc = new CRC32();
         crc.reset();
         crc.update(data, 0, length);
-        long hash = crc.getValue();
-        return hash;
+        return crc.getValue();
     }
     
     public static int increment(int current, int max)
     {
         return (current + 1) % max;
     }
-    
-    /*
-    public static void setChunkCompressionThreadBuffer(byte[] buffer)
-    {
-        try
-        {
-            Field instance = ChunkCompressionThread.class.getDeclaredField("instance");
-            instance.setAccessible(true);
-            ChunkCompressionThread cct = (ChunkCompressionThread) instance.get(null);
-            Field newDeflateBuffer = ChunkCompressionThread.class.getDeclaredField("deflateBuffer");
-            newDeflateBuffer.setAccessible(true);
-            newDeflateBuffer.set(cct, buffer);
-        }
-        catch (Exception e)
-        {
-            Orebfuscator.log(e);
-        }
-    }*/
 }

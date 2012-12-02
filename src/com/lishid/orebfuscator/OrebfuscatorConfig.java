@@ -140,10 +140,10 @@ public class OrebfuscatorConfig
     
     public static int getAirGeneratorMaxChance()
     {
-        if (AirGeneratorMaxChance < 1)
-            return 2;
-        if (AirGeneratorMaxChance > 62)
-            return 63;
+        if (AirGeneratorMaxChance < 40)
+            return 41;
+        if (AirGeneratorMaxChance > 100)
+            return 101;
         return AirGeneratorMaxChance + 1;
     }
     

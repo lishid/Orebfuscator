@@ -18,13 +18,10 @@ package com.lishid.orebfuscator.obfuscation;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.zip.Deflater;
 
-import net.minecraft.server.NetServerHandler;
-import net.minecraft.server.Packet;
 import net.minecraft.server.Packet51MapChunk;
 import net.minecraft.server.Packet56MapChunkBulk;
-import net.minecraft.server.TileEntity;
 import net.minecraft.server.WorldServer;
 
 import org.bukkit.block.Block;
@@ -34,17 +31,24 @@ import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.proximityhider.ProximityHider;
-import com.lishid.orebfuscator.threading.ChunkCompressionThread;
-import com.lishid.orebfuscator.utils.MemoryManager;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public class Calculations
 {
-    public static void Obfuscate(Packet56MapChunkBulk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
+    public static final ThreadLocal<byte[]> buffer = new ThreadLocal<byte[]>()
     {
-        NetServerHandler nsh = player.getHandle().netServerHandler;
-        if (nsh == null || nsh.disconnected || nsh.networkManager == null)
+        protected byte[] initialValue()
+        {
+            return new byte[65536];
+        }
+    };
+    
+    public static void Obfuscate(Packet56MapChunkBulk packet, CraftPlayer player)
+    {
+        if (ReflectionHelper.getPrivateField(packet, "buffer") != null)
+        {
             return;
+        }
         
         ChunkInfo[] infos = getInfo(packet, player);
         
@@ -52,17 +56,36 @@ public class Calculations
         {
             // Create an info objects
             ChunkInfo info = infos[chunkNum];
-            info.buffer = chunkBuffer;
+            info.buffer = buffer.get();
             ComputeChunkInfoAndObfuscate(info, (byte[]) ReflectionHelper.getPrivateField(packet, "buildBuffer"));
         }
+    }
+    
+    public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player)
+    {
+        ChunkInfo info = getInfo(packet, player);
+        info.buffer = buffer.get();
         
-        if (sendPacket)
+        if (info.chunkMask == 0 && info.extraMask == 0)
         {
-            ChunkCompressionThread.Queue(player, packet, infos);
+            return;
         }
         
-        // Let MemoryManager do its work
-        MemoryManager.CheckAndCollect();
+        ComputeChunkInfoAndObfuscate(info, (byte[]) ReflectionHelper.getPrivateField(packet, "inflatedBuffer"));
+        
+        byte[] chunkInflatedBuffer = (byte[]) ReflectionHelper.getPrivateField(packet, "inflatedBuffer");
+        byte[] chunkBuffer = (byte[]) ReflectionHelper.getPrivateField(packet, "buffer");
+        Deflater deflater = new Deflater(-1);
+        try
+        {
+            deflater.setInput(chunkInflatedBuffer, 0, chunkInflatedBuffer.length);
+            deflater.finish();
+            ReflectionHelper.setPrivateField(packet, "size", deflater.deflate(chunkBuffer));
+        }
+        finally
+        {
+            deflater.end();
+        }
     }
     
     public static ChunkInfo[] getInfo(Packet56MapChunkBulk packet, CraftPlayer player)
@@ -102,35 +125,8 @@ public class Calculations
         return infos;
     }
     
-    public static void Obfuscate(Packet51MapChunk packet, CraftPlayer player, boolean sendPacket, byte[] chunkBuffer)
-    {
-        NetServerHandler nsh = player.getHandle().netServerHandler;
-        if (nsh == null || nsh.disconnected || nsh.networkManager == null)
-            return;
-        
-        ChunkInfo info = getInfo(packet, player);
-        info.buffer = chunkBuffer;
-        
-        if(info.chunkMask == 0 && info.extraMask == 0)
-        {
-            player.getHandle().netServerHandler.networkManager.queue(packet);
-            return;
-        }
-        
-        ComputeChunkInfoAndObfuscate(info, (byte[]) ReflectionHelper.getPrivateField(packet, "inflatedBuffer"));
-        
-        if (sendPacket)
-        {
-            ChunkCompressionThread.Queue(player, packet, new ChunkInfo[] { info });
-        }
-        
-        // Let MemoryManager do its work
-        MemoryManager.CheckAndCollect();
-    }
-    
     public static ChunkInfo getInfo(Packet51MapChunk packet, CraftPlayer player)
     {
-        
         // Create an info objects
         ChunkInfo info = new ChunkInfo();
         info.world = player.getHandle().world.getWorld().getHandle();
@@ -144,7 +140,7 @@ public class Calculations
         return info;
     }
     
-    public static void ComputeChunkInfoAndObfuscate(ChunkInfo info, byte[] returnData)
+    public static void ComputeChunkInfoAndObfuscate(ChunkInfo info, byte[] original)
     {
         // Compute chunk number
         for (int i = 0; i < 16; i++)
@@ -176,16 +172,15 @@ public class Calculations
         // Obfuscate
         if (!OrebfuscatorConfig.isWorldDisabled(info.world.getWorld().getName()) && // World not enabled
                 OrebfuscatorConfig.obfuscateForPlayer(info.player) && // Should the player have obfuscation?
-                OrebfuscatorConfig.getEnabled() && // Plugin enabled
-                CalculationsUtil.isChunkLoaded(info.world, info.chunkX, info.chunkZ)) // Make sure the chunk is loaded
+                OrebfuscatorConfig.getEnabled()) // Plugin enabled
         {
-            byte[] obfuscated = Obfuscate(info);
+            byte[] obfuscated = Obfuscate(info, original);
             // Copy the data out of the buffer
-            System.arraycopy(obfuscated, 0, returnData, info.startIndex, info.blockSize);
+            System.arraycopy(obfuscated, 0, original, info.startIndex, info.blockSize);
         }
     }
     
-    public static byte[] Obfuscate(ChunkInfo info)
+    public static byte[] Obfuscate(ChunkInfo info, byte[] original)
     {
         // Used for caching
         ObfuscatedCachedChunk cache = null;
@@ -203,6 +198,7 @@ public class Calculations
         {
             info.buffer = new byte[info.blockSize];
         }
+        
         // Copy data into buffer
         System.arraycopy(info.data, info.startIndex, info.buffer, 0, info.blockSize);
         
@@ -240,10 +236,8 @@ public class Calculations
                     // ProximityHider add blocks
                     ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
                     
-                    // Hash match, use the cached data instead
-                    System.arraycopy(data, 0, info.buffer, 0, data.length);
-                    // Skip calculations
-                    return info.buffer;
+                    // Hash match, use the cached data instead and skip calculations
+                    return data;
                 }
             }
         }
@@ -269,10 +263,11 @@ public class Calculations
         // int extraIndexStart = totalChunks * (4096 + 2048 + 2048 + 2048);
         int startX = info.chunkX << 4;
         int startZ = info.chunkZ << 4;
+        
         for (int i = 0; i < 16; i++)
         {
             // If the bitmask indicates this chunk is sent...
-            if ((info.chunkMask & 1 << i) > 0)
+            if ((info.chunkMask & 1 << i) != 0)
             {
                 int indexDataStart = dataIndexModifier * 4096;
                 // boolean useExtraData = (info.chunkExtra & 1 << i) > 0;
@@ -288,6 +283,7 @@ public class Calculations
                         incrementMax = (maxChance + OrebfuscatorConfig.random(maxChance)) / 2;
                         for (int x = 0; x < 16; x++)
                         {
+                            
                             int index = indexDataStart + tempIndex;
                             byte data = info.data[info.startIndex + index];
                             /*
@@ -310,8 +306,8 @@ public class Calculations
                             {
                                 if (initialRadius == 0)
                                 {
-                                    //Do not interfere with PH
-                                    if(OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(data))
+                                    // Do not interfere with PH
+                                    if (OrebfuscatorConfig.getUseProximityHider() && OrebfuscatorConfig.isProximityObfuscated(data))
                                     {
                                         if (!areAjacentBlocksTransparent(info, startX + x, (i << 4) + y, startZ + z, 1))
                                         {
@@ -404,7 +400,7 @@ public class Calculations
                 // }
             }
         }
-
+        
         ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
         
         // If cache is still allowed
@@ -524,53 +520,5 @@ public class Calculations
             return true;
         
         return false;
-    }
-    
-    @SuppressWarnings("unchecked")
-    public static void sendTileEntities(ChunkInfo info)
-    {
-        // Send TileEntities
-        int x = info.chunkX * 16;
-        int z = info.chunkZ * 16;
-        try
-        {
-            @SuppressWarnings("rawtypes")
-            ArrayList tileEntitiesList = new ArrayList();
-            tileEntitiesList.addAll(info.world.tileEntityList);
-            
-            @SuppressWarnings("rawtypes")
-            Iterator iterator = tileEntitiesList.iterator();
-            
-            while (iterator.hasNext())
-            {
-                try
-                {
-                    Object o = iterator.next();
-                    if (o == null)
-                    {
-                        continue;
-                    }
-                    TileEntity tileentity = (TileEntity) o;
-                    if (tileentity.x >= x && tileentity.z >= z && tileentity.x < x + 16 && tileentity.z < z + 16)
-                    {
-                        if (tileentity != null)
-                        {
-                            Packet p = ((TileEntity) tileentity).getUpdatePacket();
-                            if (p != null)
-                            {
-                                info.player.getHandle().netServerHandler.sendPacket(p);
-                            }
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Orebfuscator.log(e);
-        }
     }
 }

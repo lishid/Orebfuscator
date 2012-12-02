@@ -27,7 +27,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.threading.OrebfuscatorScheduler;
 
 public class OrebfuscatorCommandExecutor
 {
@@ -157,24 +156,6 @@ public class OrebfuscatorCommandExecutor
             return true;
         }
         
-        if (args[0].equalsIgnoreCase("threads") && args.length > 1)
-        {
-            int threads = OrebfuscatorConfig.getProcessingThreads();
-            try
-            {
-                threads = new Integer(args[1]);
-            }
-            catch (NumberFormatException e)
-            {
-                Orebfuscator.message(sender, args[1] + " is not a number!");
-                return true;
-            }
-            OrebfuscatorConfig.setProcessingThreads(threads);
-            OrebfuscatorScheduler.getScheduler().SyncThreads();
-            Orebfuscator.message(sender, "Processing Threads set to: " + threads);
-            return true;
-        }
-        
         if ((args[0].equalsIgnoreCase("proximity") | args[0].equalsIgnoreCase("proximityhider")) && args.length > 1)
         {
             int ProximityHiderDistance = OrebfuscatorConfig.getProximityHiderDistance();
@@ -263,9 +244,6 @@ public class OrebfuscatorCommandExecutor
         {
             Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.getEnabled() ? "Enabled" : "Disabled"));
             Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
-            
-            Orebfuscator.message(sender, "Executing Threads: " + OrebfuscatorScheduler.getScheduler().getThreads());
-            Orebfuscator.message(sender, "Processing Threads Max: " + OrebfuscatorConfig.getProcessingThreads());
             
             Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache() ? "Enabled" : "Disabled"));
             Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider() ? "Enabled" : "Disabled"));

@@ -48,19 +48,11 @@ public class OrebfuscatorPlayerListener implements Listener
                 Orebfuscator.message(player, "Orebfuscator bypassed because you have permission.");
             }
         }
-        synchronized (Orebfuscator.players)
-        {
-            Orebfuscator.players.put(player, true);
-        }
     }
     
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerQuit(PlayerQuitEvent event)
     {
-        synchronized (Orebfuscator.players)
-        {
-            Orebfuscator.players.remove(event.getPlayer());
-        }
         BlockHitManager.clearHistory(event.getPlayer());
         if (OrebfuscatorConfig.getUseProximityHider())
         {

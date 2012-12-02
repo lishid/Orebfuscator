@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -41,7 +40,7 @@ public class ProximityHider extends Thread implements Runnable
     public static ProximityHider thread = new ProximityHider();
     
     public long lastExecute = System.currentTimeMillis();
-    public AtomicBoolean kill =  new AtomicBoolean(false);
+    public AtomicBoolean kill = new AtomicBoolean(false);
     public static boolean running = false;
     
     public static void Load()
@@ -68,10 +67,10 @@ public class ProximityHider extends Thread implements Runnable
         {
             try
             {
-                //Wait until necessary
+                // Wait until necessary
                 long timeWait = lastExecute + OrebfuscatorConfig.getProximityHiderRate() - System.currentTimeMillis();
                 lastExecute = System.currentTimeMillis();
-                if(timeWait > 0)
+                if (timeWait > 0)
                 {
                     Thread.sleep(timeWait);
                 }
@@ -161,18 +160,18 @@ public class ProximityHider extends Thread implements Runnable
                 Orebfuscator.log(e);
             }
         }
-
+        
         running = false;
     }
     
     public static void restart()
     {
-        synchronized(thread)
+        synchronized (thread)
         {
-            if(thread.isInterrupted() || !thread.isAlive())
+            if (thread.isInterrupted() || !thread.isAlive())
                 running = false;
             
-            if(!running && OrebfuscatorConfig.getUseProximityHider())
+            if (!running && OrebfuscatorConfig.getUseProximityHider())
             {
                 // Load ProximityHider
                 ProximityHider.Load();

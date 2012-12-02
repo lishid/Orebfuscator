@@ -31,8 +31,7 @@ public class BlockUpdate
 {
     public static boolean needsUpdate(Block block)
     {
-        byte id = (byte) block.getTypeId();
-        return !OrebfuscatorConfig.isBlockTransparent(id);
+        return !OrebfuscatorConfig.isBlockTransparent((short) block.getTypeId());
     }
     
     public static void Update(Block block)
