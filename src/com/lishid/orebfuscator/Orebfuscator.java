@@ -27,7 +27,6 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.OrebfuscatorPlayerHook;
-import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
@@ -61,13 +60,13 @@ public class Orebfuscator extends JavaPlugin
         pm.registerEvents(new OrebfuscatorBlockListener(), this);
         
         pm.registerEvents(new OrebfuscatorPlayerHook(), this);
-        
+        /*
         if (pm.getPlugin("ProtocolLib") != null)
         {
             Orebfuscator.log("ProtocolLib found! Hooking into ProtocolLib.");
             (new ProtocolLibHook()).register(this);
         }
-        
+        */
         // Metrics
         try
         {

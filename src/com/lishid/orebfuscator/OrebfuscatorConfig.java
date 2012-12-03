@@ -274,10 +274,8 @@ public class OrebfuscatorConfig
         
         if (id == 1)
             return true;
-        
-        if (ObfuscateBlocks[id])
-            return true;
-        return false;
+
+        return ObfuscateBlocks[id];
     }
     
     public static boolean isDarknessObfuscated(byte id)

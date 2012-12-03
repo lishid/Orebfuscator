@@ -90,7 +90,6 @@ public class Calculations
     
     public static ChunkInfo[] getInfo(Packet56MapChunkBulk packet, CraftPlayer player)
     {
-        
         ChunkInfo[] infos = new ChunkInfo[packet.d()];
         WorldServer server = player.getHandle().world.getWorld().getHandle();
         
