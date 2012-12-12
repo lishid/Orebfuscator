@@ -16,9 +16,9 @@
 
 package com.lishid.orebfuscator.hook;
 
-import net.minecraft.server.Packet51MapChunk;
+import net.minecraft.server.v1_4_5.Packet51MapChunk;
 
-import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_4_5.entity.CraftPlayer;
 import org.bukkit.plugin.Plugin;
 
 import com.comphenix.protocol.Packets;

@@ -16,13 +16,13 @@
 
 package com.lishid.orebfuscator.commands;
 
-import net.minecraft.server.ChunkCoordIntPair;
+import net.minecraft.server.v1_4_5.*;
 
 import org.bukkit.Chunk;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_4_5.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
@@ -156,23 +156,6 @@ public class OrebfuscatorCommandExecutor
             return true;
         }
         
-        if ((args[0].equalsIgnoreCase("proximity") | args[0].equalsIgnoreCase("proximityhider")) && args.length > 1)
-        {
-            int ProximityHiderDistance = OrebfuscatorConfig.getProximityHiderDistance();
-            try
-            {
-                ProximityHiderDistance = new Integer(args[1]);
-            }
-            catch (NumberFormatException e)
-            {
-                Orebfuscator.message(sender, args[1] + " is not a number!");
-                return true;
-            }
-            OrebfuscatorConfig.setProximityHiderDistance(ProximityHiderDistance);
-            Orebfuscator.message(sender, "ProximityHider Distance set to: " + ProximityHiderDistance);
-            return true;
-        }
-        
         if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable"))
         {
             boolean data = args[0].equalsIgnoreCase("enable");
@@ -205,11 +188,6 @@ public class OrebfuscatorCommandExecutor
                 {
                     OrebfuscatorConfig.setNoObfuscationForPermission(data);
                     Orebfuscator.message(sender, "Permissions No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
-                }
-                else if (args[1].equalsIgnoreCase("proximity"))
-                {
-                    OrebfuscatorConfig.setUseProximityHider(data);
-                    Orebfuscator.message(sender, "ProximityHider " + (data ? "enabled" : "disabled") + ".");
                 }
                 else if (args[1].equalsIgnoreCase("cache"))
                 {
@@ -246,7 +224,6 @@ public class OrebfuscatorCommandExecutor
             Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
             
             Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache() ? "Enabled" : "Disabled"));
-            Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider() ? "Enabled" : "Disabled"));
             
             Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
             Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());

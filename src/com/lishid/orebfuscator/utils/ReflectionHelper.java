@@ -17,16 +17,17 @@
 package com.lishid.orebfuscator.utils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 import com.lishid.orebfuscator.Orebfuscator;
 
 public class ReflectionHelper
 {
-    public static Object getPrivateField(Object object, String fieldName)
+    public static Object getPrivateField(Class<? extends Object> c, Object object, String fieldName)
     {
         try
         {
-            Field field = object.getClass().getDeclaredField(fieldName);
+            Field field = c.getDeclaredField(fieldName);
             field.setAccessible(true);
             return field.get(object);
         }
@@ -37,11 +38,16 @@ public class ReflectionHelper
         return null;
     }
     
-    public static void setPrivateField(Object object, String fieldName, Object value)
+    public static Object getPrivateField(Object object, String fieldName)
+    {
+        return getPrivateField(object.getClass(), object, fieldName);
+    }
+    
+    public static void setPrivateField(Class<? extends Object> c, Object object, String fieldName, Object value)
     {
         try
         {
-            Field field = object.getClass().getDeclaredField(fieldName);
+            Field field = c.getDeclaredField(fieldName);
             field.setAccessible(true);
             field.set(object, value);
         }
@@ -51,4 +57,27 @@ public class ReflectionHelper
         }
     }
     
+    public static void setPrivateField(Object object, String fieldName, Object value)
+    {
+        setPrivateField(object.getClass(), object, fieldName, value);
+    }
+    
+    public static void setPrivateFinal(Object object, String fieldName, Object value)
+    {
+        try
+        {
+            Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+            
+            field.set(object, value);
+        }
+        catch (Exception e)
+        {
+            Orebfuscator.log(e);
+        }
+    }
 }

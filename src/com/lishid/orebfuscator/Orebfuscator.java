@@ -26,12 +26,14 @@ import org.bukkit.command.CommandSender;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
+import com.lishid.orebfuscator.hook.ChunkProcessingThread;
 import com.lishid.orebfuscator.hook.OrebfuscatorPlayerHook;
+import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
-import com.lishid.orebfuscator.proximityhider.ProximityHider;
 import com.lishid.orebfuscator.utils.Metrics;
+import com.lishid.orebfuscator.utils.UpdateManager;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -44,6 +46,9 @@ public class Orebfuscator extends JavaPlugin
     
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
+    public static boolean usePL = false;
+    
+    private UpdateManager updater = new UpdateManager();
     
     @Override
     public void onEnable()
@@ -54,19 +59,22 @@ public class Orebfuscator extends JavaPlugin
         // Load configurations
         OrebfuscatorConfig.load();
         
+        updater.Initialize(this, getFile());
+        
         // Orebfuscator events
         pm.registerEvents(new OrebfuscatorPlayerListener(), this);
         pm.registerEvents(new OrebfuscatorEntityListener(), this);
         pm.registerEvents(new OrebfuscatorBlockListener(), this);
         
         pm.registerEvents(new OrebfuscatorPlayerHook(), this);
-        /*
+        
         if (pm.getPlugin("ProtocolLib") != null)
         {
             Orebfuscator.log("ProtocolLib found! Hooking into ProtocolLib.");
             (new ProtocolLibHook()).register(this);
+            usePL = true;
         }
-        */
+        
         // Metrics
         try
         {
@@ -83,11 +91,9 @@ public class Orebfuscator extends JavaPlugin
     public void onDisable()
     {
         ObfuscatedDataCache.clearCache();
-        ProximityHider.terminate();
-        ProximityHider.proximityHiderTracker.clear();
-        ProximityHider.playersToCheck.clear();
         BlockHitManager.clearAll();
-        Orebfuscator.instance.getServer().getScheduler().cancelAllTasks();
+        ChunkProcessingThread.KillAll();
+        getServer().getScheduler().cancelAllTasks();
     }
     
     @Override
@@ -101,7 +107,7 @@ public class Orebfuscator extends JavaPlugin
      */
     public static void log(String text)
     {
-        logger.info(ChatColor.AQUA + "[OFC] " + text);
+        logger.info("[OFC] " + text);
     }
     
     /**
@@ -109,7 +115,7 @@ public class Orebfuscator extends JavaPlugin
      */
     public static void log(Throwable e)
     {
-        logger.severe(ChatColor.AQUA + "[OFC] " + e.toString());
+        logger.severe("[OFC] " + e.toString());
         e.printStackTrace();
     }
     

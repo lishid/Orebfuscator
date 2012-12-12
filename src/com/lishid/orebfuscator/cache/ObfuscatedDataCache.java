@@ -16,7 +16,7 @@
 
 package com.lishid.orebfuscator.cache;
 
-import net.minecraft.server.RegionFile;
+import net.minecraft.server.v1_4_5.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

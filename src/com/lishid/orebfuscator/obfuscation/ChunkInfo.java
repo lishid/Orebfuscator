@@ -16,9 +16,9 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_4_5.entity.CraftPlayer;
 
-import net.minecraft.server.WorldServer;
+import net.minecraft.server.v1_4_5.WorldServer;
 
 public class ChunkInfo
 {

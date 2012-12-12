@@ -19,11 +19,11 @@ package com.lishid.orebfuscator.obfuscation;
 import java.util.List;
 import java.util.HashSet;
 
-import net.minecraft.server.WorldServer;
+import net.minecraft.server.v1_4_5.WorldServer;
 
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.v1_4_5.CraftWorld;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 

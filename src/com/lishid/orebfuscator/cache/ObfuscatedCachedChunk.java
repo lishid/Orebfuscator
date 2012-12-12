@@ -22,8 +22,7 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
 
-import net.minecraft.server.NBTCompressedStreamTools;
-import net.minecraft.server.NBTTagCompound;
+import net.minecraft.server.v1_4_5.*;
 
 public class ObfuscatedCachedChunk
 {
@@ -31,25 +30,27 @@ public class ObfuscatedCachedChunk
     int x;
     int z;
     public int initialRadius;
-    public boolean proximityHider;
     public byte[] data;
-    public int[] proximityBlockList;
     public long hash = 0L;
     private boolean loaded = false;
     
-    public ObfuscatedCachedChunk(File file, int x, int z, int initialRadius, boolean proximityHider)
+    public ObfuscatedCachedChunk(File file, int x, int z, int initialRadius)
     {
         this.x = x;
         this.z = z;
         this.initialRadius = initialRadius;
-        this.proximityHider = proximityHider;
         this.path = new File(file, "data");
         path.mkdirs();
     }
     
     public void Invalidate()
     {
-        Write(0L, new byte[0], new int[0]);
+        Write(0L, new byte[0]);
+    }
+    
+    public void free()
+    {
+        data = null;
     }
     
     public long getHash()
@@ -75,7 +76,7 @@ public class ObfuscatedCachedChunk
                 NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput) stream);
                 
                 // Check if statuses makes sense
-                if (nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR") || proximityHider != nbt.getBoolean("PH"))
+                if (nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR"))
                     return;
                 
                 // Get Hash
@@ -83,10 +84,6 @@ public class ObfuscatedCachedChunk
                 
                 // Get Data
                 data = nbt.getByteArray("Data");
-                if (proximityHider)
-                    proximityBlockList = nbt.getIntArray("ProximityBlockList");
-                else
-                    proximityBlockList = new int[0];
                 loaded = true;
             }
         }
@@ -98,7 +95,7 @@ public class ObfuscatedCachedChunk
         }
     }
     
-    public void Write(long hash, byte[] data, int[] proximityBlockList)
+    public void Write(long hash, byte[] data)
     {
         try
         {
@@ -107,14 +104,12 @@ public class ObfuscatedCachedChunk
             nbt.setInt("X", x);
             nbt.setInt("Z", z);
             nbt.setInt("IR", initialRadius);
-            nbt.setBoolean("PH", proximityHider);
             
             // Set hash
             nbt.setLong("Hash", hash);
             
             // Set data
             nbt.setByteArray("Data", data);
-            nbt.setIntArray("ProximityBlockList", proximityBlockList);
             
             DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
             NBTCompressedStreamTools.a(nbt, (DataOutput) stream);

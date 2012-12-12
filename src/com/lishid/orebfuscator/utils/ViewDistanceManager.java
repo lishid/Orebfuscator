@@ -18,11 +18,11 @@ package com.lishid.orebfuscator.utils;
 
 import java.util.List;
 
-import net.minecraft.server.PlayerManager;
+import net.minecraft.server.v1_4_5.PlayerManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.CraftWorld;
+import org.bukkit.craftbukkit.v1_4_5.CraftWorld;
 
 public class ViewDistanceManager
 {

@@ -34,7 +34,6 @@ public class OrebfuscatorConfig
     
     private static final int CONFIG_VERSION = 9;
     private static boolean[] ObfuscateBlocks = new boolean[256];
-    private static boolean[] ProximityHiderBlocks = new boolean[256];
     private static Integer[] RandomBlocks = new Integer[] { 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
@@ -43,13 +42,8 @@ public class OrebfuscatorConfig
     private static int InitialRadius = 1;
     private static int ProcessingThreads = Runtime.getRuntime().availableProcessors() - 1;
     private static int MaxLoadedCacheFiles = 64;
-    private static int ProximityHiderDistance = 8;
-    private static int ProximityHiderID = 1;
-    private static int ProximityHiderEnd = 255;
     private static int AirGeneratorMaxChance = 43;
     private static int OrebfuscatorPriority = 0;
-    private static boolean UseProximityHider = true;
-    private static boolean UseSpecialBlockForProximityHider = true;
     private static boolean UpdateOnDamage = true;
     private static boolean DarknessHideBlocks = true;
     private static boolean NoObfuscationForOps = false;
@@ -58,7 +52,7 @@ public class OrebfuscatorConfig
     private static boolean AntiTexturePackAndFreecam = true;
     private static boolean UseCache = true;
     private static boolean Enabled = true;
-    private static boolean LiteMode = false;
+    private static boolean CheckForUpdates = true;
     private static String CacheLocation = "orebfuscator_cache";
     private static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
     
@@ -119,25 +113,6 @@ public class OrebfuscatorConfig
         return MaxLoadedCacheFiles;
     }
     
-    public static int getProximityHiderDistance()
-    {
-        if (ProximityHiderDistance <= 2)
-            return 2;
-        if (ProximityHiderDistance > 32)
-            return 32;
-        return ProximityHiderDistance;
-    }
-    
-    public static int getProximityHiderID()
-    {
-        return ProximityHiderID;
-    }
-    
-    public static int getProximityHiderEnd()
-    {
-        return ProximityHiderEnd;
-    }
-    
     public static int getAirGeneratorMaxChance()
     {
         if (AirGeneratorMaxChance < 40)
@@ -192,18 +167,6 @@ public class OrebfuscatorConfig
         return ProximityHiderRate;
     }
     
-    public static boolean getUseProximityHider()
-    {
-        if (LiteMode)
-            return false;
-        return UseProximityHider;
-    }
-    
-    public static boolean getUseSpecialBlockForProximityHider()
-    {
-        return UseSpecialBlockForProximityHider;
-    }
-    
     public static boolean getUpdateOnDamage()
     {
         return UpdateOnDamage;
@@ -229,10 +192,13 @@ public class OrebfuscatorConfig
         return LoginNotification;
     }
     
+    public static boolean getCheckForUpdates()
+    {
+        return CheckForUpdates;
+    }
+    
     public static boolean getAntiTexturePackAndFreecam()
     {
-        if (LiteMode)
-            return false;
         return AntiTexturePackAndFreecam;
     }
     
@@ -246,11 +212,6 @@ public class OrebfuscatorConfig
         return Enabled;
     }
     
-    public static boolean getLiteMode()
-    {
-        return LiteMode;
-    }
-    
     public static String getCacheLocation()
     {
         return CacheLocation;
@@ -260,7 +221,7 @@ public class OrebfuscatorConfig
     {
         if (id < 0)
             id += 256;
-        if (!net.minecraft.server.Block.i(id))
+        if (!net.minecraft.server.v1_4_5.Block.i(id))
         {
             return true;
         }
@@ -281,16 +242,6 @@ public class OrebfuscatorConfig
     public static boolean isDarknessObfuscated(byte id)
     {
         if (id == 52 || id == 54)
-            return true;
-        return false;
-    }
-    
-    public static boolean isProximityObfuscated(short id)
-    {
-        if (id < 0)
-            id += 256;
-        
-        if (ProximityHiderBlocks[id])
             return true;
         return false;
     }
@@ -371,24 +322,6 @@ public class OrebfuscatorConfig
         MaxLoadedCacheFiles = data;
     }
     
-    public static void setProximityHiderDistance(int data)
-    {
-        setData("Integers.ProximityHiderDistance", data);
-        ProximityHiderDistance = data;
-    }
-    
-    public static void setProximityHiderID(int data)
-    {
-        setData("Integers.ProximityHiderID", data);
-        ProximityHiderID = data;
-    }
-    
-    public static void setProximityHiderEnd(int data)
-    {
-        setData("Integers.ProximityHiderEnd", data);
-        ProximityHiderEnd = data;
-    }
-    
     public static void setAirGeneratorMaxChance(int data)
     {
         setData("Integers.AirGeneratorMaxChance", data);
@@ -399,18 +332,6 @@ public class OrebfuscatorConfig
     {
         setData("Integers.OrebfuscatorPriority", data);
         OrebfuscatorPriority = data;
-    }
-    
-    public static void setUseProximityHider(boolean data)
-    {
-        setData("Booleans.UseProximityHider", data);
-        UseProximityHider = data;
-    }
-    
-    public static void setUseSpecialBlockForProximityHider(boolean data)
-    {
-        setData("Booleans.UseSpecialBlockForProximityHider", data);
-        UseSpecialBlockForProximityHider = data;
     }
     
     public static void setUpdateOnDamage(boolean data)
@@ -443,6 +364,12 @@ public class OrebfuscatorConfig
         LoginNotification = data;
     }
     
+    public static void setCheckForUpdates(boolean data)
+    {
+        setData("Booleans.CheckForUpdates", data);
+        CheckForUpdates = data;
+    }
+    
     public static void setAntiTexturePackAndFreecam(boolean data)
     {
         setData("Booleans.AntiTexturePackAndFreecam", data);
@@ -459,12 +386,6 @@ public class OrebfuscatorConfig
     {
         setData("Booleans.Enabled", data);
         Enabled = data;
-    }
-    
-    public static void setLiteMode(boolean data)
-    {
-        setData("Booleans.LiteMode", data);
-        LiteMode = data;
     }
     
     public static void setCacheLocation(String data)
@@ -542,15 +463,17 @@ public class OrebfuscatorConfig
         }
     }
     
-    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks, boolean removeTransparent)
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)//, boolean removeTransparent)
     {
         for (int i = 0; i < boolArray.length; i++)
         {
             boolArray[i] = blocks.contains(i);
+            /*
             if (removeTransparent && boolArray[i] && isBlockTransparent((short) i))
             {
                 boolArray[i] = false;
             }
+            */
         }
     }
     
@@ -601,13 +524,8 @@ public class OrebfuscatorConfig
         }
         ProcessingThreads = getInt("Integers.ProcessingThreads", ProcessingThreads);
         MaxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles);
-        ProximityHiderDistance = getInt("Integers.ProximityHiderDistance", ProximityHiderDistance);
-        ProximityHiderID = getInt("Integers.ProximityHiderID", ProximityHiderID);
-        ProximityHiderEnd = getInt("Integers.ProximityHiderEnd", ProximityHiderEnd);
         AirGeneratorMaxChance = getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance);
         OrebfuscatorPriority = getInt("Integers.OrebfuscatorPriority", OrebfuscatorPriority);
-        UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
-        UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
         UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
         DarknessHideBlocks = getBoolean("Booleans.DarknessHideBlocks", DarknessHideBlocks);
         NoObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
@@ -616,9 +534,8 @@ public class OrebfuscatorConfig
         LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
-        LiteMode = getBoolean("Booleans.LiteMode", LiteMode);
-        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })), true);
-        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 54, 56, 58, 61, 62, 116, 129, 130, 145 })), false);
+        CheckForUpdates = getBoolean("Booleans.CheckForUpdates", CheckForUpdates);
+        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })));//, true);
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
