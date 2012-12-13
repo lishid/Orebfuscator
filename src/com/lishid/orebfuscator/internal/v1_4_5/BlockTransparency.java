@@ -14,28 +14,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.obfuscation;
+package com.lishid.orebfuscator.internal.v1_4_5;
 
-import org.bukkit.World;
-import org.bukkit.entity.Player;
+import com.lishid.orebfuscator.internal.IBlockTransparency;
 
-public class ChunkInfo
+//Volatile
+import net.minecraft.server.v1_4_5.*;
+
+public class BlockTransparency implements IBlockTransparency
 {
-    public boolean useCache;
-    public int chunkX;
-    public int chunkZ;
-    public int chunkMask;
-    public int extraMask;
-    public int chunkSectionNumber;
-    public int extraSectionNumber;
-    public boolean canUseCache;
-    public int[] chunkSectionToIndexMap = new int[16];
-    public int[] extraSectionToIndexMap = new int[16];
-    public World world;
-    public byte[] data;
-    public byte[] buffer;
-    public Player player;
-    public int startIndex;
-    public int size;
-    public int blockSize;
+    @Override
+    public boolean isBlockTransparent(int id)
+    {
+        return !Block.i(id);
+    }
 }

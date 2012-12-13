@@ -16,13 +16,9 @@
 
 package com.lishid.orebfuscator.commands;
 
-import net.minecraft.server.v1_4_5.*;
-
-import org.bukkit.Chunk;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.craftbukkit.v1_4_5.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
@@ -30,9 +26,9 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorCommandExecutor
 {
-    @SuppressWarnings("unchecked")
     public static boolean onCommand(CommandSender sender, Command command, String label, String[] args)
     {
+        /*
         if (command.getName().equalsIgnoreCase("rechunk") && sender instanceof Player)
         {
             int r = 2;
@@ -67,7 +63,7 @@ public class OrebfuscatorCommandExecutor
             }
             Orebfuscator.message(sender, "Chunks within a radius of " + r + " have been sent to you.");
             return true;
-        }
+        }*/
         
         if ((sender instanceof Player) && !sender.hasPermission("Orebfuscator.admin"))
         {

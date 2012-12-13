@@ -16,13 +16,12 @@
 
 package com.lishid.orebfuscator.cache;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
 
-import net.minecraft.server.v1_4_5.*;
+import com.lishid.orebfuscator.internal.INBT;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 
 public class ObfuscatedCachedChunk
 {
@@ -73,7 +72,8 @@ public class ObfuscatedCachedChunk
             DataInputStream stream = ObfuscatedDataCache.getInputStream(path, x, z);
             if (stream != null)
             {
-                NBTTagCompound nbt = NBTCompressedStreamTools.a((DataInput) stream);
+                INBT nbt = InternalAccessor.Instance.newNBT();
+                nbt.Read(stream);
                 
                 // Check if statuses makes sense
                 if (nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR"))
@@ -99,7 +99,8 @@ public class ObfuscatedCachedChunk
     {
         try
         {
-            NBTTagCompound nbt = new NBTTagCompound();
+            INBT nbt = InternalAccessor.Instance.newNBT();
+            
             // Set status indicator
             nbt.setInt("X", x);
             nbt.setInt("Z", z);
@@ -112,7 +113,8 @@ public class ObfuscatedCachedChunk
             nbt.setByteArray("Data", data);
             
             DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
-            NBTCompressedStreamTools.a(nbt, (DataOutput) stream);
+            
+            nbt.Write(stream);
             
             try
             {

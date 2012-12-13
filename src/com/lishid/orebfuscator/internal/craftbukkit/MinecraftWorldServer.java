@@ -14,28 +14,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.obfuscation;
+package com.lishid.orebfuscator.internal.craftbukkit;
 
-import org.bukkit.World;
-import org.bukkit.entity.Player;
+import com.lishid.orebfuscator.internal.IMinecraftWorldServer;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 
-public class ChunkInfo
+//Volatile
+import net.minecraft.server.*;
+import org.bukkit.craftbukkit.*;
+
+public class MinecraftWorldServer implements IMinecraftWorldServer
 {
-    public boolean useCache;
-    public int chunkX;
-    public int chunkZ;
-    public int chunkMask;
-    public int extraMask;
-    public int chunkSectionNumber;
-    public int extraSectionNumber;
-    public boolean canUseCache;
-    public int[] chunkSectionToIndexMap = new int[16];
-    public int[] extraSectionToIndexMap = new int[16];
-    public World world;
-    public byte[] data;
-    public byte[] buffer;
-    public Player player;
-    public int startIndex;
-    public int size;
-    public int blockSize;
+    public void Notify(Object world, int x, int y, int z)
+    {
+        if (world instanceof CraftWorld)
+        {
+            WorldServer server = (WorldServer) ((CraftWorld) world).getHandle();
+            server.notify(x, y, z);
+        }
+        else
+        {
+            InternalAccessor.Instance.PrintError();
+        }
+    }
 }

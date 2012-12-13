@@ -111,10 +111,10 @@ public class OrebfuscatorBlockListener implements Listener
     
     private boolean applyphysics(Block block)
     {
-        //See net.minecraft.server.v1_4_5.BlockSand.canFall(World world, int i, int j, int k)
+        // See net.minecraft.server.v1_4_5.BlockSand.canFall(World world, int i, int j, int k)
         
         int blockID = block.getRelative(0, -1, 0).getTypeId();
-
+        
         int air = Material.AIR.getId();
         int fire = Material.FIRE.getId();
         int water = Material.WATER.getId();

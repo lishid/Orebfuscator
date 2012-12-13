@@ -19,13 +19,12 @@ package com.lishid.orebfuscator.obfuscation;
 import java.util.List;
 import java.util.HashSet;
 
-import net.minecraft.server.v1_4_5.WorldServer;
-
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_4_5.CraftWorld;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.internal.IMinecraftWorldServer;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 
 public class BlockUpdate
 {
@@ -40,14 +39,13 @@ public class BlockUpdate
             return;
         
         HashSet<Block> updateBlocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius());
-        
-        WorldServer worldServer = ((CraftWorld) block.getWorld()).getHandle();
-        
-        updateBlocks.remove(block);
+
+        World world = block.getWorld();
+        IMinecraftWorldServer worldServer = InternalAccessor.Instance.newMinecraftWorldServer();
         
         for (Block nearbyBlock : updateBlocks)
         {
-            worldServer.notify(nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
+            worldServer.Notify(world, nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
         }
     }
     
@@ -64,12 +62,13 @@ public class BlockUpdate
                 updateBlocks.addAll(GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius()));
             }
         }
-        
-        WorldServer worldServer = ((CraftWorld) blocks.get(0).getWorld()).getHandle();
+
+        World world = blocks.get(0).getWorld();
+        IMinecraftWorldServer worldServer = InternalAccessor.Instance.newMinecraftWorldServer();
         
         for (Block nearbyBlock : updateBlocks)
         {
-            worldServer.notify(nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
+            worldServer.Notify(world, nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
         }
     }
     

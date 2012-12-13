@@ -14,25 +14,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.utils;
+package com.lishid.orebfuscator.internal;
 
-import java.util.List;
+import java.util.zip.Deflater;
 
-import net.minecraft.server.v1_4_5.PlayerManager;
-
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_4_5.CraftWorld;
-
-public class ViewDistanceManager
+public interface IPacket51
 {
-    public static void setDynamicViewDistance(int distance)
-    {
-        List<World> worlds = Bukkit.getWorlds();
-        for (World world : worlds)
-        {
-            PlayerManager pm = ((CraftWorld) world).getHandle().getPlayerManager();
-            ReflectionHelper.setPrivateField(pm, "e", distance);
-        }
-    }
+    public void setPacket(Object packet);
+    
+    public int getX();
+    
+    public int getZ();
+    
+    public int getChunkMask();
+    
+    public int getExtraMask();
+    
+    public byte[] getBuffer();
+    
+    public void compress(Deflater deflater);
 }

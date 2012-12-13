@@ -14,32 +14,37 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.hook;
+package com.lishid.orebfuscator.internal.v1_4_5;
 
 import java.util.ArrayList;
 
-import net.minecraft.server.v1_4_5.*;
+import org.bukkit.entity.Player;
 
-import org.bukkit.craftbukkit.v1_4_5.entity.CraftPlayer;
-
+import com.lishid.orebfuscator.internal.IPacket51;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 
-public class OrebfuscatorNetworkQueue extends ArrayList<Packet>
+//Volatile
+import net.minecraft.server.v1_4_5.*;
+
+public class NetworkQueue extends ArrayList<Packet>
 {
     private static final long serialVersionUID = 4252847662044263527L;
-    private CraftPlayer player;
+    private Player player;
     
-    public OrebfuscatorNetworkQueue(CraftPlayer player)
+    public NetworkQueue(Player player)
     {
         this.player = player;
     }
     
     @Override
-    public boolean add(Packet packet){
-
-        if (packet instanceof Packet51MapChunk)
+    public boolean add(Packet packet)
+    {
+        if (packet.k() == 51)
         {
-            Calculations.Obfuscate((Packet51MapChunk) packet, this.player);
+            IPacket51 packet51 = InternalAccessor.Instance.newPacket51();
+            packet51.setPacket(packet);
+            Calculations.Obfuscate(packet51, this.player);
         }
         
         return super.add(packet);

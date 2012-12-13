@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2011-2012 lishid.  All rights reserved.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation,  version 3.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.lishid.orebfuscator.hook;
 
 import java.util.LinkedList;
@@ -5,37 +21,27 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Deflater;
 
-import net.minecraft.server.v1_4_5.*;
-
-import org.bukkit.craftbukkit.v1_4_5.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.internal.IChunkQueue;
+import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.obfuscation.Calculations;
-import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 public class ChunkProcessingThread extends Thread
 {
     private static LinkedBlockingDeque<ChunkProcessingOrder> queue = new LinkedBlockingDeque<ChunkProcessingThread.ChunkProcessingOrder>();
     
     private static LinkedList<ChunkProcessingThread> threads = new LinkedList<ChunkProcessingThread>();
-    private static int numThreads = Runtime.getRuntime().availableProcessors();
-    
-    static
-    {
-        numThreads = Runtime.getRuntime().availableProcessors() - 1;
-        if (numThreads < 1)
-        {
-            numThreads = 1;
-        }
-    }
     
     static class ChunkProcessingOrder
     {
-        Packet56MapChunkBulk packet;
-        CraftPlayer player;
-        OrebfuscatorChunkQueue output;
+        IPacket56 packet;
+        Player player;
+        IChunkQueue output;
         
-        public ChunkProcessingOrder(Packet56MapChunkBulk packet, CraftPlayer player, OrebfuscatorChunkQueue output)
+        public ChunkProcessingOrder(IPacket56 packet, Player player, IChunkQueue output)
         {
             this.packet = packet;
             this.player = player;
@@ -56,12 +62,12 @@ public class ChunkProcessingThread extends Thread
     
     public synchronized static void SyncThreads()
     {
-        if (numThreads == threads.size())
+        if (OrebfuscatorConfig.getProcessingThreads() == threads.size())
         {
             return;
         }
         
-        int startThreads = numThreads - threads.size();
+        int startThreads = OrebfuscatorConfig.getProcessingThreads() - threads.size();
         for (int i = 0; i < startThreads; i++)
         {
             ChunkProcessingThread thread = new ChunkProcessingThread();
@@ -72,7 +78,7 @@ public class ChunkProcessingThread extends Thread
         }
     }
     
-    public static void Queue(Packet56MapChunkBulk packet, CraftPlayer player, OrebfuscatorChunkQueue output)
+    public static void Queue(IPacket56 packet, Player player, IChunkQueue output)
     {
         SyncThreads();
         try
@@ -106,8 +112,7 @@ public class ChunkProcessingThread extends Thread
             {
                 ChunkProcessingOrder order = queue.take();
                 Calculations.Obfuscate(order.packet, order.player);
-                // order.packet.compress();
-                compress(order.packet);
+                order.packet.compress(localDeflater.get());
                 order.output.FinishedProcessing(order.packet);
             }
             catch (InterruptedException e)
@@ -119,26 +124,5 @@ public class ChunkProcessingThread extends Thread
                 Orebfuscator.log(e);
             }
         }
-    }
-    
-    public void compress(Packet56MapChunkBulk packet)
-    {
-        
-        if (ReflectionHelper.getPrivateField(packet, "buffer") != null)
-        {
-            return;
-        }
-        
-        byte[] buildBuffer = (byte[]) ReflectionHelper.getPrivateField(packet, "buildBuffer");
-        
-        Deflater deflater = localDeflater.get();
-        deflater.reset();
-        deflater.setInput(buildBuffer);
-        deflater.finish();
-        
-        byte[] buffer = new byte[buildBuffer.length + 100];
-        
-        ReflectionHelper.setPrivateField(packet, "buffer", buffer);
-        ReflectionHelper.setPrivateField(packet, "size", deflater.deflate(buffer));
     }
 }

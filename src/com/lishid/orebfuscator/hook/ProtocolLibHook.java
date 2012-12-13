@@ -16,9 +16,6 @@
 
 package com.lishid.orebfuscator.hook;
 
-import net.minecraft.server.v1_4_5.Packet51MapChunk;
-
-import org.bukkit.craftbukkit.v1_4_5.entity.CraftPlayer;
 import org.bukkit.plugin.Plugin;
 
 import com.comphenix.protocol.Packets;
@@ -27,6 +24,8 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ConnectionSide;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
+import com.lishid.orebfuscator.internal.IPacket51;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 
 public class ProtocolLibHook
@@ -45,7 +44,9 @@ public class ProtocolLibHook
             {
                 if (event.getPacketID() == Packets.Server.MAP_CHUNK)
                 {
-                    Calculations.Obfuscate((Packet51MapChunk) event.getPacket().getHandle(), (CraftPlayer) event.getPlayer());
+                    IPacket51 packet = InternalAccessor.Instance.newPacket51();
+                    packet.setPacket(event.getPacket().getHandle());
+                    Calculations.Obfuscate(packet, event.getPlayer());
                 }
             }
         });

@@ -27,6 +27,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
+import com.lishid.orebfuscator.internal.IBlockTransparency;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 
 public class OrebfuscatorConfig
 {
@@ -217,15 +219,19 @@ public class OrebfuscatorConfig
         return CacheLocation;
     }
     
+    private static IBlockTransparency blockTransparencyChecker;
+    
     public static boolean isBlockTransparent(short id)
     {
+        if(blockTransparencyChecker == null)
+        {
+            blockTransparencyChecker = InternalAccessor.Instance.newBlockTransparency();
+        }
+        
         if (id < 0)
             id += 256;
-        if (!net.minecraft.server.v1_4_5.Block.i(id))
-        {
-            return true;
-        }
-        return false;
+        
+        return blockTransparencyChecker.isBlockTransparent(id);
     }
     
     public static boolean isObfuscated(short id)
@@ -235,7 +241,7 @@ public class OrebfuscatorConfig
         
         if (id == 1)
             return true;
-
+        
         return ObfuscateBlocks[id];
     }
     
@@ -463,17 +469,17 @@ public class OrebfuscatorConfig
         }
     }
     
-    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)//, boolean removeTransparent)
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)// , boolean removeTransparent)
     {
         for (int i = 0; i < boolArray.length; i++)
         {
             boolArray[i] = blocks.contains(i);
             /*
-            if (removeTransparent && boolArray[i] && isBlockTransparent((short) i))
-            {
-                boolArray[i] = false;
-            }
-            */
+             * if (removeTransparent && boolArray[i] && isBlockTransparent((short) i))
+             * {
+             * boolArray[i] = false;
+             * }
+             */
         }
     }
     
@@ -535,7 +541,7 @@ public class OrebfuscatorConfig
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         CheckForUpdates = getBoolean("Booleans.CheckForUpdates", CheckForUpdates);
-        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })));//, true);
+        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })));// , true);
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);

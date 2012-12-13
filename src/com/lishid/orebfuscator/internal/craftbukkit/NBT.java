@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.v1_4_5;
+package com.lishid.orebfuscator.internal.craftbukkit;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -22,7 +22,7 @@ import java.io.DataOutput;
 import com.lishid.orebfuscator.internal.INBT;
 
 //Volatile
-import net.minecraft.server.v1_4_5.*;
+import net.minecraft.server.*;
 
 public class NBT implements INBT
 {

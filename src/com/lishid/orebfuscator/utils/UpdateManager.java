@@ -13,7 +13,6 @@ public class UpdateManager
     
     public void Initialize(Orebfuscator plugin, File file)
     {
-        
         updater = new Updater(plugin, Orebfuscator.logger, "orebfuscator", file);
         
         // Create task to update

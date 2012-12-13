@@ -18,22 +18,14 @@ package com.lishid.orebfuscator.obfuscation;
 
 import java.util.zip.CRC32;
 
-import net.minecraft.server.v1_4_5.WorldServer;
-
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_4_5.CraftWorld;
 
 public class CalculationsUtil
 {
     public static boolean isChunkLoaded(World world, int x, int z)
     {
-        return isChunkLoaded(((CraftWorld) world).getHandle(), x, z);
-    }
-    
-    public static boolean isChunkLoaded(WorldServer worldServer, int x, int z)
-    {
-        return worldServer.chunkProvider.isChunkLoaded(x, z);
+        return world.isChunkLoaded(x, z);
     }
     
     public static Block getBlockAt(World world, int x, int y, int z)

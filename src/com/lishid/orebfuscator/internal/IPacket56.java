@@ -14,28 +14,30 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.obfuscation;
+package com.lishid.orebfuscator.internal;
 
-import org.bukkit.World;
-import org.bukkit.entity.Player;
+import java.util.zip.Deflater;
 
-public class ChunkInfo
+public interface IPacket56
 {
-    public boolean useCache;
-    public int chunkX;
-    public int chunkZ;
-    public int chunkMask;
-    public int extraMask;
-    public int chunkSectionNumber;
-    public int extraSectionNumber;
-    public boolean canUseCache;
-    public int[] chunkSectionToIndexMap = new int[16];
-    public int[] extraSectionToIndexMap = new int[16];
-    public World world;
-    public byte[] data;
-    public byte[] buffer;
-    public Player player;
-    public int startIndex;
-    public int size;
-    public int blockSize;
+    public void setPacket(Object packet);
+    
+    public int getPacketChunkNumber();
+    
+    public int[] getX();
+    
+    public int[] getZ();
+    
+    public int[] getChunkMask();
+    
+    public int[] getExtraMask();
+    
+    public byte[][] getInflatedBuffers();
+    
+    public byte[] getBuildBuffer();
+    
+    public byte[] getOutputBuffer();
+    
+    public void compress(Deflater deflater);
+    
 }

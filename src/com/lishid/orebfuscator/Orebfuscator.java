@@ -29,6 +29,7 @@ import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.ChunkProcessingThread;
 import com.lishid.orebfuscator.hook.OrebfuscatorPlayerHook;
 import com.lishid.orebfuscator.hook.ProtocolLibHook;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
@@ -53,9 +54,21 @@ public class Orebfuscator extends JavaPlugin
     @Override
     public void onEnable()
     {
-        instance = this;
-        // Load permissions system
+        // Get plugin manager
         PluginManager pm = getServer().getPluginManager();
+        
+        // Version check
+        boolean success = InternalAccessor.Initialize(this.getServer());
+        
+        if(!success)
+        {
+            Orebfuscator.log("Your version of CraftBukkit is not supported.");
+            Orebfuscator.log("Please look for an updated version of Orebfuscator.");
+            pm.disablePlugin(this);
+            return;
+        }
+        
+        instance = this;
         // Load configurations
         OrebfuscatorConfig.load();
         
