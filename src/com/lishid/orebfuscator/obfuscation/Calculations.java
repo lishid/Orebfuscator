@@ -26,6 +26,7 @@ import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.internal.IPacket51;
 import com.lishid.orebfuscator.internal.IPacket56;
+import com.lishid.orebfuscator.internal.InternalAccessor;
 
 public class Calculations
 {
@@ -42,10 +43,18 @@ public class Calculations
         @Override
         protected Deflater initialValue()
         {
-            // Use higher compression level!!
+            // Not used from orebfuscator thread, normal compression instead
             return new Deflater(Deflater.DEFAULT_COMPRESSION);
         }
     };
+    
+    public static void Obfuscate(Object packet, Player player)
+    {
+        // Assuming that NoLagg will pass a Packet51
+        IPacket51 packet51 = InternalAccessor.Instance.newPacket51();
+        packet51.setPacket(packet);
+        Calculations.Obfuscate(packet51, player);
+    }
     
     public static void Obfuscate(IPacket56 packet, Player player)
     {
@@ -179,6 +188,9 @@ public class Calculations
         }
     }
     
+    static int chunks = 0;
+    static int cached = 0;
+    
     public static byte[] Obfuscate(ChunkInfo info, byte[] original)
     {
         // Used for caching
@@ -200,9 +212,13 @@ public class Calculations
         // Copy data into buffer
         System.arraycopy(info.data, info.startIndex, info.buffer, 0, info.blockSize);
         
+        chunks++;
         // Caching
         if (OrebfuscatorConfig.getUseCache())
         {
+            // Sanitize buffer for caching
+            PrepareBufferForCaching(info.buffer, info.blockSize);
+            
             // Get cache folder
             File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), info.world.getName());
             // Create cache objects
@@ -215,15 +231,15 @@ public class Calculations
             cache.Read();
             
             long storedHash = cache.getHash();
-            if (storedHash == hash)
+            
+            if (storedHash == hash && cache.data != null)
             {
-                // Get data
-                byte[] data = cache.data;
-                if (data != null)
-                {
-                    // Hash match, use the cached data instead and skip calculations
-                    return data;
-                }
+                cached++;
+                // Caching done, de-sanitize buffer
+                RepaintChunkToBuffer(cache.data, info.data, info.startIndex, info.blockSize);
+                
+                // Hash match, use the cached data instead and skip calculations
+                return cache.data;
             }
         }
         
@@ -301,19 +317,6 @@ public class Calculations
                                 }
                             }
                             
-                            // Check if the block should be obfuscated because of the darkness
-                            if (!obfuscate && OrebfuscatorConfig.getDarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(data))
-                            {
-                                if (initialRadius == 0)
-                                {
-                                    obfuscate = true;
-                                }
-                                else if (!areAjacentBlocksBright(info, startX + x, (i << 4) + y, startZ + z, initialRadius))
-                                {
-                                    obfuscate = true;
-                                }
-                            }
-                            
                             // Check if the block is obfuscated
                             if (obfuscate)
                             {
@@ -338,6 +341,16 @@ public class Calculations
                                     // Add random air blocks
                                     if (randomIncrement2 == 0)
                                         info.buffer[index] = 0;
+                                }
+                            }
+                            
+                            // Check if the block should be obfuscated because of the darkness
+                            if (!obfuscate && OrebfuscatorConfig.getDarknessHideBlocks() && OrebfuscatorConfig.isDarknessObfuscated(data))
+                            {
+                                if (!areAjacentBlocksBright(info, startX + x, (i << 4) + y, startZ + z, 1))
+                                {
+                                    // Hide block, setting it to air
+                                    info.buffer[index] = 0;
                                 }
                             }
                             
@@ -368,7 +381,51 @@ public class Calculations
             cache.free();
         }
         
+        // Caching done, de-sanitize buffer
+        if (OrebfuscatorConfig.getUseCache())
+        {
+            RepaintChunkToBuffer(info.buffer, info.data, info.startIndex, info.blockSize);
+        }
+        
         return info.buffer;
+    }
+    
+    private static byte[] cacheMap = new byte[256];
+    static
+    {
+        for (int i = 0; i < 256; i++)
+        {
+            cacheMap[i] = (byte) i;
+            if (OrebfuscatorConfig.isBlockTransparent((short) i))
+            {
+                cacheMap[i] = 0;
+            }
+        }
+    }
+    
+    private static void PrepareBufferForCaching(byte[] data, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            if (!OrebfuscatorConfig.getDarknessHideBlocks() || !OrebfuscatorConfig.isDarknessObfuscated(data[i]))
+            {
+                data[i] = cacheMap[((int) data[i] + 256) % 256];
+            }
+        }
+    }
+    
+    private static void RepaintChunkToBuffer(byte[] data, byte[] original, int start, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            if (data[i] == 0 && original[start + i] != 0)
+            {
+                if (OrebfuscatorConfig.isBlockTransparent(original[start + i]))
+                {
+                    data[i] = original[start + i];
+                }
+            }
+        }
     }
     
     public static boolean areAjacentBlocksTransparent(ChunkInfo info, int x, int y, int z, int countdown)

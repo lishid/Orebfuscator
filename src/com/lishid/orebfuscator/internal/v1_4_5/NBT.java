@@ -28,11 +28,6 @@ public class NBT implements INBT
 {
     NBTTagCompound nbt = new NBTTagCompound();
     
-    public NBT()
-    {
-        
-    }
-    
     @Override
     public void setInt(String tag, int value)
     {
@@ -72,7 +67,7 @@ public class NBT implements INBT
     @Override
     public void Read(DataInput stream)
     {
-        NBTCompressedStreamTools.a(stream);
+        nbt = NBTCompressedStreamTools.a(stream);
     }
     
     @Override

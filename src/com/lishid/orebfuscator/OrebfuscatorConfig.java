@@ -36,6 +36,7 @@ public class OrebfuscatorConfig
     
     private static final int CONFIG_VERSION = 9;
     private static boolean[] ObfuscateBlocks = new boolean[256];
+    private static boolean[] DarknessBlocks = new boolean[256];
     private static Integer[] RandomBlocks = new Integer[] { 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
@@ -47,7 +48,7 @@ public class OrebfuscatorConfig
     private static int AirGeneratorMaxChance = 43;
     private static int OrebfuscatorPriority = 0;
     private static boolean UpdateOnDamage = true;
-    private static boolean DarknessHideBlocks = true;
+    private static boolean DarknessHideBlocks = false;
     private static boolean NoObfuscationForOps = false;
     private static boolean NoObfuscationForPermission = false;
     private static boolean LoginNotification = true;
@@ -223,7 +224,7 @@ public class OrebfuscatorConfig
     
     public static boolean isBlockTransparent(short id)
     {
-        if(blockTransparencyChecker == null)
+        if (blockTransparencyChecker == null)
         {
             blockTransparencyChecker = InternalAccessor.Instance.newBlockTransparency();
         }
@@ -245,11 +246,11 @@ public class OrebfuscatorConfig
         return ObfuscateBlocks[id];
     }
     
-    public static boolean isDarknessObfuscated(byte id)
+    public static boolean isDarknessObfuscated(short id)
     {
-        if (id == 52 || id == 54)
-            return true;
-        return false;
+        if (id < 0)
+            id += 256;
+        return DarknessBlocks[id];
     }
     
     public static boolean isWorldDisabled(String name)
@@ -469,17 +470,18 @@ public class OrebfuscatorConfig
         }
     }
     
-    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)// , boolean removeTransparent)
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks, boolean transparent)
     {
         for (int i = 0; i < boolArray.length; i++)
         {
             boolArray[i] = blocks.contains(i);
-            /*
-             * if (removeTransparent && boolArray[i] && isBlockTransparent((short) i))
-             * {
-             * boolArray[i] = false;
-             * }
-             */
+            
+            // If block is transparent while we don't want them to, or the other way around
+            if (transparent != isBlockTransparent((short) i))
+            {
+                // Remove it
+                boolArray[i] = false;
+            }
         }
     }
     
@@ -541,8 +543,15 @@ public class OrebfuscatorConfig
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         CheckForUpdates = getBoolean("Booleans.CheckForUpdates", CheckForUpdates);
-        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })));// , true);
+        
+        //Read block lists
+        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })), false);
+        setBlockValues(DarknessBlocks, getIntList("Lists.DarknessBlocks", Arrays.asList(new Integer[] { 52, 54 })), true);
+        
+        //Disable worlds
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
+        
+        //Read the cache location
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
         

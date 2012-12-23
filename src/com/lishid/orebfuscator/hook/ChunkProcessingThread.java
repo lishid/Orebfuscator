@@ -35,6 +35,16 @@ public class ChunkProcessingThread extends Thread
     
     private static LinkedList<ChunkProcessingThread> threads = new LinkedList<ChunkProcessingThread>();
     
+    static ThreadLocal<Deflater> localDeflater = new ThreadLocal<Deflater>()
+    {
+        @Override
+        protected Deflater initialValue()
+        {
+            // Use higher compression level!!
+            return new Deflater(Deflater.BEST_COMPRESSION);
+        }
+    };
+    
     static class ChunkProcessingOrder
     {
         IPacket56 packet;
@@ -90,16 +100,6 @@ public class ChunkProcessingThread extends Thread
             // Should never come here unless there's INT_MAX players online.
         }
     }
-    
-    static ThreadLocal<Deflater> localDeflater = new ThreadLocal<Deflater>()
-    {
-        @Override
-        protected Deflater initialValue()
-        {
-            // Use higher compression level!!
-            return new Deflater(Deflater.BEST_COMPRESSION);
-        }
-    };
     
     AtomicBoolean kill = new AtomicBoolean(false);
     
