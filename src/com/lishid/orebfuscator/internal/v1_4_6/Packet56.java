@@ -18,6 +18,7 @@ package com.lishid.orebfuscator.internal.v1_4_6;
 
 import java.util.zip.Deflater;
 
+import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
@@ -107,6 +108,11 @@ public class Packet56 implements IPacket56
         byte[] buffer = new byte[buildBuffer.length + 100];
         
         ReflectionHelper.setPrivateField(packet, "buffer", buffer);
-        ReflectionHelper.setPrivateField(packet, "size", deflater.deflate(buffer));
+        int size = deflater.deflate(buffer);
+        ReflectionHelper.setPrivateField(packet, "size", size);
+        if(OrebfuscatorCommandExecutor.DebugMode)
+        {
+            System.out.println("Packet size: " + size);
+        }
     }
 }

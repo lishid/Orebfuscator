@@ -63,7 +63,7 @@ public class PlayerBlockTracking
     public void incrementHackingIndicator(int value)
     {
         hackingIndicator += value;
-        if (hackingIndicator >= (1 << 18))
+        if (hackingIndicator >= (1 << 14))
         {
             Orebfuscator.log("Player \"" + this.player.getName() + "\" tried to hack with packet spamming.");
             Orebfuscator.log("Player \"" + this.player.getName() + "\" kicked.");

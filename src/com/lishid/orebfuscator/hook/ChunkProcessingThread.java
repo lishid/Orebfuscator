@@ -40,8 +40,8 @@ public class ChunkProcessingThread extends Thread
         @Override
         protected Deflater initialValue()
         {
-            // Use higher compression level!!
-            return new Deflater(Deflater.BEST_COMPRESSION);
+            // Use higher compression level if asked
+            return new Deflater(OrebfuscatorConfig.getCompressionLevel());
         }
     };
     
@@ -72,7 +72,14 @@ public class ChunkProcessingThread extends Thread
     
     public synchronized static void SyncThreads()
     {
-        if (OrebfuscatorConfig.getProcessingThreads() == threads.size())
+        if (threads.size() > OrebfuscatorConfig.getProcessingThreads())
+        {
+            threads.getLast().kill.set(true);
+            threads.getLast().interrupt();
+            threads.removeLast();
+            return;
+        }
+        else if(threads.size() == OrebfuscatorConfig.getProcessingThreads())
         {
             return;
         }
@@ -114,6 +121,7 @@ public class ChunkProcessingThread extends Thread
                 Calculations.Obfuscate(order.packet, order.player);
                 order.packet.compress(localDeflater.get());
                 order.output.FinishedProcessing(order.packet);
+                Thread.sleep(1);
             }
             catch (InterruptedException e)
             {

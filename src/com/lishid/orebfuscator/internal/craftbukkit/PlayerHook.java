@@ -18,6 +18,7 @@ package com.lishid.orebfuscator.internal.craftbukkit;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.Map;
 import java.util.List;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -32,6 +33,7 @@ import org.bukkit.craftbukkit.entity.*;
 
 public class PlayerHook implements IPlayerHook
 {
+    @SuppressWarnings("unchecked")
     public void HookNM(Player p)
     {
         CraftPlayer player = (CraftPlayer) p;
@@ -47,7 +49,6 @@ public class PlayerHook implements IPlayerHook
                 {
                     List<Packet> list = new NetworkQueue(p);
                     field.setAccessible(true);
-                    @SuppressWarnings("unchecked")
                     List<Packet> oldList = (List<Packet>) field.get(networkManager);
                     // Move packets to new list
                     synchronized (ReflectionHelper.getPrivateField(networkManager, "h"))
@@ -57,6 +58,28 @@ public class PlayerHook implements IPlayerHook
                     }
                     // Replace with new list
                     field.set(networkManager, Collections.synchronizedList(list));
+                }
+            }
+            catch (Exception e)
+            {
+                Orebfuscator.log(e);
+            }
+        }
+        
+        // Also hook Packet14
+        Packet.l.a(14, Packet14Orebfuscator.class);
+        // Use reflection to add into a and c
+        Field[] packetFields = Packet.class.getDeclaredFields();
+        for (Field field : packetFields)
+        {
+            try
+            {
+                if (Map.class.isAssignableFrom(field.getType()))
+                {
+                    field.setAccessible(true);
+                    @SuppressWarnings({ "rawtypes" })
+                    Map packets = (Map) field.get(null);
+                    packets.put(Packet14Orebfuscator.class, 14);
                 }
             }
             catch (Exception e)

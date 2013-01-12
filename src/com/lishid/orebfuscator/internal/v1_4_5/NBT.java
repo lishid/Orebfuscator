@@ -41,9 +41,21 @@ public class NBT implements INBT
     }
     
     @Override
+    public void setBoolean(String tag, boolean value)
+    {
+        nbt.setBoolean(tag, value);
+    }
+    
+    @Override
     public void setByteArray(String tag, byte[] value)
     {
         nbt.setByteArray(tag, value);
+    }
+    
+    @Override
+    public void setIntArray(String tag, int[] value)
+    {
+        nbt.setIntArray(tag, value);
     }
     
     @Override
@@ -59,9 +71,21 @@ public class NBT implements INBT
     }
     
     @Override
+    public boolean getBoolean(String tag)
+    {
+        return nbt.getBoolean(tag);
+    }
+    
+    @Override
     public byte[] getByteArray(String tag)
     {
         return nbt.getByteArray(tag);
+    }
+    
+    @Override
+    public int[] getIntArray(String tag)
+    {
+        return nbt.getIntArray(tag);
     }
     
     @Override

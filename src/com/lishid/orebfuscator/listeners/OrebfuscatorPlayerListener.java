@@ -29,6 +29,7 @@ import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.BlockUpdate;
+import com.lishid.orebfuscator.obfuscation.ProximityHider;
 
 public class OrebfuscatorPlayerListener implements Listener
 {
@@ -53,6 +54,13 @@ public class OrebfuscatorPlayerListener implements Listener
     public void onPlayerQuit(PlayerQuitEvent event)
     {
         BlockHitManager.clearHistory(event.getPlayer());
+        if (OrebfuscatorConfig.getUseProximityHider())
+        {
+            synchronized (ProximityHider.proximityHiderTracker)
+            {
+                ProximityHider.proximityHiderTracker.remove(event.getPlayer());
+            }
+        }
     }
     
     @EventHandler(priority = EventPriority.MONITOR)
@@ -75,5 +83,30 @@ public class OrebfuscatorPlayerListener implements Listener
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event)
     {
         BlockHitManager.clearHistory(event.getPlayer());
+        if (OrebfuscatorConfig.getUseProximityHider())
+        {
+            synchronized (ProximityHider.proximityHiderTracker)
+            {
+                ProximityHider.proximityHiderTracker.remove(event.getPlayer());
+            }
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerMove(PlayerMoveEvent event)
+    {
+        if (event.isCancelled())
+        {
+            return;
+        }
+        
+        if (OrebfuscatorConfig.getUseProximityHider())
+        {
+            synchronized (ProximityHider.playersToCheck)
+            {
+                if (!ProximityHider.playersToCheck.containsKey(event.getPlayer()))
+                    ProximityHider.playersToCheck.put(event.getPlayer(), event.getFrom());
+            }
+        }
     }
 }

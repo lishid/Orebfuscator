@@ -20,6 +20,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 
+import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.internal.INBT;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 
@@ -28,28 +29,28 @@ public class ObfuscatedCachedChunk
     File path;
     int x;
     int z;
-    public int initialRadius;
     public byte[] data;
+    public int[] proximityList;
     public long hash = 0L;
     private boolean loaded = false;
     
-    public ObfuscatedCachedChunk(File file, int x, int z, int initialRadius)
+    public ObfuscatedCachedChunk(File file, int x, int z)
     {
         this.x = x;
         this.z = z;
-        this.initialRadius = initialRadius;
         this.path = new File(file, "data");
         path.mkdirs();
     }
     
     public void Invalidate()
     {
-        Write(0L, new byte[0]);
+        Write(0L, new byte[0], new int[0]);
     }
     
     public void free()
     {
         data = null;
+        proximityList = null;
     }
     
     public long getHash()
@@ -76,7 +77,9 @@ public class ObfuscatedCachedChunk
                 nbt.Read(stream);
                 
                 // Check if statuses makes sense
-                if (nbt.getInt("X") != x || nbt.getInt("Z") != z || initialRadius != nbt.getInt("IR"))
+                if (nbt.getInt("X") != x || nbt.getInt("Z") != z)
+                    return;
+                if(OrebfuscatorConfig.getUseProximityHider() != nbt.getBoolean("PH") || OrebfuscatorConfig.getInitialRadius() != nbt.getInt("IR"))
                     return;
                 
                 // Get Hash
@@ -84,6 +87,7 @@ public class ObfuscatedCachedChunk
                 
                 // Get Data
                 data = nbt.getByteArray("Data");
+                proximityList = nbt.getIntArray("ProximityList");
                 loaded = true;
             }
         }
@@ -95,7 +99,7 @@ public class ObfuscatedCachedChunk
         }
     }
     
-    public void Write(long hash, byte[] data)
+    public void Write(long hash, byte[] data, int[] proximityList)
     {
         try
         {
@@ -104,13 +108,15 @@ public class ObfuscatedCachedChunk
             // Set status indicator
             nbt.setInt("X", x);
             nbt.setInt("Z", z);
-            nbt.setInt("IR", initialRadius);
+            nbt.setInt("IR", OrebfuscatorConfig.getInitialRadius());
+            nbt.setBoolean("PH", OrebfuscatorConfig.getUseProximityHider());
             
             // Set hash
             nbt.setLong("Hash", hash);
             
             // Set data
             nbt.setByteArray("Data", data);
+            nbt.setIntArray("ProximityList", proximityList);
             
             DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
             

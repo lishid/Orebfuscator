@@ -51,6 +51,12 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         internalQueue.addAll(previousEntries);
     }
     
+    @Override
+    public boolean remove(Object arg0)
+    {
+        return internalQueue.remove(arg0) || processingQueue.remove(arg0) || outputQueue.remove(arg0);
+    }
+    
     // Called when the queue should be cleared
     @Override
     public void clear()
@@ -74,16 +80,8 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     @Override
     public Object[] toArray()
     {
-        // Sort the internal array according to CB - See PlayerManager.movePlayer(EntityPlayer entityplayer)
-        final int x = player.getLocation().getChunk().getX();
-        final int z = player.getLocation().getChunk().getZ();
-        java.util.Collections.sort(internalQueue, new java.util.Comparator<ChunkCoordIntPair>()
-        {
-            public int compare(ChunkCoordIntPair a, ChunkCoordIntPair b)
-            {
-                return Math.max(Math.abs(a.x - x), Math.abs(a.z - z)) - Math.max(Math.abs(b.x - x), Math.abs(b.z - z));
-            }
-        });
+        // Sort the internal array according to CB - See PlayerChunkMap.movePlayer(EntityPlayer entityplayer)
+        java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
         
         // Return the old array to be sorted
         return internalQueue.toArray();
@@ -139,18 +137,22 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             // Get the chunk coordinate
             ChunkCoordIntPair chunk = outputQueue.remove(0);
             
-            // Get all the TileEntities in the chunk
-            @SuppressWarnings("rawtypes")
-            List tileEntities = ((WorldServer) player.getHandle().world).getTileEntities(chunk.x * 16, 0, chunk.z * 16, chunk.x * 16 + 16, 256, chunk.z * 16 + 16);
-            
-            for (Object o : tileEntities)
+            //Check if the chunk is ready
+            if (chunk != null && ((WorldServer) player.getHandle().world).isLoaded(chunk.x << 4, 0, chunk.z << 4))
             {
-                // Send out packet for the tile entity data
-                this.updateTileEntity((TileEntity) o);
+                // Get all the TileEntities in the chunk
+                @SuppressWarnings("rawtypes")
+                List tileEntities = ((WorldServer) player.getHandle().world).getTileEntities(chunk.x * 16, 0, chunk.z * 16, chunk.x * 16 + 16, 256, chunk.z * 16 + 16);
+                
+                for (Object o : tileEntities)
+                {
+                    // Send out packet for the tile entity data
+                    this.updateTileEntity((TileEntity) o);
+                }
+                
+                // Start tracking entities in the chunk
+                player.getHandle().p().getTracker().a(player.getHandle(), player.getHandle().p().getChunkAt(chunk.x, chunk.z));
             }
-            
-            // Start tracking entities in the chunk
-            player.getHandle().p().getTracker().a(player.getHandle(), player.getHandle().p().getChunkAt(chunk.x, chunk.z));
         }
     }
     
@@ -253,17 +255,69 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         
         @Override
         public void remove()
-        {
-        }
+        {}
         
         @Override
         public void set(ChunkCoordIntPair e)
-        {
-        }
+        {}
         
         @Override
         public void add(ChunkCoordIntPair e)
+        {}
+    }
+    
+    private static class ChunkCoordComparator implements java.util.Comparator<ChunkCoordIntPair>
+    {
+        private int x;
+        private int z;
+        
+        public ChunkCoordComparator(EntityPlayer entityplayer)
         {
+            x = (int) entityplayer.locX >> 4;
+            z = (int) entityplayer.locZ >> 4;
+        }
+        
+        public int compare(ChunkCoordIntPair a, ChunkCoordIntPair b)
+        {
+            if (a.equals(b))
+            {
+                return 0;
+            }
+            
+            // Subtract current position to set center point
+            int ax = a.x - this.x;
+            int az = a.z - this.z;
+            int bx = b.x - this.x;
+            int bz = b.z - this.z;
+            
+            int result = ((ax - bx) * (ax + bx)) + ((az - bz) * (az + bz));
+            if (result != 0)
+            {
+                return result;
+            }
+            
+            if (ax < 0)
+            {
+                if (bx < 0)
+                {
+                    return bz - az;
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+            else
+            {
+                if (bx < 0)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return az - bz;
+                }
+            }
         }
     }
 }

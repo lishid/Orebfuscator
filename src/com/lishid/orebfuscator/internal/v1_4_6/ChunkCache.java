@@ -19,8 +19,6 @@ package com.lishid.orebfuscator.internal.v1_4_6;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.util.HashMap;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -32,7 +30,7 @@ import net.minecraft.server.v1_4_6.*;
 
 public class ChunkCache implements IChunkCache
 {
-    private static final HashMap<File, Reference<RegionFile>> cachedRegionFiles = new HashMap<File, Reference<RegionFile>>();
+    private static final HashMap<File, RegionFile> cachedRegionFiles = new HashMap<File, RegionFile>();
     
     private synchronized RegionFile getRegionFile(File folder, int x, int z)
     {
@@ -40,15 +38,10 @@ public class ChunkCache implements IChunkCache
         File file = new File(path, "r." + (x >> 5) + "." + (z >> 5) + ".mcr");
         try
         {
-            Reference<RegionFile> reference = cachedRegionFiles.get(file);
-            
-            if (reference != null)
+            RegionFile regionFile = cachedRegionFiles.get(file);
+            if (regionFile != null)
             {
-                RegionFile regionFile = (RegionFile) reference.get();
-                if (regionFile != null)
-                {
-                    return regionFile;
-                }
+                return regionFile;
             }
             
             if (!path.exists())
@@ -61,8 +54,9 @@ public class ChunkCache implements IChunkCache
                 clearCache();
             }
             
-            RegionFile regionFile = new RegionFile(file);
-            cachedRegionFiles.put(file, new SoftReference<RegionFile>(regionFile));
+            regionFile = new RegionFile(file);
+            cachedRegionFiles.put(file, regionFile);
+            
             return regionFile;
         }
         catch (Exception e)
@@ -96,11 +90,10 @@ public class ChunkCache implements IChunkCache
     @Override
     public synchronized void clearCache()
     {
-        for (Reference<RegionFile> reference : cachedRegionFiles.values())
+        for (RegionFile regionFile : cachedRegionFiles.values())
         {
             try
             {
-                RegionFile regionFile = (RegionFile) reference.get();
                 if (regionFile != null)
                     regionFile.c();
             }

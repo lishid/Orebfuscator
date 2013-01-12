@@ -24,6 +24,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ConnectionSide;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
+import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.internal.IPacket51;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.obfuscation.Calculations;
@@ -47,6 +48,26 @@ public class ProtocolLibHook
                     IPacket51 packet = InternalAccessor.Instance.newPacket51();
                     packet.setPacket(event.getPacket().getHandle());
                     Calculations.Obfuscate(packet, event.getPlayer());
+                }
+            }
+        });
+        
+        Integer[] packets2 = new Integer[] { Packets.Client.BLOCK_DIG };
+        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.CLIENT_SIDE, packets2)
+        {
+            @Override
+            public void onPacketReceiving(PacketEvent event)
+            {
+                if (event.getPacketID() == Packets.Client.BLOCK_DIG)
+                {
+                    int status = event.getPacket().getIntegers().read(4);
+                    if (status == 1)
+                    {
+                        if (!BlockHitManager.hitBlock(event.getPlayer(), null))
+                        {
+                            event.setCancelled(true);
+                        }
+                    }
                 }
             }
         });

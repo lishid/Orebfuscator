@@ -35,8 +35,11 @@ public class OrebfuscatorConfig
     private static Random random = new Random();
     
     private static final int CONFIG_VERSION = 9;
+    private static boolean[] TransparentBlocks = new boolean[256];
+    private static boolean TransparentCached = false;
     private static boolean[] ObfuscateBlocks = new boolean[256];
     private static boolean[] DarknessBlocks = new boolean[256];
+    private static boolean[] ProximityHiderBlocks = new boolean[256];
     private static Integer[] RandomBlocks = new Integer[] { 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
@@ -45,8 +48,14 @@ public class OrebfuscatorConfig
     private static int InitialRadius = 1;
     private static int ProcessingThreads = Runtime.getRuntime().availableProcessors() - 1;
     private static int MaxLoadedCacheFiles = 64;
+    private static int ProximityHiderDistance = 8;
+    private static int ProximityHiderID = 1;
+    private static int ProximityHiderEnd = 255;
     private static int AirGeneratorMaxChance = 43;
     private static int OrebfuscatorPriority = 0;
+    private static int CompressionLevel = 1;
+    private static boolean UseProximityHider = true;
+    private static boolean UseSpecialBlockForProximityHider = true;
     private static boolean UpdateOnDamage = true;
     private static boolean DarknessHideBlocks = false;
     private static boolean NoObfuscationForOps = false;
@@ -109,11 +118,30 @@ public class OrebfuscatorConfig
     
     public static int getMaxLoadedCacheFiles()
     {
-        if (MaxLoadedCacheFiles <= 16)
+        if (MaxLoadedCacheFiles < 16)
             return 16;
         if (MaxLoadedCacheFiles > 128)
             return 128;
         return MaxLoadedCacheFiles;
+    }
+    
+    public static int getProximityHiderDistance()
+    {
+        if (ProximityHiderDistance <= 2)
+            return 2;
+        if (ProximityHiderDistance > 32)
+            return 32;
+        return ProximityHiderDistance;
+    }
+    
+    public static int getProximityHiderID()
+    {
+        return ProximityHiderID;
+    }
+    
+    public static int getProximityHiderEnd()
+    {
+        return ProximityHiderEnd;
     }
     
     public static int getAirGeneratorMaxChance()
@@ -132,6 +160,15 @@ public class OrebfuscatorConfig
         if (OrebfuscatorPriority > 2)
             return 2;
         return OrebfuscatorPriority;
+    }
+    
+    public static int getCompressionLevel()
+    {
+        if (CompressionLevel < 0)
+            return 0;
+        if (CompressionLevel > 9)
+            return 9;
+        return CompressionLevel;
     }
     
     public static int getAntiHitHackDecrementFactor()
@@ -168,6 +205,16 @@ public class OrebfuscatorConfig
         if (ProximityHiderRate > 2000)
             return 2000;
         return ProximityHiderRate;
+    }
+    
+    public static boolean getUseProximityHider()
+    {
+        return UseProximityHider;
+    }
+    
+    public static boolean getUseSpecialBlockForProximityHider()
+    {
+        return UseSpecialBlockForProximityHider;
     }
     
     public static boolean getUpdateOnDamage()
@@ -232,6 +279,11 @@ public class OrebfuscatorConfig
         if (id < 0)
             id += 256;
         
+        if(TransparentCached)
+        {
+            return TransparentBlocks[id];
+        }
+        
         return blockTransparencyChecker.isBlockTransparent(id);
     }
     
@@ -251,6 +303,14 @@ public class OrebfuscatorConfig
         if (id < 0)
             id += 256;
         return DarknessBlocks[id];
+    }
+    
+    public static boolean isProximityObfuscated(short id)
+    {
+        if (id < 0)
+            id += 256;
+        
+        return ProximityHiderBlocks[id];
     }
     
     public static boolean isWorldDisabled(String name)
@@ -329,6 +389,24 @@ public class OrebfuscatorConfig
         MaxLoadedCacheFiles = data;
     }
     
+    public static void setProximityHiderDistance(int data)
+    {
+        setData("Integers.ProximityHiderDistance", data);
+        ProximityHiderDistance = data;
+    }
+    
+    public static void setProximityHiderID(int data)
+    {
+        setData("Integers.ProximityHiderID", data);
+        ProximityHiderID = data;
+    }
+    
+    public static void setProximityHiderEnd(int data)
+    {
+        setData("Integers.ProximityHiderEnd", data);
+        ProximityHiderEnd = data;
+    }
+    
     public static void setAirGeneratorMaxChance(int data)
     {
         setData("Integers.AirGeneratorMaxChance", data);
@@ -339,6 +417,24 @@ public class OrebfuscatorConfig
     {
         setData("Integers.OrebfuscatorPriority", data);
         OrebfuscatorPriority = data;
+    }
+    
+    public static void setCompressionLevel(int data)
+    {
+        setData("Integers.CompressionLevel", data);
+        CompressionLevel = data;
+    }
+    
+    public static void setUseProximityHider(boolean data)
+    {
+        setData("Booleans.UseProximityHider", data);
+        UseProximityHider = data;
+    }
+    
+    public static void setUseSpecialBlockForProximityHider(boolean data)
+    {
+        setData("Booleans.UseSpecialBlockForProximityHider", data);
+        UseSpecialBlockForProximityHider = data;
     }
     
     public static void setUpdateOnDamage(boolean data)
@@ -485,6 +581,23 @@ public class OrebfuscatorConfig
         }
     }
     
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)
+    {
+        for (int i = 0; i < boolArray.length; i++)
+        {
+            boolArray[i] = blocks.contains(i);
+        }
+    }
+    
+    private static void generateTransparentBlocks()
+    {
+        for (int i = 0; i < TransparentBlocks.length; i++)
+        {
+            TransparentBlocks[i] = isBlockTransparent((short) i);
+        }
+        TransparentCached = true;
+    }
+    
     public static void load()
     {
         // Version check
@@ -532,8 +645,14 @@ public class OrebfuscatorConfig
         }
         ProcessingThreads = getInt("Integers.ProcessingThreads", ProcessingThreads);
         MaxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles);
+        ProximityHiderDistance = getInt("Integers.ProximityHiderDistance", ProximityHiderDistance);
+        ProximityHiderID = getInt("Integers.ProximityHiderID", ProximityHiderID);
+        ProximityHiderEnd = getInt("Integers.ProximityHiderEnd", ProximityHiderEnd);
         AirGeneratorMaxChance = getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance);
         OrebfuscatorPriority = getInt("Integers.OrebfuscatorPriority", OrebfuscatorPriority);
+        CompressionLevel = getInt("Integers.CompressionLevel", CompressionLevel);
+        UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
+        UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
         UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
         DarknessHideBlocks = getBoolean("Booleans.DarknessHideBlocks", DarknessHideBlocks);
         NoObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
@@ -544,14 +663,18 @@ public class OrebfuscatorConfig
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         CheckForUpdates = getBoolean("Booleans.CheckForUpdates", CheckForUpdates);
         
-        //Read block lists
-        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })), false);
-        setBlockValues(DarknessBlocks, getIntList("Lists.DarknessBlocks", Arrays.asList(new Integer[] { 52, 54 })), true);
+        // Generate TransparentBlocks by reading them from Minecraft
+        generateTransparentBlocks();
         
-        //Disable worlds
+        // Read block lists
+        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })), false);
+        setBlockValues(DarknessBlocks, getIntList("Lists.DarknessBlocks", Arrays.asList(new Integer[] { 52, 54 })));
+        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146 })));
+        
+        // Disable worlds
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
         
-        //Read the cache location
+        // Read the cache location
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
         

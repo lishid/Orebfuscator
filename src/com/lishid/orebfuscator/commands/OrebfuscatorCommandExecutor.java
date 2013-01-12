@@ -26,6 +26,8 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorCommandExecutor
 {
+    public static boolean DebugMode = false;
+    
     public static boolean onCommand(CommandSender sender, Command command, String label, String[] args)
     {
         /*
@@ -101,7 +103,7 @@ public class OrebfuscatorCommandExecutor
             }
         }
         
-        if (args[0].equalsIgnoreCase("updateradius") && args.length > 1)
+        else if (args[0].equalsIgnoreCase("updateradius") && args.length > 1)
         {
             int radius = OrebfuscatorConfig.getUpdateRadius();
             try
@@ -118,7 +120,7 @@ public class OrebfuscatorCommandExecutor
             return true;
         }
         
-        if (args[0].equalsIgnoreCase("initialradius") && args.length > 1)
+        else if (args[0].equalsIgnoreCase("initialradius") && args.length > 1)
         {
             int radius = OrebfuscatorConfig.getInitialRadius();
             try
@@ -135,7 +137,7 @@ public class OrebfuscatorCommandExecutor
             return true;
         }
         
-        if (args[0].equalsIgnoreCase("airgen") && args.length > 1)
+        else if (args[0].equalsIgnoreCase("airgen") && args.length > 1)
         {
             int airgen = OrebfuscatorConfig.getAirGeneratorMaxChance();
             try
@@ -152,7 +154,7 @@ public class OrebfuscatorCommandExecutor
             return true;
         }
         
-        if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable"))
+        else if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable"))
         {
             boolean data = args[0].equalsIgnoreCase("enable");
             
@@ -162,13 +164,13 @@ public class OrebfuscatorCommandExecutor
                 Orebfuscator.message(sender, "Enabled.");
             }
             
-            if (args[0].equalsIgnoreCase("disable") && args.length == 1)
+            else if (args[0].equalsIgnoreCase("disable") && args.length == 1)
             {
                 OrebfuscatorConfig.setEnabled(false);
                 Orebfuscator.message(sender, "Disabled.");
             }
             
-            if (args.length > 1)
+            else if (args.length > 1)
             {
                 if (args[1].equalsIgnoreCase("darknesshide"))
                 {
@@ -208,13 +210,13 @@ public class OrebfuscatorCommandExecutor
             }
         }
         
-        if (args[0].equalsIgnoreCase("reload"))
+        else if (args[0].equalsIgnoreCase("reload"))
         {
             OrebfuscatorConfig.reload();
             Orebfuscator.message(sender, "Reload complete.");
         }
         
-        if (args[0].equalsIgnoreCase("status"))
+        else if (args[0].equalsIgnoreCase("status"))
         {
             Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.getEnabled() ? "Enabled" : "Disabled"));
             Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
@@ -228,10 +230,15 @@ public class OrebfuscatorCommandExecutor
             Orebfuscator.message(sender, "Disabled worlds: " + (disabledWorlds.equals("") ? "None" : disabledWorlds));
         }
         
-        if (args[0].equalsIgnoreCase("clearcache"))
+        else if (args[0].equalsIgnoreCase("clearcache"))
         {
             ObfuscatedDataCache.ClearCache();
             Orebfuscator.message(sender, "Cache cleared.");
+        }
+        
+        else if (args[0].equalsIgnoreCase("debug"))
+        {
+            DebugMode = !DebugMode;
         }
         
         return true;
