@@ -17,7 +17,6 @@
 package com.lishid.orebfuscator.hook;
 
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Deflater;
 
@@ -28,10 +27,11 @@ import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.internal.IChunkQueue;
 import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import com.lishid.orebfuscator.utils.OrebfuscatorAsyncQueue;
 
 public class ChunkProcessingThread extends Thread
 {
-    private static LinkedBlockingDeque<ChunkProcessingOrder> queue = new LinkedBlockingDeque<ChunkProcessingThread.ChunkProcessingOrder>();
+    private static OrebfuscatorAsyncQueue<ChunkProcessingOrder> queue = new OrebfuscatorAsyncQueue<ChunkProcessingThread.ChunkProcessingOrder>();
     
     private static LinkedList<ChunkProcessingThread> threads = new LinkedList<ChunkProcessingThread>();
     
@@ -72,20 +72,23 @@ public class ChunkProcessingThread extends Thread
     
     public synchronized static void SyncThreads()
     {
-        if (threads.size() > OrebfuscatorConfig.getProcessingThreads())
+        //Return as soon as possible
+        if (threads.size() == OrebfuscatorConfig.getProcessingThreads())
+        {
+            return;
+        }
+        
+        //Less threads? Kill one
+        else if (threads.size() > OrebfuscatorConfig.getProcessingThreads())
         {
             threads.getLast().kill.set(true);
             threads.getLast().interrupt();
             threads.removeLast();
             return;
         }
-        else if(threads.size() == OrebfuscatorConfig.getProcessingThreads())
-        {
-            return;
-        }
-        
-        int startThreads = OrebfuscatorConfig.getProcessingThreads() - threads.size();
-        for (int i = 0; i < startThreads; i++)
+
+        //More threads? Start new one
+        else
         {
             ChunkProcessingThread thread = new ChunkProcessingThread();
             thread.setName("Orebfuscator Processing Thread");
@@ -98,14 +101,7 @@ public class ChunkProcessingThread extends Thread
     public static void Queue(IPacket56 packet, Player player, IChunkQueue output)
     {
         SyncThreads();
-        try
-        {
-            queue.put(new ChunkProcessingOrder(packet, player, output));
-        }
-        catch (InterruptedException e)
-        {
-            // Should never come here unless there's INT_MAX players online.
-        }
+        queue.queue(new ChunkProcessingOrder(packet, player, output));
     }
     
     AtomicBoolean kill = new AtomicBoolean(false);
@@ -117,7 +113,7 @@ public class ChunkProcessingThread extends Thread
         {
             try
             {
-                ChunkProcessingOrder order = queue.take();
+                ChunkProcessingOrder order = queue.dequeue();
                 Calculations.Obfuscate(order.packet, order.player);
                 order.packet.compress(localDeflater.get());
                 order.output.FinishedProcessing(order.packet);

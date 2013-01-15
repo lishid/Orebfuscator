@@ -246,7 +246,7 @@ public class Updater
         {
             // Obtain the results of the project's file feed
             readFeed();
-            if (!versionTitle.equals(versionDownloaded) && versionCheck(versionTitle))
+            if (versionTitle != null && !versionTitle.equals(versionDownloaded) && versionCheck(versionTitle))
             {
                 String fileLink = getFile(versionLink);
                 if (fileLink != null && type != UpdateType.NO_DOWNLOAD)

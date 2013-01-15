@@ -72,6 +72,7 @@ public class OrebfuscatorConfig
     private static int AntiHitHackMaxViolation = 15;
     private static int OverflowPacketCheckRate = 500;
     private static int ProximityHiderRate = 500;
+    private static int AvailableProcessors = Runtime.getRuntime().availableProcessors();
     
     // Other gets
     public static File getCacheFolder()
@@ -111,8 +112,8 @@ public class OrebfuscatorConfig
     {
         if (ProcessingThreads <= 0)
             return 1;
-        if (ProcessingThreads > Runtime.getRuntime().availableProcessors())
-            return Runtime.getRuntime().availableProcessors();
+        if (ProcessingThreads > AvailableProcessors)
+            return AvailableProcessors;
         return ProcessingThreads;
     }
     

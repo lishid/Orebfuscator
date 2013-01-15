@@ -60,7 +60,7 @@ public class Orebfuscator extends JavaPlugin
         // Version check
         boolean success = InternalAccessor.Initialize(this.getServer());
         
-        if(!success)
+        if (!success)
         {
             Orebfuscator.log("Your version of CraftBukkit is not supported.");
             Orebfuscator.log("Please look for an updated version of Orebfuscator.");
@@ -86,6 +86,18 @@ public class Orebfuscator extends JavaPlugin
             Orebfuscator.log("ProtocolLib found! Hooking into ProtocolLib.");
             (new ProtocolLibHook()).register(this);
             usePL = true;
+        }
+        
+        if (pm.getPlugin("NoLagg") != null && !usePL)
+        {
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    Orebfuscator.log("WARNING! NoLagg Absolutely NEED ProtocolLib to work with Orebfuscator!");
+                }
+            }, 0, 60 * 1000);// Warn every minute
         }
         
         // Metrics
