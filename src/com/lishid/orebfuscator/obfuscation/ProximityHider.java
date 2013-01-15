@@ -85,6 +85,8 @@ public class ProximityHider extends Thread implements Runnable
                     newPlayers.putAll(playersToCheck);
                     playersToCheck.clear();
                 }
+				
+				int distanceSquared = OrebfuscatorConfig.getProximityHiderDistance();
                 
                 for (Player p : newPlayers.keySet())
                 {
@@ -138,7 +140,7 @@ public class ProximityHider extends Thread implements Runnable
                             continue;
                         }
                         
-                        if (p.getLocation().distance(b.getLocation()) < OrebfuscatorConfig.getProximityHiderDistance())
+                        if (p.getLocation().distanceSquared(b.getLocation()) < distanceSquared)
                         {
                             removedBlocks.add(b);
                             
