@@ -1,11 +1,11 @@
 package com.lishid.orebfuscator.utils;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 
 public class OrebfuscatorAsyncQueue<E>
 {   
     private final Object lockObject = new Object();
-    private ArrayList<E> list = new ArrayList<E>();
+    private ArrayDeque<E> list = new ArrayDeque<E>();
     
     public void clear()
     {
@@ -20,7 +20,7 @@ public class OrebfuscatorAsyncQueue<E>
         synchronized(lockObject)
         {
             list.add(input);
-            lockObject.notifyAll();
+            lockObject.notify();
         }
     }
     
@@ -39,7 +39,7 @@ public class OrebfuscatorAsyncQueue<E>
                     e.printStackTrace();
                 }
             }
-            return list.remove(list.size() - 1);
+            return list.pop();
         }
     }
 }
