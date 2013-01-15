@@ -87,6 +87,9 @@ public class ProximityHider extends Thread implements Runnable
                 }
 				
 				int distanceSquared = OrebfuscatorConfig.getProximityHiderDistance();
+				
+				//Actually squaring it
+				distanceSquared = distanceSquared * distanceSquared;
                 
                 for (Player p : newPlayers.keySet())
                 {
