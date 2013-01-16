@@ -24,20 +24,13 @@ public class OrebfuscatorAsyncQueue<E>
         }
     }
     
-    public E dequeue()
+    public E dequeue() throws InterruptedException
     {
         synchronized(lockObject)
         {
             while(list.size() <= 0)
             {
-                try
-                {
-                    lockObject.wait();
-                }
-                catch (InterruptedException e)
-                {
-                    e.printStackTrace();
-                }
+                lockObject.wait();
             }
             return list.pop();
         }
