@@ -26,6 +26,7 @@ import com.lishid.orebfuscator.hook.ChunkProcessingThread;
 import com.lishid.orebfuscator.internal.IChunkQueue;
 import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.internal.InternalAccessor;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 //Volatile
 import net.minecraft.server.v1_4_6.*;
@@ -63,16 +64,28 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     {
         // Clear the internal queue
         internalQueue.clear();
-        // Cancel processing of any queue'd packets
         super.clear();
     }
+    
+    int sortWait = 0;
     
     // Called when new chunks are queued
     @Override
     public boolean add(ChunkCoordIntPair e)
     {
+        boolean result = internalQueue.add(e);
+        
+        sortWait++;
+        
+        if(sortWait >= 5)
+        {
+            sort();
+            sortWait = 0;
+        }
+        
         // Move everything into the internal queue
-        return internalQueue.add(e);
+        return result;
+        
         // return super.add(e);
     }
     
@@ -80,9 +93,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     @Override
     public Object[] toArray()
     {
-        // Sort the internal array according to CB - See PlayerChunkMap.movePlayer(EntityPlayer entityplayer)
-        java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
-        
+        sort();
         // Return the old array to be sorted
         return internalQueue.toArray();
     }
@@ -116,6 +127,12 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         return true;
     }
     
+    public void sort()
+    {
+        // Sort the internal array according to CB - See PlayerChunkMap.movePlayer(EntityPlayer entityplayer)
+        java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
+    }
+    
     @Override
     public void FinishedProcessing(IPacket56 packet)
     {
@@ -137,7 +154,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             // Get the chunk coordinate
             ChunkCoordIntPair chunk = outputQueue.remove(0);
             
-            //Check if the chunk is ready
+            // Check if the chunk is ready
             if (chunk != null && ((WorldServer) player.getHandle().world).isLoaded(chunk.x << 4, 0, chunk.z << 4))
             {
                 // Get all the TileEntities in the chunk
@@ -161,6 +178,27 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         // Queue next chunk packet out
         if (processingQueue.isEmpty() && !internalQueue.isEmpty())
         {
+            // Check if player's output queue has a lot of stuff waiting to be sent. If so, don't process and wait.
+            NetworkManager networkManager = (NetworkManager) player.getHandle().playerConnection.networkManager;
+            
+            // Network queue limit is 2097152 bytes
+            // Each chunk packet with 5 chunks is about 10000 - 25000 bytes
+            
+            // We'll allow the size of 3 packets to be queued = 75000 bytes
+            
+            //Try-catch so as to not disrupt chunk sending if something fails
+            try
+            {
+                if (((int) (Integer) ReflectionHelper.getPrivateField(NetworkManager.class, networkManager, "y")) > 75000)
+                {
+                    return;
+                }
+            }
+            catch (Exception e)
+            {   
+                //e.printStackTrace();
+            }
+            
             // A list to queue chunks
             List<Chunk> chunks = new LinkedList<Chunk>();
             

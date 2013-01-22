@@ -34,6 +34,7 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.utils.Metrics;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
 import com.lishid.orebfuscator.utils.UpdateManager;
 
 /**
@@ -48,6 +49,7 @@ public class Orebfuscator extends JavaPlugin
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
     public static boolean usePL = false;
+    public static boolean useSpigot = false;
     
     private UpdateManager updater = new UpdateManager();
     
@@ -98,6 +100,19 @@ public class Orebfuscator extends JavaPlugin
                     Orebfuscator.log("WARNING! NoLagg Absolutely NEED ProtocolLib to work with Orebfuscator!");
                 }
             }, 0, 60 * 1000);// Warn every minute
+        }
+        
+        // Disable spigot's built-in orebfuscator since it has limited functionality
+        try
+        {
+            getServer().getClass().getDeclaredField("orebfuscatorEnabled");
+            ReflectionHelper.setPrivateField(getServer(), "orebfuscatorEnabled", false);
+            Orebfuscator.log("Spigot detected, disabling Spigot internal Orebfuscator!");
+            useSpigot = true;
+        }
+        catch (Exception e)
+        {
+            // If error occurred, then ignore.
         }
         
         // Metrics

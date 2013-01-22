@@ -45,8 +45,8 @@ public class Calculations
         @Override
         protected Deflater initialValue()
         {
-            // Not used from orebfuscator thread, normal compression instead
-            return new Deflater(Deflater.DEFAULT_COMPRESSION);
+            // Not used from orebfuscator thread, best speed instead
+            return new Deflater(Deflater.BEST_SPEED);
         }
     };
     
@@ -60,7 +60,7 @@ public class Calculations
     
     public static void Obfuscate(IPacket56 packet, Player player)
     {
-        if (packet.getOutputBuffer() != null)
+        if (packet.getFieldData(packet.getOutputBuffer()) != null)
         {
             return;
         }
@@ -72,7 +72,7 @@ public class Calculations
             // Create an info objects
             ChunkInfo info = infos[chunkNum];
             info.buffer = buffer.get();
-            ComputeChunkInfoAndObfuscate(info, packet.getBuildBuffer());
+            ComputeChunkInfoAndObfuscate(info, (byte[]) packet.getFieldData(packet.getBuildBuffer()));
         }
     }
     
@@ -109,10 +109,32 @@ public class Calculations
         int[] x = packet.getX();
         int[] z = packet.getZ();
         
-        byte[][] inflatedBuffers = packet.getInflatedBuffers();
+        byte[][] inflatedBuffers = (byte[][]) packet.getFieldData(packet.getInflatedBuffers());
         
         int[] chunkMask = packet.getChunkMask();
         int[] extraMask = packet.getExtraMask();
+        
+        byte[] buildBuffer = (byte[]) packet.getFieldData(packet.getBuildBuffer());
+        
+        // Check for spigot and fix accordingly
+        if (buildBuffer.length == 0)
+        {
+            int finalBufferSize = 0;
+            for (int i = 0; i < inflatedBuffers.length; i++)
+            {
+                finalBufferSize += inflatedBuffers[i].length;
+            }
+            
+            buildBuffer = new byte[finalBufferSize];
+            int bufferLocation = 0;
+            for (int i = 0; i < inflatedBuffers.length; i++)
+            {
+                System.arraycopy(inflatedBuffers[i], 0, buildBuffer, bufferLocation, inflatedBuffers[i].length);
+                bufferLocation += inflatedBuffers[i].length;
+            }
+            
+            packet.setFieldData(packet.getBuildBuffer(), buildBuffer);
+        }
         
         for (int chunkNum = 0; chunkNum < packet.getPacketChunkNumber(); chunkNum++)
         {
@@ -125,7 +147,7 @@ public class Calculations
             info.chunkZ = z[chunkNum];
             info.chunkMask = chunkMask[chunkNum];
             info.extraMask = extraMask[chunkNum];
-            info.data = packet.getBuildBuffer();
+            info.data = buildBuffer;
             info.startIndex = dataStartIndex;
             info.size = inflatedBuffers[chunkNum].length;
             
@@ -258,6 +280,7 @@ public class Calculations
         // Track of pseudo-randomly assigned randomBlock
         int randomIncrement = 0;
         int randomIncrement2 = 0;
+        int ramdomCave = 0;
         // Track of whether a block should be obfuscated or not
         boolean obfuscate = false;
         boolean specialObfuscate = false;
@@ -361,7 +384,7 @@ public class Calculations
                                 }
                                 else
                                 {
-                                    randomIncrement2 = CalculationsUtil.increment(randomIncrement2, incrementMax);
+                                    randomIncrement2 = OrebfuscatorConfig.random(incrementMax);// CalculationsUtil.increment(randomIncrement2, incrementMax);
                                     
                                     if (engineMode == 1)
                                     {
@@ -381,7 +404,15 @@ public class Calculations
                                     {
                                         // Add random air blocks
                                         if (randomIncrement2 == 0)
+                                        {
+                                            ramdomCave = 1 + OrebfuscatorConfig.random(3);
+                                        }
+                                        
+                                        if(ramdomCave > 0)
+                                        {
                                             info.buffer[index] = 0;
+                                            ramdomCave--;
+                                        }
                                     }
                                 }
                             }

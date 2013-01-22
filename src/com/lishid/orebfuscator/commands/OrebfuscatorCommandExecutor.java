@@ -31,41 +31,42 @@ public class OrebfuscatorCommandExecutor
     public static boolean onCommand(CommandSender sender, Command command, String label, String[] args)
     {
         /*
-        if (command.getName().equalsIgnoreCase("rechunk") && sender instanceof Player)
-        {
-            int r = 2;
-            if (args.length > 0)
-            {
-                try
-                {
-                    r = new Integer(args[0]);
-                }
-                catch (NumberFormatException e)
-                {
-                    Orebfuscator.message(sender, args[0] + " is not a number!");
-                    return true;
-                }
-                if (r < 1)
-                    r = 1;
-                if (r > 10)
-                    r = 10;
-            }
-            
-            Player player = (Player) sender;
-            Chunk chunk = player.getWorld().getChunkAt(player.getLocation());
-            int x = chunk.getX();
-            int z = chunk.getZ();
-            for (int i = x - r; i <= x + r; i++)
-            {
-                for (int j = z - r; j <= z + r; j++)
-                {
-                    ChunkCoordIntPair location = new ChunkCoordIntPair(i, j);
-                    ((CraftPlayer) player).getHandle().chunkCoordIntPairQueue.add(location);
-                }
-            }
-            Orebfuscator.message(sender, "Chunks within a radius of " + r + " have been sent to you.");
-            return true;
-        }*/
+         * if (command.getName().equalsIgnoreCase("rechunk") && sender instanceof Player)
+         * {
+         * int r = 2;
+         * if (args.length > 0)
+         * {
+         * try
+         * {
+         * r = new Integer(args[0]);
+         * }
+         * catch (NumberFormatException e)
+         * {
+         * Orebfuscator.message(sender, args[0] + " is not a number!");
+         * return true;
+         * }
+         * if (r < 1)
+         * r = 1;
+         * if (r > 10)
+         * r = 10;
+         * }
+         * 
+         * Player player = (Player) sender;
+         * Chunk chunk = player.getWorld().getChunkAt(player.getLocation());
+         * int x = chunk.getX();
+         * int z = chunk.getZ();
+         * for (int i = x - r; i <= x + r; i++)
+         * {
+         * for (int j = z - r; j <= z + r; j++)
+         * {
+         * ChunkCoordIntPair location = new ChunkCoordIntPair(i, j);
+         * ((CraftPlayer) player).getHandle().chunkCoordIntPairQueue.add(location);
+         * }
+         * }
+         * Orebfuscator.message(sender, "Chunks within a radius of " + r + " have been sent to you.");
+         * return true;
+         * }
+         */
         
         if ((sender instanceof Player) && !sender.hasPermission("Orebfuscator.admin"))
         {
@@ -154,6 +155,23 @@ public class OrebfuscatorCommandExecutor
             return true;
         }
         
+        else if ((args[0].equalsIgnoreCase("proximity") | args[0].equalsIgnoreCase("proximityhider")) && args.length > 1)
+        {
+            int ProximityHiderDistance = OrebfuscatorConfig.getProximityHiderDistance();
+            try
+            {
+                ProximityHiderDistance = new Integer(args[1]);
+            }
+            catch (NumberFormatException e)
+            {
+                Orebfuscator.message(sender, args[1] + " is not a number!");
+                return true;
+            }
+            OrebfuscatorConfig.setProximityHiderDistance(ProximityHiderDistance);
+            Orebfuscator.message(sender, "ProximityHider Distance set to: " + ProximityHiderDistance);
+            return true;
+        }
+        
         else if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable"))
         {
             boolean data = args[0].equalsIgnoreCase("enable");
@@ -222,6 +240,7 @@ public class OrebfuscatorCommandExecutor
             Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
             
             Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache() ? "Enabled" : "Disabled"));
+            Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider() ? "Enabled" : "Disabled"));
             
             Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
             Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());

@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.craftbukkit;
+package com.lishid.orebfuscator.internal.v1_4_R1;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -29,8 +29,8 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 //Volatile
-import net.minecraft.server.*;
-import org.bukkit.craftbukkit.entity.*;
+import net.minecraft.server.v1_4_R1.*;
+import org.bukkit.craftbukkit.v1_4_R1.entity.*;
 
 public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQueue
 {
@@ -110,7 +110,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     public boolean isEmpty()
     {
         // If the player is gone, then don't waste time
-        if (player.getHandle().netServerHandler.disconnected)
+        if (player.getHandle().playerConnection.disconnected)
         {
             // Cleanup all queues
             internalQueue.clear();
@@ -138,7 +138,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     {
         if (lastPacket != null)
         {
-            player.getHandle().netServerHandler.sendPacket(lastPacket);
+            player.getHandle().playerConnection.sendPacket(lastPacket);
             // Remove reference to the packet so it can be freed when possible
             lastPacket = null;
         }
@@ -179,7 +179,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         if (processingQueue.isEmpty() && !internalQueue.isEmpty())
         {
             // Check if player's output queue has a lot of stuff waiting to be sent. If so, don't process and wait.
-            NetworkManager networkManager = (NetworkManager) player.getHandle().netServerHandler.networkManager;
+            NetworkManager networkManager = (NetworkManager) player.getHandle().playerConnection.networkManager;
             
             // Network queue limit is 2097152 bytes
             // Each chunk packet with 5 chunks is about 10000 - 25000 bytes
@@ -241,7 +241,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             
             if (packet != null)
             {
-                player.getHandle().netServerHandler.sendPacket(packet);
+                player.getHandle().playerConnection.sendPacket(packet);
             }
         }
     }

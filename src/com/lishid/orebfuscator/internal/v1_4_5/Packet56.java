@@ -74,43 +74,57 @@ public class Packet56 implements IPacket56
     }
     
     @Override
-    public byte[][] getInflatedBuffers()
+    public Object getFieldData(String field)
     {
-        return (byte[][]) ReflectionHelper.getPrivateField(packet, "inflatedBuffers");
+        return ReflectionHelper.getPrivateField(Packet56MapChunkBulk.class, packet, field);
     }
     
     @Override
-    public byte[] getBuildBuffer()
+    public void setFieldData(String field, Object data)
     {
-        return (byte[]) ReflectionHelper.getPrivateField(Packet56MapChunkBulk.class, packet, "buildBuffer");
+        ReflectionHelper.setPrivateField(Packet56MapChunkBulk.class, packet, field, data);
     }
     
-    @Override
-    public byte[] getOutputBuffer()
+    public String getInflatedBuffers()
     {
-        return (byte[]) ReflectionHelper.getPrivateField(Packet56MapChunkBulk.class, packet, "buffer");
+        return "inflatedBuffers";
+    }
+    
+    public String getBuildBuffer()
+    {
+        return "buildBuffer";
+    }
+    
+    public String getOutputBuffer()
+    {
+        return "buffer";
     }
     
     @Override
     public void compress(Deflater deflater)
     {
-        if (getOutputBuffer() != null)
+        if (getFieldData(getOutputBuffer()) != null)
         {
             return;
         }
         
-        byte[] buildBuffer = getBuildBuffer();
+        byte[] buildBuffer = (byte[]) getFieldData(getBuildBuffer());
         
         deflater.reset();
         deflater.setInput(buildBuffer);
         deflater.finish();
         
         byte[] buffer = new byte[buildBuffer.length + 100];
-
+        
         ReflectionHelper.setPrivateField(packet, "buffer", buffer);
         int size = deflater.deflate(buffer);
         ReflectionHelper.setPrivateField(packet, "size", size);
-        if(OrebfuscatorCommandExecutor.DebugMode)
+        
+        // Free memory
+        ReflectionHelper.setPrivateField(packet, "buildBuffer", null);
+        ReflectionHelper.setPrivateField(packet, "inflatedBuffers", null);
+        
+        if (OrebfuscatorCommandExecutor.DebugMode)
         {
             System.out.println("Packet size: " + size);
         }

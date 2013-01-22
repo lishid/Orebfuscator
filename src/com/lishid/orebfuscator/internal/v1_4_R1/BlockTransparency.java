@@ -14,34 +14,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal;
+package com.lishid.orebfuscator.internal.v1_4_R1;
 
-import java.util.zip.Deflater;
+import com.lishid.orebfuscator.internal.IBlockTransparency;
 
-public interface IPacket56
+//Volatile
+import net.minecraft.server.v1_4_R1.*;
+
+public class BlockTransparency implements IBlockTransparency
 {
-    public void setPacket(Object packet);
-    
-    public int getPacketChunkNumber();
-    
-    public int[] getX();
-    
-    public int[] getZ();
-    
-    public int[] getChunkMask();
-    
-    public int[] getExtraMask();
-    
-    public Object getFieldData(String field);
-    
-    public void setFieldData(String field, Object data);
-    
-    public String getInflatedBuffers();
-    
-    public String getBuildBuffer();
-    
-    public String getOutputBuffer();
-    
-    public void compress(Deflater deflater);
-    
+    @Override
+    public boolean isBlockTransparent(int id)
+    {
+        return !Block.i(id);
+    }
 }

@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
 
 //Volatile
 import net.minecraft.server.v1_4_6.*;
+
 import org.bukkit.craftbukkit.v1_4_6.entity.*;
 
 public class PlayerHook implements IPlayerHook
@@ -66,7 +67,18 @@ public class PlayerHook implements IPlayerHook
             }
         }
         
-        // Also hook Packet14
+        hookPacket();
+    }
+    
+    static boolean hookPacket = false;
+
+    @SuppressWarnings("unchecked")
+    private void hookPacket()
+    {
+        if(hookPacket)
+            return;
+        
+        hookPacket = true;
         Packet.l.a(14, Packet14Orebfuscator.class);
         // Use reflection to add into a and c
         Field[] packetFields = Packet.class.getDeclaredFields();

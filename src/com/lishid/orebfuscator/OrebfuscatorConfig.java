@@ -165,8 +165,8 @@ public class OrebfuscatorConfig
     
     public static int getCompressionLevel()
     {
-        if (CompressionLevel < 0)
-            return 0;
+        if (CompressionLevel < 1)
+            return 1;
         if (CompressionLevel > 9)
             return 9;
         return CompressionLevel;
