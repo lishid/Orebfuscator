@@ -79,7 +79,7 @@ public class ObfuscatedCachedChunk
                 // Check if statuses makes sense
                 if (nbt.getInt("X") != x || nbt.getInt("Z") != z)
                     return;
-                if(OrebfuscatorConfig.getUseProximityHider() != nbt.getBoolean("PH") || OrebfuscatorConfig.getInitialRadius() != nbt.getInt("IR"))
+                if(OrebfuscatorConfig.UseProximityHider != nbt.getBoolean("PH") || OrebfuscatorConfig.InitialRadius != nbt.getInt("IR"))
                     return;
                 
                 // Get Hash
@@ -108,8 +108,8 @@ public class ObfuscatedCachedChunk
             // Set status indicator
             nbt.setInt("X", x);
             nbt.setInt("Z", z);
-            nbt.setInt("IR", OrebfuscatorConfig.getInitialRadius());
-            nbt.setBoolean("PH", OrebfuscatorConfig.getUseProximityHider());
+            nbt.setInt("IR", OrebfuscatorConfig.InitialRadius);
+            nbt.setBoolean("PH", OrebfuscatorConfig.UseProximityHider);
             
             // Set hash
             nbt.setLong("Hash", hash);

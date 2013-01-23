@@ -45,7 +45,7 @@ public class OrebfuscatorBlockListener implements Listener
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockDamage(BlockDamageEvent event)
     {
-        if (event.isCancelled() || !OrebfuscatorConfig.getUpdateOnDamage())
+        if (event.isCancelled() || !OrebfuscatorConfig.UpdateOnDamage)
         {
             return;
         }

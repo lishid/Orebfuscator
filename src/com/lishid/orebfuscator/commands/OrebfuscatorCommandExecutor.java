@@ -81,7 +81,7 @@ public class OrebfuscatorCommandExecutor
         
         if (args[0].equalsIgnoreCase("engine") && args.length > 1)
         {
-            int engine = OrebfuscatorConfig.getEngineMode();
+            int engine = OrebfuscatorConfig.EngineMode;
             try
             {
                 engine = new Integer(args[1]);
@@ -106,7 +106,7 @@ public class OrebfuscatorCommandExecutor
         
         else if (args[0].equalsIgnoreCase("updateradius") && args.length > 1)
         {
-            int radius = OrebfuscatorConfig.getUpdateRadius();
+            int radius = OrebfuscatorConfig.UpdateRadius;
             try
             {
                 radius = new Integer(args[1]);
@@ -117,13 +117,13 @@ public class OrebfuscatorCommandExecutor
                 return true;
             }
             OrebfuscatorConfig.setUpdateRadius(radius);
-            Orebfuscator.message(sender, "UpdateRadius set to: " + OrebfuscatorConfig.getUpdateRadius());
+            Orebfuscator.message(sender, "UpdateRadius set to: " + OrebfuscatorConfig.UpdateRadius);
             return true;
         }
         
         else if (args[0].equalsIgnoreCase("initialradius") && args.length > 1)
         {
-            int radius = OrebfuscatorConfig.getInitialRadius();
+            int radius = OrebfuscatorConfig.InitialRadius;
             try
             {
                 radius = new Integer(args[1]);
@@ -140,7 +140,7 @@ public class OrebfuscatorCommandExecutor
         
         else if (args[0].equalsIgnoreCase("airgen") && args.length > 1)
         {
-            int airgen = OrebfuscatorConfig.getAirGeneratorMaxChance();
+            int airgen = OrebfuscatorConfig.AirGeneratorMaxChance;
             try
             {
                 airgen = new Integer(args[1]);
@@ -157,7 +157,7 @@ public class OrebfuscatorCommandExecutor
         
         else if ((args[0].equalsIgnoreCase("proximity") | args[0].equalsIgnoreCase("proximityhider")) && args.length > 1)
         {
-            int ProximityHiderDistance = OrebfuscatorConfig.getProximityHiderDistance();
+            int ProximityHiderDistance = OrebfuscatorConfig.ProximityHiderDistance;
             try
             {
                 ProximityHiderDistance = new Integer(args[1]);
@@ -236,14 +236,14 @@ public class OrebfuscatorCommandExecutor
         
         else if (args[0].equalsIgnoreCase("status"))
         {
-            Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.getEnabled() ? "Enabled" : "Disabled"));
-            Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.getEngineMode());
+            Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.Enabled ? "Enabled" : "Disabled"));
+            Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.EngineMode);
             
-            Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.getUseCache() ? "Enabled" : "Disabled"));
-            Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.getUseProximityHider() ? "Enabled" : "Disabled"));
+            Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.UseCache ? "Enabled" : "Disabled"));
+            Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.UseProximityHider ? "Enabled" : "Disabled"));
             
-            Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.getInitialRadius());
-            Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.getUpdateRadius());
+            Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.InitialRadius);
+            Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.UpdateRadius);
             
             String disabledWorlds = OrebfuscatorConfig.getDisabledWorlds();
             Orebfuscator.message(sender, "Disabled worlds: " + (disabledWorlds.equals("") ? "None" : disabledWorlds));

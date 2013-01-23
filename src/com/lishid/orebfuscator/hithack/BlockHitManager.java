@@ -45,13 +45,13 @@ public class BlockHitManager
         playerBlockTracking.setBlock(block);
         playerBlockTracking.updateTime();
         
-        int decrement = (int) (time / OrebfuscatorConfig.getAntiHitHackDecrementFactor());
+        int decrement = (int) (time / OrebfuscatorConfig.AntiHitHackDecrementFactor);
         playerBlockTracking.decrementHackingIndicator(decrement);
         
-        if (playerBlockTracking.getHackingIndicator() == OrebfuscatorConfig.getAntiHitHackMaxViolation())
-            playerBlockTracking.incrementHackingIndicator(OrebfuscatorConfig.getAntiHitHackMaxViolation());
+        if (playerBlockTracking.getHackingIndicator() == OrebfuscatorConfig.AntiHitHackMaxViolation)
+            playerBlockTracking.incrementHackingIndicator(OrebfuscatorConfig.AntiHitHackMaxViolation);
         
-        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.getAntiHitHackMaxViolation())
+        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
             return false;
         
         return true;
@@ -61,7 +61,7 @@ public class BlockHitManager
     {
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
         
-        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.getAntiHitHackMaxViolation())
+        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
             return false;
         
         return true;
@@ -72,7 +72,7 @@ public class BlockHitManager
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
         playerBlockTracking.incrementHackingIndicator();
         
-        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.getAntiHitHackMaxViolation())
+        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
             return false;
         
         return true;

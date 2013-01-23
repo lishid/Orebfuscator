@@ -37,7 +37,7 @@ public class OrebfuscatorPlayerListener implements Listener
     public void onPlayerJoin(PlayerJoinEvent event)
     {
         Player player = event.getPlayer();
-        if (OrebfuscatorConfig.getLoginNotification())
+        if (OrebfuscatorConfig.LoginNotification)
         {
             if (OrebfuscatorConfig.playerBypassOp(player))
             {
@@ -54,7 +54,7 @@ public class OrebfuscatorPlayerListener implements Listener
     public void onPlayerQuit(PlayerQuitEvent event)
     {
         BlockHitManager.clearHistory(event.getPlayer());
-        if (OrebfuscatorConfig.getUseProximityHider())
+        if (OrebfuscatorConfig.UseProximityHider)
         {
             synchronized (ProximityHider.proximityHiderTracker)
             {
@@ -83,7 +83,7 @@ public class OrebfuscatorPlayerListener implements Listener
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event)
     {
         BlockHitManager.clearHistory(event.getPlayer());
-        if (OrebfuscatorConfig.getUseProximityHider())
+        if (OrebfuscatorConfig.UseProximityHider)
         {
             synchronized (ProximityHider.proximityHiderTracker)
             {
@@ -100,7 +100,7 @@ public class OrebfuscatorPlayerListener implements Listener
             return;
         }
         
-        if (OrebfuscatorConfig.getUseProximityHider())
+        if (OrebfuscatorConfig.UseProximityHider)
         {
             synchronized (ProximityHider.playersToCheck)
             {

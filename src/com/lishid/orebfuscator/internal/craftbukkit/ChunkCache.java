@@ -49,7 +49,7 @@ public class ChunkCache implements IChunkCache
                 path.mkdirs();
             }
             
-            if (cachedRegionFiles.size() >= OrebfuscatorConfig.getMaxLoadedCacheFiles())
+            if (cachedRegionFiles.size() >= OrebfuscatorConfig.MaxLoadedCacheFiles)
             {
                 clearCache();
             }

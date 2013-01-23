@@ -65,14 +65,14 @@ public class ProximityHider extends Thread implements Runnable
             try
             {
                 // Wait until necessary
-                long timeWait = lastExecute + OrebfuscatorConfig.getProximityHiderRate() - System.currentTimeMillis();
+                long timeWait = lastExecute + OrebfuscatorConfig.ProximityHiderRate - System.currentTimeMillis();
                 lastExecute = System.currentTimeMillis();
                 if (timeWait > 0)
                 {
                     Thread.sleep(timeWait);
                 }
                 
-                if (!OrebfuscatorConfig.getUseProximityHider())
+                if (!OrebfuscatorConfig.UseProximityHider)
                 {
                     running = false;
                     return;
@@ -86,7 +86,7 @@ public class ProximityHider extends Thread implements Runnable
                     playersToCheck.clear();
                 }
 				
-				int distanceSquared = OrebfuscatorConfig.getProximityHiderDistance();
+				int distanceSquared = OrebfuscatorConfig.ProximityHiderDistance;
 				
 				//Actually squaring it
 				distanceSquared = distanceSquared * distanceSquared;
@@ -179,7 +179,7 @@ public class ProximityHider extends Thread implements Runnable
             if (thread.isInterrupted() || !thread.isAlive())
                 running = false;
             
-            if (!running && OrebfuscatorConfig.getUseProximityHider())
+            if (!running && OrebfuscatorConfig.UseProximityHider)
             {
                 // Load ProximityHider
                 ProximityHider.Load();
@@ -189,7 +189,7 @@ public class ProximityHider extends Thread implements Runnable
     
     public static void AddProximityBlocks(Player player, ArrayList<Block> blocks)
     {
-        if (!OrebfuscatorConfig.getUseProximityHider())
+        if (!OrebfuscatorConfig.UseProximityHider)
         {
             return;
         }

@@ -40,8 +40,7 @@ public class ChunkProcessingThread extends Thread
         @Override
         protected Deflater initialValue()
         {
-            // Use higher compression level if asked
-            return new Deflater(OrebfuscatorConfig.getCompressionLevel());
+            return new Deflater(OrebfuscatorConfig.CompressionLevel);
         }
     };
     
@@ -73,13 +72,13 @@ public class ChunkProcessingThread extends Thread
     public synchronized static void SyncThreads()
     {
         //Return as soon as possible
-        if (threads.size() == OrebfuscatorConfig.getProcessingThreads())
+        if (threads.size() == OrebfuscatorConfig.ProcessingThreads)
         {
             return;
         }
         
         //Less threads? Kill one
-        else if (threads.size() > OrebfuscatorConfig.getProcessingThreads())
+        else if (threads.size() > OrebfuscatorConfig.ProcessingThreads)
         {
             threads.getLast().kill.set(true);
             threads.getLast().interrupt();
@@ -92,7 +91,7 @@ public class ChunkProcessingThread extends Thread
         {
             ChunkProcessingThread thread = new ChunkProcessingThread();
             thread.setName("Orebfuscator Processing Thread");
-            thread.setPriority(MIN_PRIORITY);
+            thread.setPriority(OrebfuscatorConfig.OrebfuscatorPriority);
             thread.start();
             threads.add(thread);
         }

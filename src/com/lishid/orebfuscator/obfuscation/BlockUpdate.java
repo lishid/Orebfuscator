@@ -38,7 +38,7 @@ public class BlockUpdate
         if (!needsUpdate(block))
             return;
         
-        HashSet<Block> updateBlocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius());
+        HashSet<Block> updateBlocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius);
 
         World world = block.getWorld();
         IMinecraftWorldServer worldServer = InternalAccessor.Instance.newMinecraftWorldServer();
@@ -59,7 +59,7 @@ public class BlockUpdate
         {
             if (needsUpdate(block))
             {
-                updateBlocks.addAll(GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.getUpdateRadius()));
+                updateBlocks.addAll(GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius));
             }
         }
 

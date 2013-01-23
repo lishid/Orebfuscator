@@ -22,7 +22,7 @@ public class UpdateManager
             public void run()
             {
                 // Check for updates
-                if (OrebfuscatorConfig.getCheckForUpdates())
+                if (OrebfuscatorConfig.CheckForUpdates)
                 {
                     UpdateResult result = updater.update(UpdateType.DEFAULT);
                     if (result != UpdateResult.NO_UPDATE)
