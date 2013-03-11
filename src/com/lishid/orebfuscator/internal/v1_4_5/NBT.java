@@ -29,6 +29,12 @@ public class NBT implements INBT
     NBTTagCompound nbt = new NBTTagCompound();
     
     @Override
+    public void reset()
+    {
+        nbt = new NBTTagCompound();
+    }
+    
+    @Override
     public void setInt(String tag, int value)
     {
         nbt.setInt(tag, value);

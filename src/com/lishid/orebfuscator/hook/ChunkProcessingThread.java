@@ -91,7 +91,14 @@ public class ChunkProcessingThread extends Thread
         {
             ChunkProcessingThread thread = new ChunkProcessingThread();
             thread.setName("Orebfuscator Processing Thread");
-            thread.setPriority(OrebfuscatorConfig.OrebfuscatorPriority);
+            try
+            {
+                thread.setPriority(OrebfuscatorConfig.OrebfuscatorPriority);
+            }
+            catch (Exception e)
+            {
+                thread.setPriority(Thread.MIN_PRIORITY);
+            }
             thread.start();
             threads.add(thread);
         }

@@ -106,8 +106,12 @@ public class Orebfuscator extends JavaPlugin
         try
         {
             getServer().getClass().getDeclaredField("orebfuscatorEnabled");
+            if(!usePL)
+            {
+                Orebfuscator.log("Spigot detected, you need to install ProtocolLib to function properlly!");
+            }
             ReflectionHelper.setPrivateField(getServer(), "orebfuscatorEnabled", false);
-            Orebfuscator.log("Spigot detected, disabling Spigot internal Orebfuscator!");
+            Orebfuscator.log("Disabling Spigot internal Orebfuscator!");
             useSpigot = true;
         }
         catch (Exception e)

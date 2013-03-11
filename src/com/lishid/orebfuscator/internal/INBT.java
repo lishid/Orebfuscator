@@ -21,6 +21,8 @@ import java.io.DataOutput;
 
 public interface INBT
 {
+    public void reset();
+    
     public void setInt(String tag, int value);
     
     public void setLong(String tag, long value);

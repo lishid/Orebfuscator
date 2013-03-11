@@ -67,21 +67,11 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         super.clear();
     }
     
-    int sortWait = 0;
-    
     // Called when new chunks are queued
     @Override
     public boolean add(ChunkCoordIntPair e)
     {
         boolean result = internalQueue.add(e);
-        
-        sortWait++;
-        
-        if(sortWait >= 5)
-        {
-            sort();
-            sortWait = 0;
-        }
         
         // Move everything into the internal queue
         return result;
@@ -130,7 +120,10 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     public void sort()
     {
         // Sort the internal array according to CB - See PlayerChunkMap.movePlayer(EntityPlayer entityplayer)
-        java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
+        synchronized (internalQueue)
+        {
+            java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
+        }
     }
     
     @Override
@@ -179,7 +172,6 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         if (processingQueue.isEmpty() && !internalQueue.isEmpty())
         {
             // Check if player's output queue has a lot of stuff waiting to be sent. If so, don't process and wait.
-            NetworkManager networkManager = (NetworkManager) player.getHandle().playerConnection.networkManager;
             
             // Network queue limit is 2097152 bytes
             // Each chunk packet with 5 chunks is about 10000 - 25000 bytes
@@ -189,6 +181,8 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             //Try-catch so as to not disrupt chunk sending if something fails
             try
             {
+                NetworkManager networkManager = (NetworkManager) player.getHandle().playerConnection.networkManager;
+                
                 if (((int) (Integer) ReflectionHelper.getPrivateField(NetworkManager.class, networkManager, "y")) > 75000)
                 {
                     return;

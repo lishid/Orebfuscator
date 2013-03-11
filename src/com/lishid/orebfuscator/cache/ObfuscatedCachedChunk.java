@@ -34,6 +34,14 @@ public class ObfuscatedCachedChunk
     public long hash = 0L;
     private boolean loaded = false;
     
+    private static final ThreadLocal<INBT> nbtAccessor = new ThreadLocal<INBT>()
+    {
+        protected INBT initialValue()
+        {
+            return InternalAccessor.Instance.newNBT();
+        }
+    };
+    
     public ObfuscatedCachedChunk(File file, int x, int z)
     {
         this.x = x;
@@ -73,7 +81,8 @@ public class ObfuscatedCachedChunk
             DataInputStream stream = ObfuscatedDataCache.getInputStream(path, x, z);
             if (stream != null)
             {
-                INBT nbt = InternalAccessor.Instance.newNBT();
+                INBT nbt = nbtAccessor.get();
+                
                 nbt.Read(stream);
                 
                 // Check if statuses makes sense
@@ -103,7 +112,8 @@ public class ObfuscatedCachedChunk
     {
         try
         {
-            INBT nbt = InternalAccessor.Instance.newNBT();
+            INBT nbt = nbtAccessor.get();
+            nbt.reset();
             
             // Set status indicator
             nbt.setInt("X", x);

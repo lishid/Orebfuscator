@@ -27,10 +27,19 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 
 public class OrebfuscatorPlayerHook implements Listener
 {
+    private static IPlayerHook playerHook;
+    
+    private static IPlayerHook getPlayerHook()
+    {
+        if(playerHook == null)
+            playerHook = InternalAccessor.Instance.newPlayerHook();
+        
+        return playerHook;
+    }
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerJoin(final PlayerJoinEvent event)
     {
-        IPlayerHook playerHook = InternalAccessor.Instance.newPlayerHook();
+        IPlayerHook playerHook = getPlayerHook();
         if (!Orebfuscator.usePL)
         {
             playerHook.HookNM(event.getPlayer());

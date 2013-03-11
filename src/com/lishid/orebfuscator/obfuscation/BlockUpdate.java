@@ -28,6 +28,16 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 
 public class BlockUpdate
 {
+    private static IMinecraftWorldServer worldServerAccessor;
+    
+    private static IMinecraftWorldServer getWorldServer()
+    {
+        if(worldServerAccessor == null)
+            worldServerAccessor = InternalAccessor.Instance.newMinecraftWorldServer();
+        
+        return worldServerAccessor;
+    }
+    
     public static boolean needsUpdate(Block block)
     {
         return !OrebfuscatorConfig.isBlockTransparent((short) block.getTypeId());
@@ -41,7 +51,7 @@ public class BlockUpdate
         HashSet<Block> updateBlocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius);
 
         World world = block.getWorld();
-        IMinecraftWorldServer worldServer = InternalAccessor.Instance.newMinecraftWorldServer();
+        IMinecraftWorldServer worldServer = getWorldServer();
         
         for (Block nearbyBlock : updateBlocks)
         {
@@ -64,7 +74,7 @@ public class BlockUpdate
         }
 
         World world = blocks.get(0).getWorld();
-        IMinecraftWorldServer worldServer = InternalAccessor.Instance.newMinecraftWorldServer();
+        IMinecraftWorldServer worldServer = getWorldServer();
         
         for (Block nearbyBlock : updateBlocks)
         {

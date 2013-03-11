@@ -67,21 +67,11 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         super.clear();
     }
     
-    int sortWait = 0;
-    
     // Called when new chunks are queued
     @Override
     public boolean add(ChunkCoordIntPair e)
     {
         boolean result = internalQueue.add(e);
-        
-        sortWait++;
-        
-        if(sortWait >= 5)
-        {
-            sort();
-            sortWait = 0;
-        }
         
         // Move everything into the internal queue
         return result;
@@ -130,7 +120,10 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     public void sort()
     {
         // Sort the internal array according to CB - See PlayerChunkMap.movePlayer(EntityPlayer entityplayer)
-        java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
+        synchronized (internalQueue)
+        {
+            java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
+        }
     }
     
     @Override
