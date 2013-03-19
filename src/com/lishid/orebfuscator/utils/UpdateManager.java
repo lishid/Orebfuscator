@@ -16,7 +16,7 @@ public class UpdateManager
         updater = new Updater(plugin, Orebfuscator.logger, "orebfuscator", file);
         
         // Create task to update
-        plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, new Runnable()
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, new Runnable()
         {
             @Override
             public void run()
