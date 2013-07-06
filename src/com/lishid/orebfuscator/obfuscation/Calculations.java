@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.zip.Deflater;
 
+import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -214,6 +215,7 @@ public class Calculations
     
     public static byte[] Obfuscate(ChunkInfo info, byte[] original)
     {
+        boolean isNether = info.world.getEnvironment() == Environment.NETHER;
         // Used for caching
         ObfuscatedCachedChunk cache = null;
         // Hash used to check cache consistency
@@ -289,7 +291,7 @@ public class Calculations
         int maxChance = OrebfuscatorConfig.AirGeneratorMaxChance;
         int incrementMax = maxChance;
         
-        int randomBlocksLength = OrebfuscatorConfig.getRandomBlocks(false).length;
+        int randomBlocksLength = OrebfuscatorConfig.getRandomBlocks(false, isNether).length;
         boolean randomAlternate = false;
         
         // Loop over 16x16x16 chunks in the 16x256x16 column
@@ -336,7 +338,7 @@ public class Calculations
                             specialObfuscate = false;
                             
                             // Check if the block should be obfuscated for the default engine modes
-                            if (OrebfuscatorConfig.isObfuscated(data))
+                            if (OrebfuscatorConfig.isObfuscated(data, isNether))
                             {
                                 if (initialRadius == 0)
                                 {
@@ -365,8 +367,7 @@ public class Calculations
                             }
                             
                             // Check if the block should be obfuscated because of proximity check
-                            if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(data)
-                                    && ((i << 4) + y) <= OrebfuscatorConfig.ProximityHiderEnd)
+                            if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(data) && ((i << 4) + y) <= OrebfuscatorConfig.ProximityHiderEnd)
                             {
                                 proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
                                 obfuscate = true;
@@ -389,14 +390,14 @@ public class Calculations
                                     if (engineMode == 1)
                                     {
                                         // Engine mode 1, replace with stone
-                                        info.buffer[index] = 1;
+                                        info.buffer[index] = (byte) (isNether ? 87 : 1);
                                     }
                                     else if (engineMode == 2)
                                     {
                                         // Ending mode 2, replace with random block
                                         if (randomBlocksLength > 1)
                                             randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
-                                        info.buffer[index] = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate);
+                                        info.buffer[index] = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate, isNether);
                                         randomAlternate = !randomAlternate;
                                     }
                                     // Anti texturepack and freecam

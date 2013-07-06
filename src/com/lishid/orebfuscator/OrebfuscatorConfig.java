@@ -34,7 +34,7 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 public class OrebfuscatorConfig
 {
     // Constant/persistent data
-    private static final int CONFIG_VERSION = 9;
+    private static final int CONFIG_VERSION = 10;
     private static Random random = new Random();
     private static int AvailableProcessors = Runtime.getRuntime().availableProcessors();
     
@@ -81,9 +81,11 @@ public class OrebfuscatorConfig
     
     // Utilities
     private static boolean[] ObfuscateBlocks = new boolean[256];
+    private static boolean[] NetherObfuscateBlocks = new boolean[256];
     private static boolean[] DarknessBlocks = new boolean[256];
     private static boolean[] ProximityHiderBlocks = new boolean[256];
     private static Integer[] RandomBlocks = new Integer[] { 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
+    private static Integer[] NetherRandomBlocks = new Integer[] { 13, 87, 88, 112, 153 };
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
     
@@ -134,11 +136,20 @@ public class OrebfuscatorConfig
         TransparentCached = true;
     }
     
-    public static boolean isObfuscated(short id)
+    public static boolean isObfuscated(short id, boolean nether)
     {
         if (id < 0)
             id += 256;
         
+        // Nether case
+        if (nether)
+        {
+            if (id == 87)
+                return true;
+            return NetherObfuscateBlocks[id];
+        }
+        
+        // Normal case
         if (id == 1)
             return true;
         
@@ -181,13 +192,17 @@ public class OrebfuscatorConfig
         return retval.length() > 1 ? retval.substring(0, retval.length() - 2) : retval;
     }
     
-    public static byte getRandomBlock(int index, boolean alternate)
+    public static byte getRandomBlock(int index, boolean alternate, boolean nether)
     {
+        if (nether)
+            return (byte) (int) (NetherRandomBlocks[index]);
         return (byte) (int) (alternate ? RandomBlocks2[index] : RandomBlocks[index]);
     }
     
-    public static Integer[] getRandomBlocks(boolean alternate)
+    public static Integer[] getRandomBlocks(boolean alternate, boolean nether)
     {
+        if (nether)
+            return NetherRandomBlocks;
         return (alternate ? RandomBlocks2 : RandomBlocks);
     }
     
@@ -385,33 +400,30 @@ public class OrebfuscatorConfig
     public static void load()
     {
         
-        
         // Version check
         int version = getInt("ConfigVersion", CONFIG_VERSION);
         if (version < CONFIG_VERSION)
         {
-            Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
-            File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
-            File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
-            if (destination.exists())
-            {
-                try
-                {
-                    destination.delete();
-                }
-                catch (Exception e)
-                {
-                    Orebfuscator.log(e);
-                }
-            }
-            configFile.renameTo(destination);
-            reload();
+            // Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
+            // File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
+            // File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
+            // if (destination.exists())
+            // {
+            // try
+            // {
+            // destination.delete();
+            // }
+            // catch (Exception e)
+            // {
+            // Orebfuscator.log(e);
+            // }
+            // }
+            // configFile.renameTo(destination);
+            // reload();
             
             ObfuscatedDataCache.ClearCache();
             setData("ConfigVersion", CONFIG_VERSION);
         }
-        
-        
         
         EngineMode = getInt("Integers.EngineMode", EngineMode);
         if (EngineMode != 1 && EngineMode != 2)
@@ -448,9 +460,9 @@ public class OrebfuscatorConfig
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         CheckForUpdates = getBoolean("Booleans.CheckForUpdates", CheckForUpdates);
         
-        
         // Read block lists
         setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })), false);
+        setBlockValues(NetherObfuscateBlocks, getIntList("Lists.NetherObfuscateBlocks", Arrays.asList(new Integer[] { 87, 153 })), false);
         setBlockValues(DarknessBlocks, getIntList("Lists.DarknessBlocks", Arrays.asList(new Integer[] { 52, 54 })));
         setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146 })));
         
@@ -462,12 +474,13 @@ public class OrebfuscatorConfig
         CacheFolder = new File(CacheLocation);
         
         RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
+        NetherRandomBlocks = getIntList2("Lists.NetherRandomBlocks", Arrays.asList(NetherRandomBlocks));
         
         // Validate RandomBlocks
         for (int i = 0; i < RandomBlocks.length; i++)
         {
             // Don't want people to put chests and other stuff that lags the hell out of players.
-            if (OrebfuscatorConfig.isBlockTransparent((short) (int) RandomBlocks[i]))
+            if (RandomBlocks[i] == null || OrebfuscatorConfig.isBlockTransparent((short) (int) RandomBlocks[i]))
             {
                 RandomBlocks[i] = 1;
             }

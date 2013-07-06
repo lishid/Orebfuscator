@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.HashSet;
 
 import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
@@ -32,7 +33,7 @@ public class BlockUpdate
     
     private static IMinecraftWorldServer getWorldServer()
     {
-        if(worldServerAccessor == null)
+        if (worldServerAccessor == null)
             worldServerAccessor = InternalAccessor.Instance.newMinecraftWorldServer();
         
         return worldServerAccessor;
@@ -49,7 +50,7 @@ public class BlockUpdate
             return;
         
         HashSet<Block> updateBlocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius);
-
+        
         World world = block.getWorld();
         IMinecraftWorldServer worldServer = getWorldServer();
         
@@ -72,7 +73,7 @@ public class BlockUpdate
                 updateBlocks.addAll(GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius));
             }
         }
-
+        
         World world = blocks.get(0).getWorld();
         IMinecraftWorldServer worldServer = getWorldServer();
         
@@ -104,7 +105,7 @@ public class BlockUpdate
     
     public static void AddBlockCheck(HashSet<Block> allBlocks, Block block)
     {
-        if ((OrebfuscatorConfig.isObfuscated((byte) block.getTypeId()) || OrebfuscatorConfig.isDarknessObfuscated((byte) block.getTypeId())))
+        if ((OrebfuscatorConfig.isObfuscated((byte) block.getTypeId(), block.getWorld().getEnvironment() == Environment.NETHER) || OrebfuscatorConfig.isDarknessObfuscated((byte) block.getTypeId())))
         {
             allBlocks.add(block);
         }

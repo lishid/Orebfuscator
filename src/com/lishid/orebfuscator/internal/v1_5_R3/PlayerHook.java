@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.v1_5_R1;
+package com.lishid.orebfuscator.internal.v1_5_R3;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -28,8 +28,8 @@ import com.lishid.orebfuscator.utils.ReflectionHelper;
 import org.bukkit.entity.Player;
 
 //Volatile
-import net.minecraft.server.v1_5_R1.*;
-import org.bukkit.craftbukkit.v1_5_R1.entity.*;
+import net.minecraft.server.v1_5_R3.*;
+import org.bukkit.craftbukkit.v1_5_R3.entity.*;
 
 public class PlayerHook implements IPlayerHook
 {

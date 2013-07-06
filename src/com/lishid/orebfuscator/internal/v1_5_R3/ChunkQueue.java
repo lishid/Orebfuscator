@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.v1_5_R1;
+package com.lishid.orebfuscator.internal.v1_5_R3;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -30,8 +30,8 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 //Volatile
-import net.minecraft.server.v1_5_R1.*;
-import org.bukkit.craftbukkit.v1_5_R1.entity.*;
+import net.minecraft.server.v1_5_R3.*;
+import org.bukkit.craftbukkit.v1_5_R3.entity.*;
 
 public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQueue
 {
@@ -193,20 +193,20 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             // We'll allow the size of 3 packets to be queued = 75000 bytes
             
             // Try-catch so as to not disrupt chunk sending if something fails
-            if (!Orebfuscator.usePL)
+            if (!Orebfuscator.useSpigot)
             {
                 try
                 {
                     NetworkManager networkManager = (NetworkManager) player.getHandle().playerConnection.networkManager;
                     
-                    if (((int) (Integer) ReflectionHelper.getPrivateField(NetworkManager.class, networkManager, "y")) > 75000)
+                    if (((int) (Integer) ReflectionHelper.getPrivateField(NetworkManager.class, networkManager, "z")) > 75000)
                     {
                         return;
                     }
                 }
                 catch (Exception e)
                 {
-                    // e.printStackTrace();
+                    //e.printStackTrace();
                 }
             }
             

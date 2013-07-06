@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.v1_5_R1;
+package com.lishid.orebfuscator.internal.v1_6_R1;
 
 import java.util.ArrayList;
 
@@ -25,7 +25,7 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 
 //Volatile
-import net.minecraft.server.v1_5_R1.*;
+import net.minecraft.server.v1_6_R1.*;
 
 public class NetworkQueue extends ArrayList<Packet>
 {

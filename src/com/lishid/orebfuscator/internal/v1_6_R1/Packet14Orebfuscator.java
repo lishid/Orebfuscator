@@ -1,8 +1,8 @@
-package com.lishid.orebfuscator.internal.v1_5_R1;
+package com.lishid.orebfuscator.internal.v1_6_R1;
 
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 
-import net.minecraft.server.v1_5_R1.*;
+import net.minecraft.server.v1_6_R1.*;
 
 public class Packet14Orebfuscator extends Packet14BlockDig
 {

@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.v1_5_R1;
+package com.lishid.orebfuscator.internal.v1_6_R1;
 
 import java.util.zip.Deflater;
 
@@ -24,7 +24,7 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 //Volatile
-import net.minecraft.server.v1_5_R1.*;
+import net.minecraft.server.v1_6_R1.*;
 
 public class Packet56 implements IPacket56
 {

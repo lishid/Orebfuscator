@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.CreatureSpawner;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -85,11 +86,11 @@ public class ProximityHider extends Thread implements Runnable
                     newPlayers.putAll(playersToCheck);
                     playersToCheck.clear();
                 }
-				
-				int distanceSquared = OrebfuscatorConfig.ProximityHiderDistance;
-				
-				//Actually squaring it
-				distanceSquared = distanceSquared * distanceSquared;
+                
+                int distanceSquared = OrebfuscatorConfig.ProximityHiderDistance;
+                
+                // Actually squaring it
+                distanceSquared = distanceSquared * distanceSquared;
                 
                 for (Player p : newPlayers.keySet())
                 {
@@ -150,6 +151,11 @@ public class ProximityHider extends Thread implements Runnable
                             if (CalculationsUtil.isChunkLoaded(b.getWorld(), b.getChunk().getX(), b.getChunk().getZ()))
                             {
                                 p.sendBlockChange(b.getLocation(), b.getTypeId(), b.getData());
+                                if (b instanceof CreatureSpawner)
+                                {
+                                    CreatureSpawner spawner = (CreatureSpawner) b;
+                                    spawner.setSpawnedType(spawner.getSpawnedType());
+                                }
                             }
                         }
                     }
@@ -158,7 +164,8 @@ public class ProximityHider extends Thread implements Runnable
                     {
                         for (Block b : removedBlocks)
                         {
-                            proximityHiderTracker.get(p).remove(b);
+                            if (proximityHiderTracker.get(p) != null)
+                                proximityHiderTracker.get(p).remove(b);
                         }
                     }
                 }

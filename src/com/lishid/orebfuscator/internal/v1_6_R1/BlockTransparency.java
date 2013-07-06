@@ -14,27 +14,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.v1_5_R1;
+package com.lishid.orebfuscator.internal.v1_6_R1;
 
-import com.lishid.orebfuscator.internal.IMinecraftWorldServer;
-import com.lishid.orebfuscator.internal.InternalAccessor;
+import com.lishid.orebfuscator.internal.IBlockTransparency;
 
 //Volatile
-import net.minecraft.server.v1_5_R1.*;
-import org.bukkit.craftbukkit.v1_5_R1.*;
+import net.minecraft.server.v1_6_R1.*;
 
-public class MinecraftWorldServer implements IMinecraftWorldServer
+public class BlockTransparency implements IBlockTransparency
 {
-    public void Notify(Object world, int x, int y, int z)
+    @Override
+    public boolean isBlockTransparent(int id)
     {
-        if (world instanceof CraftWorld)
-        {
-            WorldServer server = (WorldServer) ((CraftWorld) world).getHandle();
-            server.notify(x, y, z);
-        }
-        else
-        {
-            InternalAccessor.Instance.PrintError();
-        }
+        return !Block.l(id);
     }
 }
