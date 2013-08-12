@@ -92,6 +92,10 @@ public class Calculations
             return;
         }
         
+        if(info.buffer == null || info.buffer.length == 0) {
+            return;
+        }
+        
         ComputeChunkInfoAndObfuscate(info, packet.getBuffer());
         
         if (needCompression)
