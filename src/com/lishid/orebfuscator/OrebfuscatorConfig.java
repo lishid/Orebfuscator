@@ -28,7 +28,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.internal.IBlockTransparency;
+import com.lishid.orebfuscator.internal.IBlockAccess;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 
 public class OrebfuscatorConfig
@@ -104,15 +104,15 @@ public class OrebfuscatorConfig
         return CacheFolder;
     }
     
-    private static IBlockTransparency blockTransparencyChecker;
+    public static IBlockAccess blockAccess;
     private static boolean[] TransparentBlocks = new boolean[256];
     private static boolean TransparentCached = false;
     
     public static boolean isBlockTransparent(short id)
     {
-        if (blockTransparencyChecker == null)
+        if (blockAccess == null)
         {
-            blockTransparencyChecker = InternalAccessor.Instance.newBlockTransparency();
+            blockAccess = InternalAccessor.Instance.newBlockAccess();
         }
         
         if (!TransparentCached)
@@ -131,7 +131,7 @@ public class OrebfuscatorConfig
     {
         for (int i = 0; i < TransparentBlocks.length; i++)
         {
-            TransparentBlocks[i] = blockTransparencyChecker.isBlockTransparent(i);
+            TransparentBlocks[i] = blockAccess.isBlockTransparent(i);
         }
         TransparentCached = true;
     }

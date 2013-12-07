@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.block.CreatureSpawner;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -151,11 +150,7 @@ public class ProximityHider extends Thread implements Runnable
                             if (CalculationsUtil.isChunkLoaded(b.getWorld(), b.getChunk().getX(), b.getChunk().getZ()))
                             {
                                 p.sendBlockChange(b.getLocation(), b.getTypeId(), b.getData());
-                                if (b instanceof CreatureSpawner)
-                                {
-                                    CreatureSpawner spawner = (CreatureSpawner) b;
-                                    spawner.setSpawnedType(spawner.getSpawnedType());
-                                }
+                                OrebfuscatorConfig.blockAccess.updateBlockTileEntity(b, p);
                             }
                         }
                     }

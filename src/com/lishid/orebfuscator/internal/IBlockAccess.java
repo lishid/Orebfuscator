@@ -14,18 +14,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.orebfuscator.internal.v1_4_R1;
+package com.lishid.orebfuscator.internal;
 
-import com.lishid.orebfuscator.internal.IBlockTransparency;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 
-//Volatile
-import net.minecraft.server.v1_4_R1.*;
 
-public class BlockTransparency implements IBlockTransparency
+public interface IBlockAccess
 {
-    @Override
-    public boolean isBlockTransparent(int id)
-    {
-        return !Block.i(id);
-    }
+    public boolean isBlockTransparent(int id);
+    
+    public void updateBlockTileEntity(Block block, Player player);
 }

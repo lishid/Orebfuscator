@@ -75,9 +75,9 @@ public class InternalAccessor
         return (IPlayerHook) createObject(IPlayerHook.class, "PlayerHook");
     }
     
-    public IBlockTransparency newBlockTransparency()
+    public IBlockAccess newBlockAccess()
     {
-        return (IBlockTransparency) createObject(IBlockTransparency.class, "BlockTransparency");
+        return (IBlockAccess) createObject(IBlockAccess.class, "BlockAccess");
     }
     
     public IMinecraftWorldServer newMinecraftWorldServer()
