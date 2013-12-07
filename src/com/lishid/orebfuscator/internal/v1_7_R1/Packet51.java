@@ -29,11 +29,27 @@ public class Packet51 implements IPacket51 {
     private static Class<? extends Object> packetClass = PacketPlayOutMapChunk.class;
 
     PacketPlayOutMapChunk packet;
+    byte[] buffer;
+    byte[] inflatedBuffer;
 
     @Override
     public void setPacket(Object packet) {
         if (packet instanceof PacketPlayOutMapChunk) {
             this.packet = (PacketPlayOutMapChunk) packet;
+
+            // Check if e is a byte[]
+            Object e = ReflectionHelper.getPrivateField(packetClass, packet, "e");
+            if (e instanceof byte[]) {
+                // e => buffer
+                // buffer => inflatedBuffer
+                // inflatedBuffer => e
+                buffer = (byte[]) e;
+                inflatedBuffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "buffer");
+            }
+            else {
+                buffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "buffer");
+                inflatedBuffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "inflatedBuffer");
+            }
         }
         else {
             InternalAccessor.Instance.PrintError();
@@ -62,15 +78,11 @@ public class Packet51 implements IPacket51 {
 
     @Override
     public byte[] getBuffer() {
-        Object e = ReflectionHelper.getPrivateField(packetClass, packet, "e");
-        if (e instanceof byte[]) {
-            return (byte[]) e;
-        }
-        return (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "inflatedBuffer");
+        return inflatedBuffer;
     }
 
     private byte[] getOutputBuffer() {
-        return (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "buffer");
+        return buffer;
     }
 
     @Override

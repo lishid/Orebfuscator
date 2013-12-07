@@ -19,10 +19,11 @@ package com.lishid.orebfuscator;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
@@ -34,7 +35,6 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.utils.Metrics;
-import com.lishid.orebfuscator.utils.ReflectionHelper;
 import com.lishid.orebfuscator.utils.UpdateManager;
 
 /**
@@ -102,17 +102,10 @@ public class Orebfuscator extends JavaPlugin
             }, 0, 60 * 1000);// Warn every minute
         }
         
-        // Disable spigot's built-in orebfuscator since it has limited functionality
+        // TODO: Disable spigot's built-in orebfuscator since it has limited functionality
         try
         {
-            getServer().getClass().getDeclaredField("orebfuscatorEnabled");
-            if(!usePL)
-            {
-                Orebfuscator.log("Spigot detected, you need to install ProtocolLib to function properlly!");
-            }
-            ReflectionHelper.setPrivateField(getServer(), "orebfuscatorEnabled", false);
-            Orebfuscator.log("Disabling Spigot internal Orebfuscator!");
-            useSpigot = true;
+            //Field spigotConfig = getServer().getClass().getDeclaredField("spigotConfig");
         }
         catch (Exception e)
         {

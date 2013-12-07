@@ -36,7 +36,7 @@ public class ProtocolLibHook
     public void register(Plugin plugin)
     {
         manager = ProtocolLibrary.getProtocolManager();
-        Integer[] packets = new Integer[] { Packets.Server.MAP_CHUNK, Packets.Server.MAP_CHUNK_BULK };
+        Integer[] packets = new Integer[] { Packets.Server.MAP_CHUNK };
         
         manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets)
         {
