@@ -24,88 +24,77 @@ import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 
-public class BlockHitManager
-{
+public class BlockHitManager {
     private static HashMap<Player, PlayerBlockTracking> playersBlockTrackingStatus = new HashMap<Player, PlayerBlockTracking>();
-    
-    public static boolean hitBlock(Player player, Block block)
-    {
+
+    public static boolean hitBlock(Player player, Block block) {
         if (player.getGameMode() == GameMode.CREATIVE)
             return true;
-        
+
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
-        
-        if (playerBlockTracking.isBlock(block))
-        {
+
+        if (playerBlockTracking.isBlock(block)) {
             return true;
         }
-        
+
         long time = playerBlockTracking.getTimeDifference();
         playerBlockTracking.incrementHackingIndicator();
         playerBlockTracking.setBlock(block);
         playerBlockTracking.updateTime();
-        
+
         int decrement = (int) (time / OrebfuscatorConfig.AntiHitHackDecrementFactor);
         playerBlockTracking.decrementHackingIndicator(decrement);
-        
+
         if (playerBlockTracking.getHackingIndicator() == OrebfuscatorConfig.AntiHitHackMaxViolation)
             playerBlockTracking.incrementHackingIndicator(OrebfuscatorConfig.AntiHitHackMaxViolation);
-        
+
         if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
             return false;
-        
+
         return true;
     }
-    
-    public static boolean canFakeHit(Player player)
-    {
+
+    public static boolean canFakeHit(Player player) {
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
-        
+
         if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
             return false;
-        
+
         return true;
     }
-    
-    public static boolean fakeHit(Player player)
-    {
+
+    public static boolean fakeHit(Player player) {
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
         playerBlockTracking.incrementHackingIndicator();
-        
+
         if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
             return false;
-        
+
         return true;
     }
-    
-    public static void breakBlock(Player player, Block block)
-    {
+
+    public static void breakBlock(Player player, Block block) {
         if (player.getGameMode() == GameMode.CREATIVE)
             return;
-        
+
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
-        if (playerBlockTracking.isBlock(block))
-        {
+        if (playerBlockTracking.isBlock(block)) {
             playerBlockTracking.decrementHackingIndicator(2);
         }
     }
-    
-    private static PlayerBlockTracking getPlayerBlockTracking(Player player)
-    {
-        if (!playersBlockTrackingStatus.containsKey(player))
-        {
+
+    private static PlayerBlockTracking getPlayerBlockTracking(Player player) {
+        if (!playersBlockTrackingStatus.containsKey(player)) {
             playersBlockTrackingStatus.put(player, new PlayerBlockTracking(player));
         }
         return playersBlockTrackingStatus.get(player);
     }
-    
-    public static void clearHistory(Player player)
-    {
+
+    public static void clearHistory(Player player) {
         playersBlockTrackingStatus.remove(player);
     }
-    
-    public static void clearAll()
-    {
+
+    public static void clearAll() {
         playersBlockTrackingStatus.clear();
     }
 }

@@ -25,62 +25,50 @@ import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.internal.IChunkCache;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 
-public class ObfuscatedDataCache
-{
+public class ObfuscatedDataCache {
     private static IChunkCache internalCache;
-    
-    private static IChunkCache getInternalCache()
-    {
-        if (internalCache == null)
-        {
+
+    private static IChunkCache getInternalCache() {
+        if (internalCache == null) {
             internalCache = InternalAccessor.Instance.newChunkCache();
         }
         return internalCache;
     }
-    
-    public static void clearCache()
-    {
+
+    public static void clearCache() {
         getInternalCache().clearCache();
     }
-    
-    public static DataInputStream getInputStream(File folder, int x, int z)
-    {
+
+    public static DataInputStream getInputStream(File folder, int x, int z) {
         return getInternalCache().getInputStream(folder, x, z);
     }
-    
-    public static DataOutputStream getOutputStream(File folder, int x, int z)
-    {
+
+    public static DataOutputStream getOutputStream(File folder, int x, int z) {
         return getInternalCache().getOutputStream(folder, x, z);
     }
-    
-    public static void ClearCache()
-    {
+
+    public static void ClearCache() {
         getInternalCache().clearCache();
-        try
-        {
+        try {
             DeleteDir(OrebfuscatorConfig.getCacheFolder());
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Orebfuscator.log(e);
         }
     }
-    
-    private static void DeleteDir(File dir)
-    {
-        try
-        {
+
+    private static void DeleteDir(File dir) {
+        try {
             if (!dir.exists())
                 return;
-            
+
             if (dir.isDirectory())
                 for (File f : dir.listFiles())
                     DeleteDir(f);
-            
+
             dir.delete();
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Orebfuscator.log(e);
         }
     }

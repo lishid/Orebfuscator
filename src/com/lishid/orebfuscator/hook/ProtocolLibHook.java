@@ -29,42 +29,32 @@ import com.lishid.orebfuscator.internal.IPacket51;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 
-public class ProtocolLibHook
-{
+public class ProtocolLibHook {
     private ProtocolManager manager;
-    
-    public void register(Plugin plugin)
-    {
+
+    public void register(Plugin plugin) {
         manager = ProtocolLibrary.getProtocolManager();
         Integer[] packets = new Integer[] { Packets.Server.MAP_CHUNK };
-        
-        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets)
-        {
+
+        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets) {
             @Override
-            public void onPacketSending(PacketEvent event)
-            {
-                if (event.getPacketID() == Packets.Server.MAP_CHUNK)
-                {
+            public void onPacketSending(PacketEvent event) {
+                if (event.getPacketID() == Packets.Server.MAP_CHUNK) {
                     IPacket51 packet = InternalAccessor.Instance.newPacket51();
                     packet.setPacket(event.getPacket().getHandle());
                     Calculations.Obfuscate(packet, event.getPlayer());
                 }
             }
         });
-        
+
         Integer[] packets2 = new Integer[] { Packets.Client.BLOCK_DIG };
-        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.CLIENT_SIDE, packets2)
-        {
+        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.CLIENT_SIDE, packets2) {
             @Override
-            public void onPacketReceiving(PacketEvent event)
-            {
-                if (event.getPacketID() == Packets.Client.BLOCK_DIG)
-                {
+            public void onPacketReceiving(PacketEvent event) {
+                if (event.getPacketID() == Packets.Client.BLOCK_DIG) {
                     int status = event.getPacket().getIntegers().read(4);
-                    if (status == 1)
-                    {
-                        if (!BlockHitManager.hitBlock(event.getPlayer(), null))
-                        {
+                    if (status == 1) {
+                        if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
                             event.setCancelled(true);
                         }
                     }

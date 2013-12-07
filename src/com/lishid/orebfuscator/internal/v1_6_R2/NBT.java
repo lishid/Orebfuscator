@@ -24,86 +24,72 @@ import com.lishid.orebfuscator.internal.INBT;
 //Volatile
 import net.minecraft.server.v1_6_R2.*;
 
-public class NBT implements INBT
-{
+public class NBT implements INBT {
     NBTTagCompound nbt = new NBTTagCompound();
-    
+
     @Override
-    public void reset()
-    {
+    public void reset() {
         nbt = new NBTTagCompound();
     }
-    
+
     @Override
-    public void setInt(String tag, int value)
-    {
+    public void setInt(String tag, int value) {
         nbt.setInt(tag, value);
     }
-    
+
     @Override
-    public void setLong(String tag, long value)
-    {
+    public void setLong(String tag, long value) {
         nbt.setLong(tag, value);
     }
-    
+
     @Override
-    public void setBoolean(String tag, boolean value)
-    {
+    public void setBoolean(String tag, boolean value) {
         nbt.setBoolean(tag, value);
     }
-    
+
     @Override
-    public void setByteArray(String tag, byte[] value)
-    {
+    public void setByteArray(String tag, byte[] value) {
         nbt.setByteArray(tag, value);
     }
-    
+
     @Override
-    public void setIntArray(String tag, int[] value)
-    {
+    public void setIntArray(String tag, int[] value) {
         nbt.setIntArray(tag, value);
     }
-    
+
     @Override
-    public int getInt(String tag)
-    {
+    public int getInt(String tag) {
         return nbt.getInt(tag);
     }
-    
+
     @Override
-    public long getLong(String tag)
-    {
+    public long getLong(String tag) {
         return nbt.getLong(tag);
     }
-    
+
     @Override
-    public boolean getBoolean(String tag)
-    {
+    public boolean getBoolean(String tag) {
         return nbt.getBoolean(tag);
     }
-    
+
     @Override
-    public byte[] getByteArray(String tag)
-    {
+    public byte[] getByteArray(String tag) {
         return nbt.getByteArray(tag);
     }
-    
+
     @Override
-    public int[] getIntArray(String tag)
-    {
+    public int[] getIntArray(String tag) {
         return nbt.getIntArray(tag);
     }
-    
+
     @Override
-    public void Read(DataInput stream)
-    {
+    public void Read(DataInput stream) {
         nbt = NBTCompressedStreamTools.a(stream);
     }
-    
+
     @Override
-    public void Write(DataOutput stream)
-    {
+    public void Write(DataOutput stream) {
         NBTCompressedStreamTools.a(nbt, stream);
     }
-    
+
 }

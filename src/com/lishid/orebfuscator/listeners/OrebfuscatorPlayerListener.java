@@ -31,79 +31,58 @@ import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 import com.lishid.orebfuscator.obfuscation.ProximityHider;
 
-public class OrebfuscatorPlayerListener implements Listener
-{
+public class OrebfuscatorPlayerListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerJoin(PlayerJoinEvent event)
-    {
+    public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (OrebfuscatorConfig.LoginNotification)
-        {
-            if (OrebfuscatorConfig.playerBypassOp(player))
-            {
+        if (OrebfuscatorConfig.LoginNotification) {
+            if (OrebfuscatorConfig.playerBypassOp(player)) {
                 Orebfuscator.message(player, "Orebfuscator bypassed because you are OP.");
             }
-            else if (OrebfuscatorConfig.playerBypassPerms(player))
-            {
+            else if (OrebfuscatorConfig.playerBypassPerms(player)) {
                 Orebfuscator.message(player, "Orebfuscator bypassed because you have permission.");
             }
         }
     }
-    
+
     @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerQuit(PlayerQuitEvent event)
-    {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         BlockHitManager.clearHistory(event.getPlayer());
-        if (OrebfuscatorConfig.UseProximityHider)
-        {
-            synchronized (ProximityHider.proximityHiderTracker)
-            {
+        if (OrebfuscatorConfig.UseProximityHider) {
+            synchronized (ProximityHider.proximityHiderTracker) {
                 ProximityHider.proximityHiderTracker.remove(event.getPlayer());
             }
         }
     }
-    
+
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerInteract(PlayerInteractEvent event)
-    {
+    public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.useInteractedBlock() == Result.DENY)
             return;
-        
-        if (event.getItem() != null
-                && event.getItem().getType() != null
-                && (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS)
-                && ((event.getItem().getType() == Material.WOOD_HOE) || (event.getItem().getType() == Material.IRON_HOE) || (event.getItem().getType() == Material.GOLD_HOE) || (event.getItem()
-                        .getType() == Material.DIAMOND_HOE)))
-        {
+
+        if (event.getItem() != null && event.getItem().getType() != null && (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS) && ((event.getItem().getType() == Material.WOOD_HOE) || (event.getItem().getType() == Material.IRON_HOE) || (event.getItem().getType() == Material.GOLD_HOE) || (event.getItem().getType() == Material.DIAMOND_HOE))) {
             BlockUpdate.Update(event.getClickedBlock());
         }
     }
-    
+
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerChangeWorld(PlayerChangedWorldEvent event)
-    {
+    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
         BlockHitManager.clearHistory(event.getPlayer());
-        if (OrebfuscatorConfig.UseProximityHider)
-        {
-            synchronized (ProximityHider.proximityHiderTracker)
-            {
+        if (OrebfuscatorConfig.UseProximityHider) {
+            synchronized (ProximityHider.proximityHiderTracker) {
                 ProximityHider.proximityHiderTracker.remove(event.getPlayer());
             }
         }
     }
-    
+
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerMove(PlayerMoveEvent event)
-    {
-        if (event.isCancelled())
-        {
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (event.isCancelled()) {
             return;
         }
-        
-        if (OrebfuscatorConfig.UseProximityHider)
-        {
-            synchronized (ProximityHider.playersToCheck)
-            {
+
+        if (OrebfuscatorConfig.UseProximityHider) {
+            synchronized (ProximityHider.playersToCheck) {
                 if (!ProximityHider.playersToCheck.containsKey(event.getPlayer()))
                     ProximityHider.playersToCheck.put(event.getPlayer(), event.getFrom());
             }

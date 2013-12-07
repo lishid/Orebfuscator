@@ -27,26 +27,22 @@ import com.lishid.orebfuscator.obfuscation.Calculations;
 //Volatile
 import net.minecraft.server.v1_4_R1.*;
 
-public class NetworkQueue extends ArrayList<Packet>
-{
+public class NetworkQueue extends ArrayList<Packet> {
     private static final long serialVersionUID = 4252847662044263527L;
     private Player player;
-    
-    public NetworkQueue(Player player)
-    {
+
+    public NetworkQueue(Player player) {
         this.player = player;
     }
-    
+
     @Override
-    public boolean add(Packet packet)
-    {
-        if (packet.k() == 51)
-        {
+    public boolean add(Packet packet) {
+        if (packet.k() == 51) {
             IPacket51 packet51 = InternalAccessor.Instance.newPacket51();
             packet51.setPacket(packet);
             Calculations.Obfuscate(packet51, this.player);
         }
-        
+
         return super.add(packet);
     }
 }

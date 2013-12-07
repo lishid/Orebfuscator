@@ -29,108 +29,89 @@ import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.utils.OrebfuscatorAsyncQueue;
 
-public class ChunkProcessingThread extends Thread
-{
+public class ChunkProcessingThread extends Thread {
     private static OrebfuscatorAsyncQueue<ChunkProcessingOrder> queue = new OrebfuscatorAsyncQueue<ChunkProcessingThread.ChunkProcessingOrder>();
-    
+
     private static LinkedList<ChunkProcessingThread> threads = new LinkedList<ChunkProcessingThread>();
-    
-    static ThreadLocal<Deflater> localDeflater = new ThreadLocal<Deflater>()
-    {
+
+    static ThreadLocal<Deflater> localDeflater = new ThreadLocal<Deflater>() {
         @Override
-        protected Deflater initialValue()
-        {
+        protected Deflater initialValue() {
             return new Deflater(OrebfuscatorConfig.CompressionLevel);
         }
     };
-    
-    static class ChunkProcessingOrder
-    {
+
+    static class ChunkProcessingOrder {
         IPacket56 packet;
         Player player;
         IChunkQueue output;
-        
-        public ChunkProcessingOrder(IPacket56 packet, Player player, IChunkQueue output)
-        {
+
+        public ChunkProcessingOrder(IPacket56 packet, Player player, IChunkQueue output) {
             this.packet = packet;
             this.player = player;
             this.output = output;
         }
     }
-    
-    public synchronized static void KillAll()
-    {
-        for (ChunkProcessingThread thread : threads)
-        {
+
+    public synchronized static void KillAll() {
+        for (ChunkProcessingThread thread : threads) {
             thread.kill.set(true);
             thread.interrupt();
         }
         threads.clear();
         queue.clear();
     }
-    
-    public synchronized static void SyncThreads()
-    {
-        //Return as soon as possible
-        if (threads.size() == OrebfuscatorConfig.ProcessingThreads)
-        {
+
+    public synchronized static void SyncThreads() {
+        // Return as soon as possible
+        if (threads.size() == OrebfuscatorConfig.ProcessingThreads) {
             return;
         }
-        
-        //Less threads? Kill one
-        else if (threads.size() > OrebfuscatorConfig.ProcessingThreads)
-        {
+
+        // Less threads? Kill one
+        else if (threads.size() > OrebfuscatorConfig.ProcessingThreads) {
             threads.getLast().kill.set(true);
             threads.getLast().interrupt();
             threads.removeLast();
             return;
         }
 
-        //More threads? Start new one
-        else
-        {
+        // More threads? Start new one
+        else {
             ChunkProcessingThread thread = new ChunkProcessingThread();
             thread.setName("Orebfuscator Processing Thread");
-            try
-            {
+            try {
                 thread.setPriority(OrebfuscatorConfig.OrebfuscatorPriority);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 thread.setPriority(Thread.MIN_PRIORITY);
             }
             thread.start();
             threads.add(thread);
         }
     }
-    
-    public static void Queue(IPacket56 packet, Player player, IChunkQueue output)
-    {
+
+    public static void Queue(IPacket56 packet, Player player, IChunkQueue output) {
         SyncThreads();
         queue.queue(new ChunkProcessingOrder(packet, player, output));
     }
-    
+
     AtomicBoolean kill = new AtomicBoolean(false);
-    
+
     @Override
-    public void run()
-    {
-        while (!Thread.interrupted() && !kill.get())
-        {
-            try
-            {
+    public void run() {
+        while (!Thread.interrupted() && !kill.get()) {
+            try {
                 ChunkProcessingOrder order = queue.dequeue();
                 Calculations.Obfuscate(order.packet, order.player);
                 order.packet.compress(localDeflater.get());
                 order.output.FinishedProcessing(order.packet);
                 Thread.sleep(1);
             }
-            catch (InterruptedException e)
-            {
+            catch (InterruptedException e) {
                 // If interrupted then exit
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Orebfuscator.log(e);
             }
         }

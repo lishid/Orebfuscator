@@ -20,11 +20,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 
-public interface IChunkCache
-{
+public interface IChunkCache {
     public void clearCache();
-    
+
     public DataInputStream getInputStream(File folder, int x, int z);
-    
+
     public DataOutputStream getOutputStream(File folder, int x, int z);
 }

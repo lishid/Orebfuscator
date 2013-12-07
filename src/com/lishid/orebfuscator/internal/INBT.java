@@ -19,31 +19,30 @@ package com.lishid.orebfuscator.internal;
 import java.io.DataInput;
 import java.io.DataOutput;
 
-public interface INBT
-{
+public interface INBT {
     public void reset();
-    
+
     public void setInt(String tag, int value);
-    
+
     public void setLong(String tag, long value);
-    
+
     public void setBoolean(String tag, boolean value);
-    
+
     public void setByteArray(String tag, byte[] value);
-    
+
     public void setIntArray(String tag, int[] value);
-    
+
     public int getInt(String tag);
-    
+
     public long getLong(String tag);
 
     public boolean getBoolean(String tag);
-    
+
     public byte[] getByteArray(String tag);
-    
+
     public int[] getIntArray(String tag);
-    
+
     public void Read(DataInput stream);
-    
+
     public void Write(DataOutput stream);
 }

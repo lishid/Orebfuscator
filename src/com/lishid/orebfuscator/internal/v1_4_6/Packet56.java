@@ -26,106 +26,89 @@ import com.lishid.orebfuscator.utils.ReflectionHelper;
 //Volatile
 import net.minecraft.server.v1_4_6.*;
 
-public class Packet56 implements IPacket56
-{
+public class Packet56 implements IPacket56 {
     Packet56MapChunkBulk packet;
-    
+
     @Override
-    public void setPacket(Object packet)
-    {
-        if (packet instanceof Packet56MapChunkBulk)
-        {
+    public void setPacket(Object packet) {
+        if (packet instanceof Packet56MapChunkBulk) {
             this.packet = (Packet56MapChunkBulk) packet;
         }
-        else
-        {
+        else {
             InternalAccessor.Instance.PrintError();
         }
     }
-    
+
     @Override
-    public int getPacketChunkNumber()
-    {
+    public int getPacketChunkNumber() {
         return packet.d();
     }
-    
+
     @Override
-    public int[] getX()
-    {
+    public int[] getX() {
         return (int[]) ReflectionHelper.getPrivateField(packet, "c");
     }
-    
+
     @Override
-    public int[] getZ()
-    {
+    public int[] getZ() {
         return (int[]) ReflectionHelper.getPrivateField(packet, "d");
     }
-    
+
     @Override
-    public int[] getChunkMask()
-    {
+    public int[] getChunkMask() {
         return packet.a;
     }
-    
+
     @Override
-    public int[] getExtraMask()
-    {
+    public int[] getExtraMask() {
         return packet.b;
     }
-    
+
     @Override
-    public Object getFieldData(String field)
-    {
+    public Object getFieldData(String field) {
         return ReflectionHelper.getPrivateField(Packet56MapChunkBulk.class, packet, field);
     }
-    
+
     @Override
-    public void setFieldData(String field, Object data)
-    {
+    public void setFieldData(String field, Object data) {
         ReflectionHelper.setPrivateField(Packet56MapChunkBulk.class, packet, field, data);
     }
-    
-    public String getInflatedBuffers()
-    {
+
+    public String getInflatedBuffers() {
         return "inflatedBuffers";
     }
-    
-    public String getBuildBuffer()
-    {
+
+    public String getBuildBuffer() {
         return "buildBuffer";
     }
-    
-    public String getOutputBuffer()
-    {
+
+    public String getOutputBuffer() {
         return "buffer";
     }
-    
+
     @Override
-    public void compress(Deflater deflater)
-    {
-        if (getFieldData(getOutputBuffer()) != null)
-        {
+    public void compress(Deflater deflater) {
+        if (getFieldData(getOutputBuffer()) != null) {
             return;
         }
-        
+
         byte[] buildBuffer = (byte[]) getFieldData(getBuildBuffer());
-        
+
         deflater.reset();
         deflater.setInput(buildBuffer);
         deflater.finish();
-        
+
         byte[] buffer = new byte[buildBuffer.length + 100];
-        
+
         ReflectionHelper.setPrivateField(packet, "buffer", buffer);
         int size = deflater.deflate(buffer);
         ReflectionHelper.setPrivateField(packet, "size", size);
-        
+
         // Free memory
         ReflectionHelper.setPrivateField(packet, "buildBuffer", null);
         ReflectionHelper.setPrivateField(packet, "inflatedBuffers", null);
-        
-        if (OrebfuscatorCommandExecutor.DebugMode)
-        {
+
+        if (OrebfuscatorCommandExecutor.DebugMode) {
             System.out.println("Packet size: " + size);
         }
     }

@@ -25,66 +25,55 @@ import com.lishid.orebfuscator.utils.ReflectionHelper;
 //Volatile
 import net.minecraft.server.v1_5_R3.*;
 
-public class Packet51 implements IPacket51
-{
+public class Packet51 implements IPacket51 {
     private static Class<? extends Object> packetClass = Packet51MapChunk.class;
-    
+
     Packet51MapChunk packet;
-    
+
     @Override
-    public void setPacket(Object packet)
-    {
-        if (packet instanceof Packet51MapChunk)
-        {
+    public void setPacket(Object packet) {
+        if (packet instanceof Packet51MapChunk) {
             this.packet = (Packet51MapChunk) packet;
         }
-        else
-        {
+        else {
             InternalAccessor.Instance.PrintError();
         }
     }
-    
+
     @Override
-    public int getX()
-    {
+    public int getX() {
         return packet.a;
     }
-    
+
     @Override
-    public int getZ()
-    {
+    public int getZ() {
         return packet.b;
     }
-    
+
     @Override
-    public int getChunkMask()
-    {
+    public int getChunkMask() {
         return packet.c;
     }
-    
+
     @Override
-    public int getExtraMask()
-    {
+    public int getExtraMask() {
         return packet.d;
     }
-    
+
     @Override
-    public byte[] getBuffer()
-    {
+    public byte[] getBuffer() {
         return (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "inflatedBuffer");
     }
-    
-    private byte[] getOutputBuffer()
-    {
+
+    private byte[] getOutputBuffer() {
         return (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "buffer");
     }
-    
+
     @Override
-    public void compress(Deflater deflater)
-    {
+    public void compress(Deflater deflater) {
         byte[] chunkInflatedBuffer = getBuffer();
         byte[] chunkBuffer = getOutputBuffer();
-        
+
         deflater.reset();
         deflater.setInput(chunkInflatedBuffer, 0, chunkInflatedBuffer.length);
         deflater.finish();

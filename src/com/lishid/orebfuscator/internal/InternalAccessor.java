@@ -20,87 +20,71 @@ import org.bukkit.Server;
 
 import com.lishid.orebfuscator.Orebfuscator;
 
-public class InternalAccessor
-{
+public class InternalAccessor {
     public static InternalAccessor Instance;
     private String version;
-    
+
     /*
      * Returns false if version not supported
      */
-    public static boolean Initialize(Server server)
-    {
+    public static boolean Initialize(Server server) {
         Instance = new InternalAccessor();
         String packageName = server.getClass().getPackage().getName();
         Instance.version = packageName.substring(packageName.lastIndexOf('.') + 1);
-        
-        try
-        {
+
+        try {
             Class.forName("com.lishid.orebfuscator.internal." + Instance.version + ".PlayerHook");
             return true;
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             return false;
         }
     }
-    
-    public void PrintError()
-    {
+
+    public void PrintError() {
         Orebfuscator.log("Orebfuscator encountered an error with the CraftBukkit version \"" + Instance.version + "\". Please look for an updated version of Orebfuscator.");
     }
-    
-    public INBT newNBT()
-    {
+
+    public INBT newNBT() {
         return (INBT) createObject(INBT.class, "NBT");
     }
-    
-    public IChunkCache newChunkCache()
-    {
+
+    public IChunkCache newChunkCache() {
         return (IChunkCache) createObject(IChunkCache.class, "ChunkCache");
     }
-    
-    public IPacket51 newPacket51()
-    {
+
+    public IPacket51 newPacket51() {
         return (IPacket51) createObject(IPacket51.class, "Packet51");
     }
-    
-    public IPacket56 newPacket56()
-    {
+
+    public IPacket56 newPacket56() {
         return (IPacket56) createObject(IPacket56.class, "Packet56");
     }
-    
-    public IPlayerHook newPlayerHook()
-    {
+
+    public IPlayerHook newPlayerHook() {
         return (IPlayerHook) createObject(IPlayerHook.class, "PlayerHook");
     }
-    
-    public IBlockAccess newBlockAccess()
-    {
+
+    public IBlockAccess newBlockAccess() {
         return (IBlockAccess) createObject(IBlockAccess.class, "BlockAccess");
     }
-    
-    public IMinecraftWorldServer newMinecraftWorldServer()
-    {
+
+    public IMinecraftWorldServer newMinecraftWorldServer() {
         return (IMinecraftWorldServer) createObject(IMinecraftWorldServer.class, "MinecraftWorldServer");
     }
-    
-    private Object createObject(Class<? extends Object> assignableClass, String className)
-    {
-        try
-        {
+
+    private Object createObject(Class<? extends Object> assignableClass, String className) {
+        try {
             Class<?> internalClass = Class.forName("com.lishid.orebfuscator.internal." + version + "." + className);
-            if (assignableClass.isAssignableFrom(internalClass))
-            {
+            if (assignableClass.isAssignableFrom(internalClass)) {
                 return internalClass.getConstructor().newInstance();
             }
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             PrintError();
             Orebfuscator.log(e);
         }
-        
+
         return null;
     }
 }

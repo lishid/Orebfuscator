@@ -19,10 +19,8 @@ package com.lishid.orebfuscator.internal;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-
-public interface IBlockAccess
-{
+public interface IBlockAccess {
     public boolean isBlockTransparent(int id);
-    
+
     public void updateBlockTileEntity(Block block, Player player);
 }

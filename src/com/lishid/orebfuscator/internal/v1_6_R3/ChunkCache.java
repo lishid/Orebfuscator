@@ -28,77 +28,62 @@ import com.lishid.orebfuscator.internal.IChunkCache;
 //Volatile
 import net.minecraft.server.v1_6_R3.*;
 
-public class ChunkCache implements IChunkCache
-{
+public class ChunkCache implements IChunkCache {
     private static final HashMap<File, RegionFile> cachedRegionFiles = new HashMap<File, RegionFile>();
-    
-    private synchronized RegionFile getRegionFile(File folder, int x, int z)
-    {
+
+    private synchronized RegionFile getRegionFile(File folder, int x, int z) {
         File path = new File(folder, "region");
         File file = new File(path, "r." + (x >> 5) + "." + (z >> 5) + ".mcr");
-        try
-        {
+        try {
             RegionFile regionFile = cachedRegionFiles.get(file);
-            if (regionFile != null)
-            {
+            if (regionFile != null) {
                 return regionFile;
             }
-            
-            if (!path.exists())
-            {
+
+            if (!path.exists()) {
                 path.mkdirs();
             }
-            
-            if (cachedRegionFiles.size() >= OrebfuscatorConfig.MaxLoadedCacheFiles)
-            {
+
+            if (cachedRegionFiles.size() >= OrebfuscatorConfig.MaxLoadedCacheFiles) {
                 clearCache();
             }
-            
+
             regionFile = new RegionFile(file);
             cachedRegionFiles.put(file, regionFile);
-            
+
             return regionFile;
         }
-        catch (Exception e)
-        {
-            try
-            {
+        catch (Exception e) {
+            try {
                 file.delete();
             }
-            catch (Exception e2)
-            {
+            catch (Exception e2) {
                 Orebfuscator.log(e);
             }
         }
         return null;
     }
-    
+
     @Override
-    public DataInputStream getInputStream(File folder, int x, int z)
-    {
+    public DataInputStream getInputStream(File folder, int x, int z) {
         RegionFile regionFile = getRegionFile(folder, x, z);
         return regionFile.a(x & 0x1F, z & 0x1F);
     }
-    
+
     @Override
-    public DataOutputStream getOutputStream(File folder, int x, int z)
-    {
+    public DataOutputStream getOutputStream(File folder, int x, int z) {
         RegionFile regionFile = getRegionFile(folder, x, z);
         return regionFile.b(x & 0x1F, z & 0x1F);
     }
-    
+
     @Override
-    public synchronized void clearCache()
-    {
-        for (RegionFile regionFile : cachedRegionFiles.values())
-        {
-            try
-            {
+    public synchronized void clearCache() {
+        for (RegionFile regionFile : cachedRegionFiles.values()) {
+            try {
                 if (regionFile != null)
                     regionFile.c();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 e.printStackTrace();
             }
         }

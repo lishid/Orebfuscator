@@ -21,33 +21,27 @@ import java.util.zip.CRC32;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-public class CalculationsUtil
-{
-    public static boolean isChunkLoaded(World world, int x, int z)
-    {
+public class CalculationsUtil {
+    public static boolean isChunkLoaded(World world, int x, int z) {
         return world.isChunkLoaded(x, z);
     }
-    
-    public static Block getBlockAt(World world, int x, int y, int z)
-    {
-        if (isChunkLoaded(world, x >> 4, z >> 4))
-        {
+
+    public static Block getBlockAt(World world, int x, int y, int z) {
+        if (isChunkLoaded(world, x >> 4, z >> 4)) {
             return world.getBlockAt(x, y, z);
         }
-        
+
         return null;
     }
-    
-    public static long Hash(byte[] data, int length)
-    {
+
+    public static long Hash(byte[] data, int length) {
         CRC32 crc = new CRC32();
         crc.reset();
         crc.update(data, 0, length);
         return crc.getValue();
     }
-    
-    public static int increment(int current, int max)
-    {
+
+    public static int increment(int current, int max) {
         return (current + 1) % max;
     }
 }

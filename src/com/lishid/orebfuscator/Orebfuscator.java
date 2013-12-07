@@ -42,125 +42,109 @@ import com.lishid.orebfuscator.utils.UpdateManager;
  * 
  * @author lishid
  */
-public class Orebfuscator extends JavaPlugin
-{
+public class Orebfuscator extends JavaPlugin {
     private static Metrics metrics;
-    
+
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
     public static boolean usePL = false;
     public static boolean useSpigot = false;
-    
+
     private UpdateManager updater = new UpdateManager();
-    
+
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         // Get plugin manager
         PluginManager pm = getServer().getPluginManager();
-        
+
         // Version check
         boolean success = InternalAccessor.Initialize(this.getServer());
-        
-        if (!success)
-        {
+
+        if (!success) {
             Orebfuscator.log("Your version of CraftBukkit is not supported.");
             Orebfuscator.log("Please look for an updated version of Orebfuscator.");
             pm.disablePlugin(this);
             return;
         }
-        
+
         instance = this;
         // Load configurations
         OrebfuscatorConfig.load();
-        
+
         updater.Initialize(this, getFile());
-        
+
         // Orebfuscator events
         pm.registerEvents(new OrebfuscatorPlayerListener(), this);
         pm.registerEvents(new OrebfuscatorEntityListener(), this);
         pm.registerEvents(new OrebfuscatorBlockListener(), this);
-        
+
         pm.registerEvents(new OrebfuscatorPlayerHook(), this);
-        
-        if (pm.getPlugin("ProtocolLib") != null)
-        {
+
+        if (pm.getPlugin("ProtocolLib") != null) {
             Orebfuscator.log("ProtocolLib found! Hooking into ProtocolLib.");
             (new ProtocolLibHook()).register(this);
             usePL = true;
         }
-        
-        if (pm.getPlugin("NoLagg") != null && !usePL)
-        {
-            getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
-            {
+
+        if (pm.getPlugin("NoLagg") != null && !usePL) {
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
                 @Override
-                public void run()
-                {
+                public void run() {
                     Orebfuscator.log("WARNING! NoLagg Absolutely NEED ProtocolLib to work with Orebfuscator!");
                 }
             }, 0, 60 * 1000);// Warn every minute
         }
-        
+
         // TODO: Disable spigot's built-in orebfuscator since it has limited functionality
-        try
-        {
-            //Field spigotConfig = getServer().getClass().getDeclaredField("spigotConfig");
+        try {
+            // Field spigotConfig = getServer().getClass().getDeclaredField("spigotConfig");
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             // If error occurred, then ignore.
         }
-        
+
         // Metrics
-        try
-        {
+        try {
             metrics = new Metrics(this);
             metrics.start();
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Orebfuscator.log(e);
         }
     }
-    
+
     @Override
-    public void onDisable()
-    {
+    public void onDisable() {
         ObfuscatedDataCache.clearCache();
         BlockHitManager.clearAll();
         ChunkProcessingThread.KillAll();
         getServer().getScheduler().cancelAllTasks();
     }
-    
+
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
-    {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         return OrebfuscatorCommandExecutor.onCommand(sender, command, label, args);
     }
-    
+
     /**
      * Log an information
      */
-    public static void log(String text)
-    {
+    public static void log(String text) {
         logger.info("[OFC] " + text);
     }
-    
+
     /**
      * Log an error
      */
-    public static void log(Throwable e)
-    {
+    public static void log(Throwable e) {
         logger.severe("[OFC] " + e.toString());
         e.printStackTrace();
     }
-    
+
     /**
      * Send a message to a player
      */
-    public static void message(CommandSender target, String message)
-    {
+    public static void message(CommandSender target, String message) {
         target.sendMessage(ChatColor.AQUA + "[OFC] " + message);
     }
 }

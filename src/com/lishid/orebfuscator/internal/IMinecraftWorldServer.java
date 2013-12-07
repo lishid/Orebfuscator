@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.internal;
 
-public interface IMinecraftWorldServer
-{
+public interface IMinecraftWorldServer {
     public void Notify(Object server, int x, int y, int z);
 }

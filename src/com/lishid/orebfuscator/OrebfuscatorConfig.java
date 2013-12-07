@@ -31,13 +31,12 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.internal.IBlockAccess;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 
-public class OrebfuscatorConfig
-{
+public class OrebfuscatorConfig {
     // Constant/persistent data
     private static final int CONFIG_VERSION = 10;
     private static Random random = new Random();
     private static int AvailableProcessors = Runtime.getRuntime().availableProcessors();
-    
+
     // Main engine config
     public static boolean Enabled = true;
     public static boolean UpdateOnDamage = true;
@@ -47,16 +46,16 @@ public class OrebfuscatorConfig
     public static int OrebfuscatorPriority = 1;
     public static int CompressionLevel = 1;
     public static int ProcessingThreads = AvailableProcessors - 1;
-    
+
     // Darkness
     public static boolean DarknessHideBlocks = false;
-    
+
     // Caching
     public static boolean UseCache = true;
     public static int MaxLoadedCacheFiles = 64;
     public static String CacheLocation = "orebfuscator_cache";
     public static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
-    
+
     // ProximityHider
     public static int ProximityHiderRate = 500;
     public static int ProximityHiderDistance = 8;
@@ -64,21 +63,21 @@ public class OrebfuscatorConfig
     public static int ProximityHiderEnd = 255;
     public static boolean UseProximityHider = true;
     public static boolean UseSpecialBlockForProximityHider = true;
-    
+
     // AntiTexturePackAndFreecam
     public static boolean AntiTexturePackAndFreecam = true;
     public static int AirGeneratorMaxChance = 43;
-    
+
     // Misc
     public static boolean NoObfuscationForOps = false;
     public static boolean NoObfuscationForPermission = false;
     public static boolean LoginNotification = true;
     public static boolean CheckForUpdates = true;
-    
+
     // Anti Hit Hack
     public static int AntiHitHackDecrementFactor = 1000;
     public static int AntiHitHackMaxViolation = 15;
-    
+
     // Utilities
     private static boolean[] ObfuscateBlocks = new boolean[256];
     private static boolean[] NetherObfuscateBlocks = new boolean[256];
@@ -88,322 +87,268 @@ public class OrebfuscatorConfig
     private static Integer[] NetherRandomBlocks = new Integer[] { 13, 87, 88, 112, 153 };
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
-    
-    public static File getCacheFolder()
-    {
+
+    public static File getCacheFolder() {
         // Try to make the folder
-        if (!CacheFolder.exists())
-        {
+        if (!CacheFolder.exists()) {
             CacheFolder.mkdirs();
         }
         // Can't make folder? Use default
-        if (!CacheFolder.exists())
-        {
+        if (!CacheFolder.exists()) {
             CacheFolder = new File("orebfuscator_cache");
         }
         return CacheFolder;
     }
-    
+
     public static IBlockAccess blockAccess;
     private static boolean[] TransparentBlocks = new boolean[256];
     private static boolean TransparentCached = false;
-    
-    public static boolean isBlockTransparent(short id)
-    {
-        if (blockAccess == null)
-        {
+
+    public static boolean isBlockTransparent(short id) {
+        if (blockAccess == null) {
             blockAccess = InternalAccessor.Instance.newBlockAccess();
         }
-        
-        if (!TransparentCached)
-        {
+
+        if (!TransparentCached) {
             // Generate TransparentBlocks by reading them from Minecraft
             generateTransparentBlocks();
         }
-        
+
         if (id < 0)
             id += 256;
-        
+
         return TransparentBlocks[id];
     }
-    
-    private static void generateTransparentBlocks()
-    {
-        for (int i = 0; i < TransparentBlocks.length; i++)
-        {
+
+    private static void generateTransparentBlocks() {
+        for (int i = 0; i < TransparentBlocks.length; i++) {
             TransparentBlocks[i] = blockAccess.isBlockTransparent(i);
         }
         TransparentCached = true;
     }
-    
-    public static boolean isObfuscated(short id, boolean nether)
-    {
+
+    public static boolean isObfuscated(short id, boolean nether) {
         if (id < 0)
             id += 256;
-        
+
         // Nether case
-        if (nether)
-        {
+        if (nether) {
             if (id == 87)
                 return true;
             return NetherObfuscateBlocks[id];
         }
-        
+
         // Normal case
         if (id == 1)
             return true;
-        
+
         return ObfuscateBlocks[id];
     }
-    
-    public static boolean isDarknessObfuscated(short id)
-    {
+
+    public static boolean isDarknessObfuscated(short id) {
         if (id < 0)
             id += 256;
-        
+
         return DarknessBlocks[id];
     }
-    
-    public static boolean isProximityObfuscated(short id)
-    {
+
+    public static boolean isProximityObfuscated(short id) {
         if (id < 0)
             id += 256;
-        
+
         return ProximityHiderBlocks[id];
     }
-    
-    public static boolean isWorldDisabled(String name)
-    {
-        for (String world : DisabledWorlds)
-        {
+
+    public static boolean isWorldDisabled(String name) {
+        for (String world : DisabledWorlds) {
             if (world.equalsIgnoreCase(name))
                 return true;
         }
         return false;
     }
-    
-    public static String getDisabledWorlds()
-    {
+
+    public static String getDisabledWorlds() {
         String retval = "";
-        for (String world : DisabledWorlds)
-        {
+        for (String world : DisabledWorlds) {
             retval += world + ", ";
         }
         return retval.length() > 1 ? retval.substring(0, retval.length() - 2) : retval;
     }
-    
-    public static byte getRandomBlock(int index, boolean alternate, boolean nether)
-    {
+
+    public static byte getRandomBlock(int index, boolean alternate, boolean nether) {
         if (nether)
             return (byte) (int) (NetherRandomBlocks[index]);
         return (byte) (int) (alternate ? RandomBlocks2[index] : RandomBlocks[index]);
     }
-    
-    public static Integer[] getRandomBlocks(boolean alternate, boolean nether)
-    {
+
+    public static Integer[] getRandomBlocks(boolean alternate, boolean nether) {
         if (nether)
             return NetherRandomBlocks;
         return (alternate ? RandomBlocks2 : RandomBlocks);
     }
-    
-    public static void shuffleRandomBlocks()
-    {
-        synchronized (RandomBlocks)
-        {
+
+    public static void shuffleRandomBlocks() {
+        synchronized (RandomBlocks) {
             Collections.shuffle(Arrays.asList(RandomBlocks));
             Collections.shuffle(Arrays.asList(RandomBlocks2));
         }
     }
-    
-    public static int random(int max)
-    {
+
+    public static int random(int max) {
         return random.nextInt(max);
     }
-    
+
     // Set
-    
-    public static void setEngineMode(int data)
-    {
+
+    public static void setEngineMode(int data) {
         setData("Integers.EngineMode", data);
         EngineMode = data;
     }
-    
-    public static void setUpdateRadius(int data)
-    {
+
+    public static void setUpdateRadius(int data) {
         setData("Integers.UpdateRadius", data);
         UpdateRadius = data;
     }
-    
-    public static void setInitialRadius(int data)
-    {
+
+    public static void setInitialRadius(int data) {
         setData("Integers.InitialRadius", data);
         InitialRadius = data;
     }
-    
-    public static void setProcessingThreads(int data)
-    {
+
+    public static void setProcessingThreads(int data) {
         setData("Integers.ProcessingThreads", data);
         ProcessingThreads = data;
     }
-    
-    public static void setProximityHiderDistance(int data)
-    {
+
+    public static void setProximityHiderDistance(int data) {
         setData("Integers.ProximityHiderDistance", data);
         ProximityHiderDistance = data;
     }
-    
-    public static void setAirGeneratorMaxChance(int data)
-    {
+
+    public static void setAirGeneratorMaxChance(int data) {
         setData("Integers.AirGeneratorMaxChance", data);
         AirGeneratorMaxChance = data;
     }
-    
-    public static void setUseProximityHider(boolean data)
-    {
+
+    public static void setUseProximityHider(boolean data) {
         setData("Booleans.UseProximityHider", data);
         UseProximityHider = data;
     }
-    
-    public static void setDarknessHideBlocks(boolean data)
-    {
+
+    public static void setDarknessHideBlocks(boolean data) {
         setData("Booleans.DarknessHideBlocks", data);
         DarknessHideBlocks = data;
     }
-    
-    public static void setNoObfuscationForOps(boolean data)
-    {
+
+    public static void setNoObfuscationForOps(boolean data) {
         setData("Booleans.NoObfuscationForOps", data);
         NoObfuscationForOps = data;
     }
-    
-    public static void setNoObfuscationForPermission(boolean data)
-    {
+
+    public static void setNoObfuscationForPermission(boolean data) {
         setData("Booleans.NoObfuscationForPermission", data);
         NoObfuscationForPermission = data;
     }
-    
-    public static void setLoginNotification(boolean data)
-    {
+
+    public static void setLoginNotification(boolean data) {
         setData("Booleans.LoginNotification", data);
         LoginNotification = data;
     }
-    
-    public static void setAntiTexturePackAndFreecam(boolean data)
-    {
+
+    public static void setAntiTexturePackAndFreecam(boolean data) {
         setData("Booleans.AntiTexturePackAndFreecam", data);
         AntiTexturePackAndFreecam = data;
     }
-    
-    public static void setUseCache(boolean data)
-    {
+
+    public static void setUseCache(boolean data) {
         setData("Booleans.UseCache", data);
         UseCache = data;
     }
-    
-    public static void setEnabled(boolean data)
-    {
+
+    public static void setEnabled(boolean data) {
         setData("Booleans.Enabled", data);
         Enabled = data;
     }
-    
-    public static void setDisabledWorlds(String name, boolean data)
-    {
-        if (!data)
-        {
+
+    public static void setDisabledWorlds(String name, boolean data) {
+        if (!data) {
             DisabledWorlds.remove(name);
         }
-        else
-        {
+        else {
             DisabledWorlds.add(name);
         }
         setData("Lists.DisabledWorlds", DisabledWorlds);
     }
-    
-    private static boolean getBoolean(String path, boolean defaultData)
-    {
+
+    private static boolean getBoolean(String path, boolean defaultData) {
         if (getConfig().get(path) == null)
             setData(path, defaultData);
         return getConfig().getBoolean(path, defaultData);
     }
-    
-    private static String getString(String path, String defaultData)
-    {
+
+    private static String getString(String path, String defaultData) {
         if (getConfig().get(path) == null)
             setData(path, defaultData);
         return getConfig().getString(path, defaultData);
     }
-    
-    private static int getInt(String path, int defaultData)
-    {
+
+    private static int getInt(String path, int defaultData) {
         if (getConfig().get(path) == null)
             setData(path, defaultData);
         return getConfig().getInt(path, defaultData);
     }
-    
-    private static List<Integer> getIntList(String path, List<Integer> defaultData)
-    {
+
+    private static List<Integer> getIntList(String path, List<Integer> defaultData) {
         if (getConfig().get(path) == null)
             setData(path, defaultData);
         return getConfig().getIntegerList(path);
     }
-    
-    private static Integer[] getIntList2(String path, List<Integer> defaultData)
-    {
+
+    private static Integer[] getIntList2(String path, List<Integer> defaultData) {
         if (getConfig().get(path) == null)
             setData(path, defaultData);
         return getConfig().getIntegerList(path).toArray(new Integer[1]);
     }
-    
-    private static List<String> getStringList(String path, List<String> defaultData)
-    {
+
+    private static List<String> getStringList(String path, List<String> defaultData) {
         if (getConfig().get(path) == null)
             setData(path, defaultData);
         return getConfig().getStringList(path);
     }
-    
-    private static void setData(String path, Object data)
-    {
-        try
-        {
+
+    private static void setData(String path, Object data) {
+        try {
             getConfig().set(path, data);
             save();
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Orebfuscator.log(e);
         }
     }
-    
-    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks, boolean transparent)
-    {
-        for (int i = 0; i < boolArray.length; i++)
-        {
+
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks, boolean transparent) {
+        for (int i = 0; i < boolArray.length; i++) {
             boolArray[i] = blocks.contains(i);
-            
+
             // If block is transparent while we don't want them to, or the other way around
-            if (transparent != isBlockTransparent((short) i))
-            {
+            if (transparent != isBlockTransparent((short) i)) {
                 // Remove it
                 boolArray[i] = false;
             }
         }
     }
-    
-    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks)
-    {
-        for (int i = 0; i < boolArray.length; i++)
-        {
+
+    private static void setBlockValues(boolean[] boolArray, List<Integer> blocks) {
+        for (int i = 0; i < boolArray.length; i++) {
             boolArray[i] = blocks.contains(i);
         }
     }
-    
-    public static void load()
-    {
-        
+
+    public static void load() {
+
         // Version check
         int version = getInt("ConfigVersion", CONFIG_VERSION);
-        if (version < CONFIG_VERSION)
-        {
+        if (version < CONFIG_VERSION) {
             // Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
             // File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
             // File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
@@ -420,29 +365,27 @@ public class OrebfuscatorConfig
             // }
             // configFile.renameTo(destination);
             // reload();
-            
+
             ObfuscatedDataCache.ClearCache();
             setData("ConfigVersion", CONFIG_VERSION);
         }
-        
+
         EngineMode = getInt("Integers.EngineMode", EngineMode);
-        if (EngineMode != 1 && EngineMode != 2)
-        {
+        if (EngineMode != 1 && EngineMode != 2) {
             EngineMode = 2;
             Orebfuscator.log("EngineMode must be 1 or 2.");
         }
-        
+
         InitialRadius = clamp(getInt("Integers.InitialRadius", InitialRadius), 0, 2);
-        if (InitialRadius == 0)
-        {
+        if (InitialRadius == 0) {
             Orebfuscator.log("Warning, InitialRadius is 0. This will cause all exposed blocks to be obfuscated.");
         }
-        
+
         UpdateRadius = clamp(getInt("Integers.UpdateRadius", UpdateRadius), 1, 5);
         ProcessingThreads = clamp(getInt("Integers.ProcessingThreads", ProcessingThreads), 1, AvailableProcessors);
         MaxLoadedCacheFiles = clamp(getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles), 16, 128);
         ProximityHiderDistance = clamp(getInt("Integers.ProximityHiderDistance", ProximityHiderDistance), 2, 64);
-        
+
         ProximityHiderID = getInt("Integers.ProximityHiderID", ProximityHiderID);
         ProximityHiderEnd = clamp(getInt("Integers.ProximityHiderEnd", ProximityHiderEnd), 0, 255);
         AirGeneratorMaxChance = clamp(getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance), 40, 100);
@@ -459,90 +402,77 @@ public class OrebfuscatorConfig
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         CheckForUpdates = getBoolean("Booleans.CheckForUpdates", CheckForUpdates);
-        
+
         // Read block lists
         setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 })), false);
         setBlockValues(NetherObfuscateBlocks, getIntList("Lists.NetherObfuscateBlocks", Arrays.asList(new Integer[] { 87, 153 })), false);
         setBlockValues(DarknessBlocks, getIntList("Lists.DarknessBlocks", Arrays.asList(new Integer[] { 52, 54 })));
         setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[] { 23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146 })));
-        
+
         // Disable worlds
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
-        
+
         // Read the cache location
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
-        
+
         RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
         NetherRandomBlocks = getIntList2("Lists.NetherRandomBlocks", Arrays.asList(NetherRandomBlocks));
-        
+
         // Validate RandomBlocks
-        for (int i = 0; i < RandomBlocks.length; i++)
-        {
+        for (int i = 0; i < RandomBlocks.length; i++) {
             // Don't want people to put chests and other stuff that lags the hell out of players.
-            if (RandomBlocks[i] == null || OrebfuscatorConfig.isBlockTransparent((short) (int) RandomBlocks[i]))
-            {
+            if (RandomBlocks[i] == null || OrebfuscatorConfig.isBlockTransparent((short) (int) RandomBlocks[i])) {
                 RandomBlocks[i] = 1;
             }
         }
         RandomBlocks2 = RandomBlocks;
-        
+
         save();
     }
-    
-    public static void reload()
-    {
+
+    public static void reload() {
         Orebfuscator.instance.reloadConfig();
         load();
     }
-    
-    public static void save()
-    {
+
+    public static void save() {
         Orebfuscator.instance.saveConfig();
     }
-    
-    public static boolean obfuscateForPlayer(Player player)
-    {
+
+    public static boolean obfuscateForPlayer(Player player) {
         return !(playerBypassOp(player) || playerBypassPerms(player));
     }
-    
-    public static boolean playerBypassOp(Player player)
-    {
+
+    public static boolean playerBypassOp(Player player) {
         boolean ret = false;
-        try
-        {
+        try {
             ret = OrebfuscatorConfig.NoObfuscationForOps && player.isOp();
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Orebfuscator.log("Error while obtaining Operator status for player" + player.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
         return ret;
     }
-    
-    public static boolean playerBypassPerms(Player player)
-    {
+
+    public static boolean playerBypassPerms(Player player) {
         boolean ret = false;
-        try
-        {
+        try {
             ret = OrebfuscatorConfig.NoObfuscationForPermission && player.hasPermission("Orebfuscator.deobfuscate");
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             Orebfuscator.log("Error while obtaining permissions for player" + player.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
         return ret;
     }
-    
-    private static FileConfiguration getConfig()
-    {
+
+    private static FileConfiguration getConfig() {
         return Orebfuscator.instance.getConfig();
     }
-    
-    public static int clamp(int value, int min, int max)
-    {
+
+    public static int clamp(int value, int min, int max) {
         if (value < min)
             value = min;
         if (value > max)

@@ -4,16 +4,12 @@ import com.lishid.orebfuscator.hithack.BlockHitManager;
 
 import net.minecraft.server.*;
 
-public class Packet14Orebfuscator extends Packet14BlockDig
-{
+public class Packet14Orebfuscator extends Packet14BlockDig {
     @Override
-    public void handle(NetHandler handler)
-    {
-        if (this.e == 1 && handler instanceof NetServerHandler)
-        {
+    public void handle(NetHandler handler) {
+        if (this.e == 1 && handler instanceof NetServerHandler) {
             boolean canHit = BlockHitManager.hitBlock(((NetServerHandler) handler).getPlayer(), null);
-            if (!canHit)
-            {
+            if (!canHit) {
                 return;
             }
         }

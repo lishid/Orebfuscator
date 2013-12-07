@@ -23,17 +23,13 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 import net.minecraft.server.v1_7_R1.*;
 import org.bukkit.craftbukkit.v1_7_R1.*;
 
-public class MinecraftWorldServer implements IMinecraftWorldServer
-{
-    public void Notify(Object world, int x, int y, int z)
-    {
-        if (world instanceof CraftWorld)
-        {
+public class MinecraftWorldServer implements IMinecraftWorldServer {
+    public void Notify(Object world, int x, int y, int z) {
+        if (world instanceof CraftWorld) {
             WorldServer server = (WorldServer) ((CraftWorld) world).getHandle();
             server.notify(x, y, z);
         }
-        else
-        {
+        else {
             InternalAccessor.Instance.PrintError();
         }
     }

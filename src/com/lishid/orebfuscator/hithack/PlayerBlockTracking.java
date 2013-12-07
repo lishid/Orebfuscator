@@ -21,75 +21,62 @@ import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
 
-public class PlayerBlockTracking
-{
+public class PlayerBlockTracking {
     private Block block;
     private int hackingIndicator;
     private Player player;
     private long lastTime = System.currentTimeMillis();
-    
-    public PlayerBlockTracking(Player player)
-    {
+
+    public PlayerBlockTracking(Player player) {
         this.player = player;
     }
-    
-    public Player getPlayer()
-    {
+
+    public Player getPlayer() {
         return this.player;
     }
-    
-    public int getHackingIndicator()
-    {
+
+    public int getHackingIndicator() {
         return hackingIndicator;
     }
-    
-    public Block getBlock()
-    {
+
+    public Block getBlock() {
         return block;
     }
-    
-    public boolean isBlock(Block block)
-    {
+
+    public boolean isBlock(Block block) {
         if (block == null || this.block == null)
             return false;
         return block.equals(this.block);
     }
-    
-    public void setBlock(Block block)
-    {
+
+    public void setBlock(Block block) {
         this.block = block;
     }
-    
-    public void incrementHackingIndicator(int value)
-    {
+
+    public void incrementHackingIndicator(int value) {
         hackingIndicator += value;
-        if (hackingIndicator >= (1 << 14))
-        {
+        if (hackingIndicator >= (1 << 14)) {
             Orebfuscator.log("Player \"" + this.player.getName() + "\" tried to hack with packet spamming.");
             Orebfuscator.log("Player \"" + this.player.getName() + "\" kicked.");
             this.player.kickPlayer("End of Stream");
         }
     }
-    
-    public void incrementHackingIndicator()
-    {
+
+    public void incrementHackingIndicator() {
         incrementHackingIndicator(1);
     }
-    
-    public void decrementHackingIndicator(int value)
-    {
+
+    public void decrementHackingIndicator(int value) {
         hackingIndicator -= value;
         if (hackingIndicator < 0)
             hackingIndicator = 0;
     }
-    
-    public void updateTime()
-    {
+
+    public void updateTime() {
         lastTime = System.currentTimeMillis();
     }
-    
-    public long getTimeDifference()
-    {
+
+    public long getTimeDifference() {
         return System.currentTimeMillis() - lastTime;
     }
 }
