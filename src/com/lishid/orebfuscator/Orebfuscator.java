@@ -125,6 +125,10 @@ public class Orebfuscator extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         return OrebfuscatorCommandExecutor.onCommand(sender, command, label, args);
     }
+    
+    public void runTask(Runnable task) {
+        getServer().getScheduler().runTask(this, task);
+    }
 
     /**
      * Log an information

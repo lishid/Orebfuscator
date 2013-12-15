@@ -22,7 +22,7 @@ public class UpdateManager {
                     if (result != UpdateResult.NO_UPDATE) {
                         if (result == UpdateResult.SUCCESS) {
                             Orebfuscator.log("Update found! Downloaded new version.");
-                            Orebfuscator.log("This behaviour can be disabled in orebfuscator's config.yml");
+                            Orebfuscator.log("This behaviour can be disabled in the config.yml");
                         }
                         else {
                             Orebfuscator.log("Update failed, reason: " + result.toString());

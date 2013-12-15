@@ -17,6 +17,7 @@
 package com.lishid.orebfuscator.internal.v1_7_R1;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -67,12 +68,8 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     // Called when new chunks are queued
     @Override
     public boolean add(ChunkCoordIntPair e) {
-        boolean result;
-        synchronized (internalQueue) {
-            result = internalQueue.add(e);
-        }
         // Move everything into the internal queue
-        return result;
+        return internalQueue.add(e);
 
         // return super.add(e);
     }
@@ -98,9 +95,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             // If the player is gone, then don't waste time
             if (player.getHandle().playerConnection.isDisconnected()) {
                 // Cleanup all queues
-                synchronized (internalQueue) {
-                    internalQueue.clear();
-                }
+                internalQueue.clear();
                 processingQueue.clear();
                 outputQueue.clear();
                 lastPacket = null;
@@ -119,9 +114,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
 
     public void sort() {
         // Sort the internal array according to CB - See PlayerChunkMap.movePlayer(EntityPlayer entityplayer)
-        synchronized (internalQueue) {
-            java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
-        }
+        java.util.Collections.sort(internalQueue, new ChunkCoordComparator(player.getHandle()));
     }
 
     @Override
@@ -178,18 +171,27 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             // A list to queue chunks
             List<Chunk> chunks = new LinkedList<Chunk>();
 
+            Iterator<ChunkCoordIntPair> iterator = internalQueue.iterator();
+            World world = player.getHandle().world;
             // Queue up to 5 chunks
-            synchronized (internalQueue) {
-                while (!internalQueue.isEmpty() && chunks.size() < 5) {
-                    // Dequeue a chunk from input
-                    ChunkCoordIntPair chunkcoordintpair = internalQueue.remove(0);
-
-                    // If the chunk is loaded and not null
-                    if (chunkcoordintpair != null && player.getHandle().world.isLoaded(chunkcoordintpair.x << 4, 0, chunkcoordintpair.z << 4)) {
+            while (iterator.hasNext() && chunks.size() < 5) {
+                // Dequeue a chunk from input
+                ChunkCoordIntPair chunkcoordintpair = iterator.next();
+                // Check not null
+                if (chunkcoordintpair == null) {
+                    iterator.remove();
+                    continue;
+                }
+                // Check if the chunk is loaded
+                if (world.isLoaded(chunkcoordintpair.x << 4, 0, chunkcoordintpair.z << 4)) {
+                    Chunk chunk = world.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z);
+                    // Check if chunk is ready
+                    if (chunk.k()) {
                         // Queue the chunk for processing
                         processingQueue.add(chunkcoordintpair);
                         // Add the chunk to the list to create a packet
-                        chunks.add(player.getHandle().world.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z));
+                        chunks.add(chunk);
+                        iterator.remove();
                     }
                 }
             }

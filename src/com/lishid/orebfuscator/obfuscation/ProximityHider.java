@@ -19,6 +19,9 @@ package com.lishid.orebfuscator.obfuscation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.Location;
@@ -27,11 +30,11 @@ import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
 
 public class ProximityHider extends Thread implements Runnable {
-    public static HashMap<Player, HashSet<Block>> proximityHiderTracker = new HashMap<Player, HashSet<Block>>();
-    public static HashMap<Player, Location> playersToCheck = new HashMap<Player, Location>();
+    public static Map<Player, Set<Block>> proximityHiderTracker = new WeakHashMap<Player, Set<Block>>();
+    public static Map<Player, Set<Block>> proximityHiderTrackerLocal = new WeakHashMap<Player, Set<Block>>();
+    public static Map<Player, Location> playersToCheck = new HashMap<Player, Location>();
 
     public static ProximityHider thread = new ProximityHider();
 
@@ -69,32 +72,36 @@ public class ProximityHider extends Thread implements Runnable {
                     return;
                 }
 
-                HashMap<Player, Location> newPlayers = new HashMap<Player, Location>();
+                HashMap<Player, Location> checkPlayers = new HashMap<Player, Location>();
 
                 synchronized (playersToCheck) {
-                    newPlayers.putAll(playersToCheck);
+                    checkPlayers.putAll(playersToCheck);
                     playersToCheck.clear();
                 }
 
-                int distanceSquared = OrebfuscatorConfig.ProximityHiderDistance;
+                int distance = OrebfuscatorConfig.ProximityHiderDistance;
+                int distanceSquared = distance * distance;
 
-                // Actually squaring it
-                distanceSquared = distanceSquared * distanceSquared;
-
-                for (Player p : newPlayers.keySet()) {
+                for (Player p : checkPlayers.keySet()) {
+                    
+                    if (p == null) {
+                        continue;
+                    }
+                    
                     synchronized (proximityHiderTracker) {
-                        if (p == null || !proximityHiderTracker.containsKey(p)) {
+                        if (!proximityHiderTracker.containsKey(p)) {
                             continue;
                         }
                     }
 
                     Location loc1 = p.getLocation();
-                    Location loc2 = newPlayers.get(p);
+                    Location loc2 = checkPlayers.get(p);
 
                     // If player changed world
                     if (!loc1.getWorld().equals(loc2.getWorld())) {
                         synchronized (proximityHiderTracker) {
                             proximityHiderTracker.remove(p);
+                            proximityHiderTrackerLocal.remove(p);
                         }
                         continue;
                     }
@@ -104,16 +111,25 @@ public class ProximityHider extends Thread implements Runnable {
                         continue;
                     }
 
-                    HashSet<Block> blocks = new HashSet<Block>();
-                    HashSet<Block> removedBlocks = new HashSet<Block>();
+                    Set<Block> blocks = proximityHiderTrackerLocal.get(p);
+                    Set<Block> removedBlocks = new HashSet<Block>();
+                    if (blocks == null) {
+                        blocks = new HashSet<Block>();
+                        proximityHiderTrackerLocal.put(p, blocks);
+                    }
+
+                    boolean deobf = OrebfuscatorConfig.deobfuscateProximityHiderAll((int) Math.floor(p.getLocation().getY()));
 
                     synchronized (proximityHiderTracker) {
-                        if (proximityHiderTracker.get(p) != null)
-                            blocks.addAll(proximityHiderTracker.get(p));
+                        Set<Block> synchronizedBlocks = proximityHiderTracker.get(p);
+                        if (synchronizedBlocks != null) {
+                            blocks.addAll(synchronizedBlocks);
+                            synchronizedBlocks.clear();
+                        }
                     }
 
                     for (Block b : blocks) {
-                        if (b == null || p == null || b.getWorld() == null || p.getWorld() == null) {
+                        if (b == null || b.getWorld() == null || p.getWorld() == null) {
                             removedBlocks.add(b);
                             continue;
                         }
@@ -123,21 +139,25 @@ public class ProximityHider extends Thread implements Runnable {
                             continue;
                         }
 
-                        if (p.getLocation().distanceSquared(b.getLocation()) < distanceSquared) {
+                        if (deobf || p.getLocation().distanceSquared(b.getLocation()) < distanceSquared) {
                             removedBlocks.add(b);
 
                             if (CalculationsUtil.isChunkLoaded(b.getWorld(), b.getChunk().getX(), b.getChunk().getZ())) {
                                 p.sendBlockChange(b.getLocation(), b.getTypeId(), b.getData());
-                                OrebfuscatorConfig.blockAccess.updateBlockTileEntity(b, p);
+                                final Block block = b;
+                                final Player player = p;
+                                Orebfuscator.instance.runTask(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        OrebfuscatorConfig.blockAccess.updateBlockTileEntity(block, player);
+                                    }
+                                });
                             }
                         }
                     }
 
-                    synchronized (proximityHiderTracker) {
-                        for (Block b : removedBlocks) {
-                            if (proximityHiderTracker.get(p) != null)
-                                proximityHiderTracker.get(p).remove(b);
-                        }
+                    for (Block b : removedBlocks) {
+                        blocks.remove(b);
                     }
                 }
             }

@@ -328,11 +328,13 @@ public class Calculations {
                             }
 
                             // Check if the block should be obfuscated because of proximity check
-                            if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(data) && ((i << 4) + y) <= OrebfuscatorConfig.ProximityHiderEnd) {
-                                proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
-                                obfuscate = true;
-                                if (OrebfuscatorConfig.UseSpecialBlockForProximityHider)
-                                    specialObfuscate = true;
+                            if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(data)) {
+                                if (OrebfuscatorConfig.isProximityHiderOn((i << 4) + y)) {
+                                    proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
+                                    obfuscate = true;
+                                    if (OrebfuscatorConfig.UseSpecialBlockForProximityHider)
+                                        specialObfuscate = true;
+                                }
                             }
 
                             // Check if the block is obfuscated

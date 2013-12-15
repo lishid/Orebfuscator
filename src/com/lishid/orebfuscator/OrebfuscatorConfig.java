@@ -63,6 +63,7 @@ public class OrebfuscatorConfig {
     public static int ProximityHiderEnd = 255;
     public static boolean UseProximityHider = true;
     public static boolean UseSpecialBlockForProximityHider = true;
+    public static boolean UseYLocationProximity = false;
 
     // AntiTexturePackAndFreecam
     public static boolean AntiTexturePackAndFreecam = true;
@@ -157,6 +158,15 @@ public class OrebfuscatorConfig {
             id += 256;
 
         return ProximityHiderBlocks[id];
+    }
+    
+    public static boolean isProximityHiderOn(int y) {
+        return (UseYLocationProximity && y >= ProximityHiderEnd) ||
+                (!UseYLocationProximity && y <= ProximityHiderEnd);
+    }
+    
+    public static boolean deobfuscateProximityHiderAll(int y) {
+        return UseYLocationProximity && y >= ProximityHiderEnd;
     }
 
     public static boolean isWorldDisabled(String name) {
@@ -393,6 +403,7 @@ public class OrebfuscatorConfig {
         CompressionLevel = clamp(getInt("Integers.CompressionLevel", CompressionLevel), 1, 9);
         UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
         UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
+        UseYLocationProximity = getBoolean("Booleans.UseYLocationProximity", UseYLocationProximity);
         UpdateOnDamage = getBoolean("Booleans.UpdateOnDamage", UpdateOnDamage);
         DarknessHideBlocks = getBoolean("Booleans.DarknessHideBlocks", DarknessHideBlocks);
         NoObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", NoObfuscationForOps);
