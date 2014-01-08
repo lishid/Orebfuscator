@@ -157,8 +157,8 @@ public class OrebfuscatorConfig {
         return proximityHiderChecker.isProximityObfuscated(id);
     }
     
-    public static boolean isProximityHiderOn(int y) {
-        return proximityHiderChecker.isProximityHiderOn(y);
+    public static boolean isProximityHiderOn(int id, int y) {
+        return proximityHiderChecker.isProximityHiderOn(id, y);
     }
     
     public static boolean skipProximityHiderCheck(int y) {
@@ -179,7 +179,7 @@ public class OrebfuscatorConfig {
             return ProximityHiderBlocks[id];
         }
         
-        public boolean isProximityHiderOn(int y) {
+        public boolean isProximityHiderOn(int id, int y) {
             return (UseYLocationProximity && y >= ProximityHiderEnd) ||
                     (!UseYLocationProximity && y <= ProximityHiderEnd);
         }

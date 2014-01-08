@@ -329,7 +329,7 @@ public class Calculations {
 
                             // Check if the block should be obfuscated because of proximity check
                             if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(data)) {
-                                if (OrebfuscatorConfig.isProximityHiderOn((i << 4) + y)) {
+                                if (OrebfuscatorConfig.isProximityHiderOn(data, (i << 4) + y)) {
                                     proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
                                     obfuscate = true;
                                     if (OrebfuscatorConfig.UseSpecialBlockForProximityHider)
