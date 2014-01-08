@@ -33,7 +33,7 @@ import com.lishid.orebfuscator.OrebfuscatorConfig;
 
 public class ProximityHider extends Thread implements Runnable {
     public static Map<Player, Set<Block>> proximityHiderTracker = new WeakHashMap<Player, Set<Block>>();
-    public static Map<Player, Set<Block>> proximityHiderTrackerLocal = new WeakHashMap<Player, Set<Block>>();
+    public Map<Player, Set<Block>> proximityHiderTrackerLocal = new WeakHashMap<Player, Set<Block>>();
     public static Map<Player, Location> playersToCheck = new HashMap<Player, Location>();
 
     public static ProximityHider thread = new ProximityHider();
@@ -83,11 +83,11 @@ public class ProximityHider extends Thread implements Runnable {
                 int distanceSquared = distance * distance;
 
                 for (Player p : checkPlayers.keySet()) {
-                    
+
                     if (p == null) {
                         continue;
                     }
-                    
+
                     synchronized (proximityHiderTracker) {
                         if (!proximityHiderTracker.containsKey(p)) {
                             continue;
@@ -118,7 +118,9 @@ public class ProximityHider extends Thread implements Runnable {
                         proximityHiderTrackerLocal.put(p, blocks);
                     }
 
-                    boolean deobf = OrebfuscatorConfig.deobfuscateProximityHiderAll((int) Math.floor(p.getLocation().getY()));
+                    int y = (int) Math.floor(p.getLocation().getY());
+
+                    boolean skip = OrebfuscatorConfig.skipProximityHiderCheck(y);
 
                     synchronized (proximityHiderTracker) {
                         Set<Block> synchronizedBlocks = proximityHiderTracker.get(p);
@@ -128,36 +130,38 @@ public class ProximityHider extends Thread implements Runnable {
                         }
                     }
 
-                    for (Block b : blocks) {
-                        if (b == null || b.getWorld() == null || p.getWorld() == null) {
-                            removedBlocks.add(b);
-                            continue;
-                        }
+                    if (!skip) {
+                        for (Block b : blocks) {
+                            if (b == null || b.getWorld() == null || p.getWorld() == null) {
+                                removedBlocks.add(b);
+                                continue;
+                            }
 
-                        if (!p.getWorld().equals(b.getWorld())) {
-                            removedBlocks.add(b);
-                            continue;
-                        }
+                            if (!p.getWorld().equals(b.getWorld())) {
+                                removedBlocks.add(b);
+                                continue;
+                            }
 
-                        if (deobf || p.getLocation().distanceSquared(b.getLocation()) < distanceSquared) {
-                            removedBlocks.add(b);
+                            if (OrebfuscatorConfig.proximityHiderDeobfuscate(y, b.getY()) || p.getLocation().distanceSquared(b.getLocation()) < distanceSquared) {
+                                removedBlocks.add(b);
 
-                            if (CalculationsUtil.isChunkLoaded(b.getWorld(), b.getChunk().getX(), b.getChunk().getZ())) {
-                                p.sendBlockChange(b.getLocation(), b.getTypeId(), b.getData());
-                                final Block block = b;
-                                final Player player = p;
-                                Orebfuscator.instance.runTask(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        OrebfuscatorConfig.blockAccess.updateBlockTileEntity(block, player);
-                                    }
-                                });
+                                if (CalculationsUtil.isChunkLoaded(b.getWorld(), b.getChunk().getX(), b.getChunk().getZ())) {
+                                    p.sendBlockChange(b.getLocation(), b.getTypeId(), b.getData());
+                                    final Block block = b;
+                                    final Player player = p;
+                                    Orebfuscator.instance.runTask(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            OrebfuscatorConfig.blockAccess.updateBlockTileEntity(block, player);
+                                        }
+                                    });
+                                }
                             }
                         }
-                    }
 
-                    for (Block b : removedBlocks) {
-                        blocks.remove(b);
+                        for (Block b : removedBlocks) {
+                            blocks.remove(b);
+                        }
                     }
                 }
             }

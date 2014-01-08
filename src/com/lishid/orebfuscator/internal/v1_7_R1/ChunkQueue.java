@@ -46,7 +46,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     Thread thread;
     AtomicBoolean kill = new AtomicBoolean(false);
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public ChunkQueue(CraftPlayer player, List previousEntries) {
         this.player = player;
         internalQueue.addAll(previousEntries);
@@ -99,14 +99,12 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 processingQueue.clear();
                 outputQueue.clear();
                 lastPacket = null;
-            }
-            else {
+            } else {
                 // Process outputs and inputs
                 processOutput();
                 processInput();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Orebfuscator.log(e);
         }
         return true;
@@ -163,8 +161,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 if (!channel.isWritable()) {
                     return;
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Orebfuscator.log(e);
             }
 
@@ -173,6 +170,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
 
             Iterator<ChunkCoordIntPair> iterator = internalQueue.iterator();
             World world = player.getHandle().world;
+            WorldServer worldServer = (WorldServer) world;
             // Queue up to 5 chunks
             while (iterator.hasNext() && chunks.size() < 5) {
                 // Dequeue a chunk from input
@@ -183,15 +181,31 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                     continue;
                 }
                 // Check if the chunk is loaded
-                if (world.isLoaded(chunkcoordintpair.x << 4, 0, chunkcoordintpair.z << 4)) {
+                if (world.chunkProvider.isChunkLoaded(chunkcoordintpair.x, chunkcoordintpair.z)) {
                     Chunk chunk = world.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z);
                     // Check if chunk is ready
                     if (chunk.k()) {
-                        // Queue the chunk for processing
-                        processingQueue.add(chunkcoordintpair);
-                        // Add the chunk to the list to create a packet
-                        chunks.add(chunk);
-                        iterator.remove();
+                        // Load nearby chunks
+                        boolean waitLoad = false;
+                        if (!checkAndLoadChunk(worldServer, chunkcoordintpair.x - 1, chunkcoordintpair.z)) {
+                            waitLoad = true;
+                        }
+                        if (!checkAndLoadChunk(worldServer, chunkcoordintpair.x + 1, chunkcoordintpair.z)) {
+                            waitLoad = true;
+                        }
+                        if (!checkAndLoadChunk(worldServer, chunkcoordintpair.x, chunkcoordintpair.z - 1)) {
+                            waitLoad = true;
+                        }
+                        if (!checkAndLoadChunk(worldServer, chunkcoordintpair.x, chunkcoordintpair.z + 1)) {
+                            waitLoad = true;
+                        }
+                        if (!waitLoad) {
+                            // Queue the chunk for processing
+                            processingQueue.add(chunkcoordintpair);
+                            // Add the chunk to the list to create a packet
+                            chunks.add(chunk);
+                            iterator.remove();
+                        }
                     }
                 }
             }
@@ -218,6 +232,14 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 player.getHandle().playerConnection.sendPacket(packet);
             }
         }
+    }
+
+    private boolean checkAndLoadChunk(WorldServer worldServer, int x, int z) {
+        if (!worldServer.chunkProvider.isChunkLoaded(x, z)) {
+            worldServer.chunkProviderServer.getChunkAt(x, z);
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -258,13 +280,16 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         }
 
         @Override
-        public void remove() {}
+        public void remove() {
+        }
 
         @Override
-        public void set(ChunkCoordIntPair e) {}
+        public void set(ChunkCoordIntPair e) {
+        }
 
         @Override
-        public void add(ChunkCoordIntPair e) {}
+        public void add(ChunkCoordIntPair e) {
+        }
     }
 
     private static class ChunkCoordComparator implements java.util.Comparator<ChunkCoordIntPair> {
@@ -295,16 +320,13 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             if (ax < 0) {
                 if (bx < 0) {
                     return bz - az;
-                }
-                else {
+                } else {
                     return -1;
                 }
-            }
-            else {
+            } else {
                 if (bx < 0) {
                     return 1;
-                }
-                else {
+                } else {
                     return az - bz;
                 }
             }

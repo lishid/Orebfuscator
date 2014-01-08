@@ -18,9 +18,9 @@ package com.lishid.orebfuscator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Arrays;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -154,19 +154,43 @@ public class OrebfuscatorConfig {
     }
 
     public static boolean isProximityObfuscated(short id) {
-        if (id < 0)
-            id += 256;
-
-        return ProximityHiderBlocks[id];
+        return proximityHiderChecker.isProximityObfuscated(id);
     }
     
     public static boolean isProximityHiderOn(int y) {
-        return (UseYLocationProximity && y >= ProximityHiderEnd) ||
-                (!UseYLocationProximity && y <= ProximityHiderEnd);
+        return proximityHiderChecker.isProximityHiderOn(y);
     }
     
-    public static boolean deobfuscateProximityHiderAll(int y) {
-        return UseYLocationProximity && y >= ProximityHiderEnd;
+    public static boolean skipProximityHiderCheck(int y) {
+        return proximityHiderChecker.skipProximityHiderCheck(y);
+    }
+    
+    public static boolean proximityHiderDeobfuscate(int playerY, int blockY) {
+        return proximityHiderChecker.proximityHiderDeobfuscate(playerY, blockY);
+    }
+    
+    public static ProximityHiderChecker proximityHiderChecker = new ProximityHiderChecker();
+    
+    public static class ProximityHiderChecker {
+        public boolean isProximityObfuscated(short id) {
+            if (id < 0)
+                id += 256;
+
+            return ProximityHiderBlocks[id];
+        }
+        
+        public boolean isProximityHiderOn(int y) {
+            return (UseYLocationProximity && y >= ProximityHiderEnd) ||
+                    (!UseYLocationProximity && y <= ProximityHiderEnd);
+        }
+        
+        public boolean skipProximityHiderCheck(int y) {
+            return UseYLocationProximity && y < ProximityHiderEnd;
+        }
+        
+        public boolean proximityHiderDeobfuscate(int playerY, int blockY) {
+            return UseYLocationProximity;
+        }
     }
 
     public static boolean isWorldDisabled(String name) {
