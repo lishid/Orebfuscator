@@ -245,7 +245,7 @@ public class Calculations {
                 ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
 
                 // Caching done, de-sanitize buffer
-                RepaintChunkToBuffer(cache.data, info.data, info.startIndex, info.blockSize);
+                RepaintChunkToBuffer(info);
 
                 // Hash match, use the cached data instead and skip calculations
                 return cache.data;
@@ -291,6 +291,7 @@ public class Calculations {
 
                             int index = indexDataStart + tempIndex;
                             byte data = info.data[info.startIndex + index];
+                            int blockY = (i << 4) + y;
 
                             // byte extra = 0;
                             // if (useExtraData)
@@ -309,8 +310,8 @@ public class Calculations {
                             if (OrebfuscatorConfig.isObfuscated(data, isNether)) {
                                 if (initialRadius == 0) {
                                     // Do not interfere with PH
-                                    if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(data)) {
-                                        if (!areAjacentBlocksTransparent(info, data, startX + x, (i << 4) + y, startZ + z, 1)) {
+                                    if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(blockY, data)) {
+                                        if (!areAjacentBlocksTransparent(info, data, startX + x, blockY, startZ + z, 1)) {
                                             obfuscate = true;
                                         }
                                     }
@@ -321,16 +322,16 @@ public class Calculations {
                                 }
                                 else {
                                     // Check if any nearby blocks are transparent
-                                    if (!areAjacentBlocksTransparent(info, data, startX + x, (i << 4) + y, startZ + z, initialRadius)) {
+                                    if (!areAjacentBlocksTransparent(info, data, startX + x, blockY, startZ + z, initialRadius)) {
                                         obfuscate = true;
                                     }
                                 }
                             }
 
                             // Check if the block should be obfuscated because of proximity check
-                            if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(data)) {
-                                if (OrebfuscatorConfig.isProximityHiderOn(data, (i << 4) + y)) {
-                                    proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, (i << 4) + y, startZ + z));
+                            if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(blockY, data)) {
+                                if (OrebfuscatorConfig.isProximityHiderOn(data, blockY)) {
+                                    proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, blockY, startZ + z));
                                     obfuscate = true;
                                     if (OrebfuscatorConfig.UseSpecialBlockForProximityHider)
                                         specialObfuscate = true;
@@ -417,7 +418,7 @@ public class Calculations {
 
         // Caching done, de-sanitize buffer
         if (OrebfuscatorConfig.UseCache) {
-            RepaintChunkToBuffer(info.buffer, info.data, info.startIndex, info.blockSize);
+            RepaintChunkToBuffer(info);
         }
 
         return info.buffer;
@@ -431,7 +432,7 @@ public class Calculations {
     public static void buildCacheMap() {
         for (int i = 0; i < 256; i++) {
             cacheMap[i] = (byte) i;
-            if (OrebfuscatorConfig.isBlockTransparent((short) i) && !isBlockSpecialObfuscated((byte) i)) {
+            if (OrebfuscatorConfig.isBlockTransparent((short) i) && !isBlockSpecialObfuscated(64, (byte) i)) {
                 cacheMap[i] = 0;
             }
         }
@@ -443,24 +444,72 @@ public class Calculations {
         }
     }
 
-    private static boolean isBlockSpecialObfuscated(byte id) {
+    private static boolean isBlockSpecialObfuscated(int y, byte id) {
         if (OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(id)) {
             return true;
         }
-        if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(id)) {
+        if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, id)) {
             return true;
         }
         return false;
     }
 
-    private static void RepaintChunkToBuffer(byte[] data, byte[] original, int start, int length) {
+    private static void RepaintChunkToBuffer(ChunkInfo info) {
+        if(OrebfuscatorConfig.useYLocation()) {
+            RepaintChunkToBuffer2(info);
+        }
+        else {
+            RepaintChunkToBuffer1(info);
+        }
+    }
+
+    private static void RepaintChunkToBuffer1(ChunkInfo info) {
+        byte[] data = info.buffer;
+        byte[] original = info.data;
+        int start = info.startIndex;
+        int length = info.blockSize;
+        
         for (int i = 0; i < length; i++) {
             if (data[i] == 0 && original[start + i] != 0) {
                 if (OrebfuscatorConfig.isBlockTransparent(original[start + i])) {
-                    if (!isBlockSpecialObfuscated(original[start + i])) {
+                    if (!isBlockSpecialObfuscated(0, original[start + i])) {
                         data[i] = original[start + i];
                     }
                 }
+            }
+        }
+    }
+
+    private static void RepaintChunkToBuffer2(ChunkInfo info) {
+        byte[] data = info.buffer;
+        byte[] original = info.data;
+        int start = info.startIndex;
+        int dataIndexModifier = 0;
+
+        for (int i = 0; i < 16; i++) {
+            if ((info.chunkMask & 1 << i) != 0) {
+                int indexDataStart = dataIndexModifier * 4096;
+
+                int tempIndex = 0;
+
+                OrebfuscatorConfig.shuffleRandomBlocks();
+                for (int y = 0; y < 16; y++) {
+                    for (int z = 0; z < 16; z++) {
+                        for (int x = 0; x < 16; x++) {
+                            int index = indexDataStart + tempIndex;
+                            int blockY = (i << 4) + y;
+                            if (data[index] == 0 && original[start + index] != 0) {
+                                if (OrebfuscatorConfig.isBlockTransparent(original[start + index])) {
+                                    if (!isBlockSpecialObfuscated(blockY, original[start + index])) {
+                                        data[index] = original[start + index];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                dataIndexModifier++;
             }
         }
     }

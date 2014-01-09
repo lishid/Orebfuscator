@@ -153,8 +153,8 @@ public class OrebfuscatorConfig {
         return DarknessBlocks[id];
     }
 
-    public static boolean isProximityObfuscated(short id) {
-        return proximityHiderChecker.isProximityObfuscated(id);
+    public static boolean isProximityObfuscated(int y, short id) {
+        return proximityHiderChecker.isProximityObfuscated(y, id);
     }
     
     public static boolean isProximityHiderOn(int id, int y) {
@@ -168,11 +168,15 @@ public class OrebfuscatorConfig {
     public static boolean proximityHiderDeobfuscate(int playerY, int blockY) {
         return proximityHiderChecker.proximityHiderDeobfuscate(playerY, blockY);
     }
+
+    public static boolean useYLocation() {
+        return proximityHiderChecker.useYLocation();
+    }
     
     public static ProximityHiderChecker proximityHiderChecker = new ProximityHiderChecker();
     
     public static class ProximityHiderChecker {
-        public boolean isProximityObfuscated(short id) {
+        public boolean isProximityObfuscated(int y, short id) {
             if (id < 0)
                 id += 256;
 
@@ -190,6 +194,10 @@ public class OrebfuscatorConfig {
         
         public boolean proximityHiderDeobfuscate(int playerY, int blockY) {
             return UseYLocationProximity;
+        }
+        
+        public boolean useYLocation() {
+            return false;
         }
     }
 
