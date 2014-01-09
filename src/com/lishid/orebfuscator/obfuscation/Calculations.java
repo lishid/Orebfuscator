@@ -489,10 +489,7 @@ public class Calculations {
         for (int i = 0; i < 16; i++) {
             if ((info.chunkMask & 1 << i) != 0) {
                 int indexDataStart = dataIndexModifier * 4096;
-
                 int tempIndex = 0;
-
-                OrebfuscatorConfig.shuffleRandomBlocks();
                 for (int y = 0; y < 16; y++) {
                     for (int z = 0; z < 16; z++) {
                         for (int x = 0; x < 16; x++) {
@@ -505,6 +502,7 @@ public class Calculations {
                                     }
                                 }
                             }
+                            tempIndex++;
                         }
                     }
                 }
