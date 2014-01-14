@@ -21,18 +21,29 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import net.minecraft.server.v1_7_R1.Chunk;
+//Volatile
+import net.minecraft.server.v1_7_R1.ChunkCoordIntPair;
+import net.minecraft.server.v1_7_R1.EntityPlayer;
+import net.minecraft.server.v1_7_R1.Packet;
+import net.minecraft.server.v1_7_R1.PacketPlayOutMapChunkBulk;
+import net.minecraft.server.v1_7_R1.TileEntity;
+import net.minecraft.server.v1_7_R1.TileEntitySign;
+import net.minecraft.server.v1_7_R1.World;
+import net.minecraft.server.v1_7_R1.WorldServer;
+import net.minecraft.util.io.netty.channel.Channel;
+
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.hook.ChunkProcessingThread;
 import com.lishid.orebfuscator.internal.IChunkQueue;
 import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.internal.InternalAccessor;
-import net.minecraft.util.io.netty.channel.Channel;
-
-//Volatile
-import net.minecraft.server.v1_7_R1.*;
-import org.bukkit.craftbukkit.v1_7_R1.entity.*;
+import com.lishid.orebfuscator.obfuscation.Calculations;
 
 public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQueue {
     private static final long serialVersionUID = -1928681564741152336L;
@@ -138,9 +149,10 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 @SuppressWarnings("rawtypes")
                 List tileEntities = ((WorldServer) player.getHandle().world).getTileEntities(chunk.x * 16, 0, chunk.z * 16, chunk.x * 16 + 16, 256, chunk.z * 16 + 16);
 
+                Set<org.bukkit.block.Block> signs = Calculations.getSignsList(player, chunk.x, chunk.z);
                 for (Object o : tileEntities) {
                     // Send out packet for the tile entity data
-                    this.updateTileEntity((TileEntity) o);
+                    this.updateTileEntity(signs, (TileEntity) o);
                 }
 
                 // Start tracking entities in the chunk
@@ -224,8 +236,14 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         }
     }
 
-    private void updateTileEntity(TileEntity tileentity) {
+    private void updateTileEntity(Set<org.bukkit.block.Block> signs, TileEntity tileentity) {
         if (tileentity != null) {
+            if(tileentity instanceof TileEntitySign) {
+                org.bukkit.block.Block block = tileentity.getWorld().getWorld().getBlockAt(tileentity.x, tileentity.y, tileentity.z);
+                if(signs.contains(block)) {
+                    return;
+                }
+            }
             Packet packet = tileentity.getUpdatePacket();
 
             if (packet != null) {

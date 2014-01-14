@@ -142,7 +142,7 @@ public class ProximityHider extends Thread implements Runnable {
                                 continue;
                             }
 
-                            if (OrebfuscatorConfig.proximityHiderDeobfuscate(y, b.getY()) || p.getLocation().distanceSquared(b.getLocation()) < distanceSquared) {
+                            if (OrebfuscatorConfig.proximityHiderDeobfuscate(y, b) || p.getLocation().distanceSquared(b.getLocation()) < distanceSquared) {
                                 removedBlocks.add(b);
 
                                 if (CalculationsUtil.isChunkLoaded(b.getWorld(), b.getChunk().getX(), b.getChunk().getZ())) {

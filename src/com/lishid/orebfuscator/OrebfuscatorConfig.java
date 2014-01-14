@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -165,8 +166,8 @@ public class OrebfuscatorConfig {
         return proximityHiderChecker.skipProximityHiderCheck(y);
     }
     
-    public static boolean proximityHiderDeobfuscate(int playerY, int blockY) {
-        return proximityHiderChecker.proximityHiderDeobfuscate(playerY, blockY);
+    public static boolean proximityHiderDeobfuscate(int playerY, Block block) {
+        return proximityHiderChecker.proximityHiderDeobfuscate(playerY, block);
     }
 
     public static boolean useYLocation() {
@@ -192,7 +193,7 @@ public class OrebfuscatorConfig {
             return UseYLocationProximity && y < ProximityHiderEnd;
         }
         
-        public boolean proximityHiderDeobfuscate(int playerY, int blockY) {
+        public boolean proximityHiderDeobfuscate(int playerY, Block block) {
             return UseYLocationProximity;
         }
         

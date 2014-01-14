@@ -18,10 +18,16 @@ package com.lishid.orebfuscator.obfuscation;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.zip.Deflater;
 
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -45,6 +51,29 @@ public class Calculations {
             return new Deflater(Deflater.BEST_SPEED);
         }
     };
+    
+    private static WeakHashMap<Player, Map<ChunkAddress, Set<Block>>> signsMap = new WeakHashMap<Player, Map<ChunkAddress,Set<Block>>>();
+    
+    private static Map<ChunkAddress, Set<Block>> getPlayerSignsMap(Player player) {
+        Map<ChunkAddress, Set<Block>> map = signsMap.get(player);
+        if(map == null){
+            map = new HashMap<ChunkAddress, Set<Block>>();
+            signsMap.put(player, map);
+        }
+        return map;
+    }
+    
+    private static void putSignsList(Player player, int chunkX, int chunkZ, Set<Block> blocks) {
+        Map<ChunkAddress, Set<Block>> map = getPlayerSignsMap(player);
+        ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
+        map.put(address, blocks);
+    }
+    
+    public static Set<Block> getSignsList(Player player, int chunkX, int chunkZ) {
+        Map<ChunkAddress, Set<Block>> map = getPlayerSignsMap(player);
+        ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
+        return map.remove(address);
+    }
 
     public static void Obfuscate(Object packet, Player player) {
         // Assuming that NoLagg will pass a Packet51
@@ -394,6 +423,14 @@ public class Calculations {
             }
         }
 
+        Set<Block> signs = new HashSet<Block>();
+        for(Block b : proximityBlocks) {
+            if(b instanceof Sign) {
+                signs.add(b);
+            }
+        }
+        putSignsList(info.player, info.chunkX, info.chunkZ, signs);
+        
         ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
 
         // If cache is still allowed
