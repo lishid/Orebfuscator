@@ -39,11 +39,13 @@ import net.minecraft.util.io.netty.channel.Channel;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
 
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.hook.ChunkProcessingThread;
 import com.lishid.orebfuscator.internal.IChunkQueue;
 import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import com.lishid.orebfuscator.obfuscation.ProximityHider;
 
 public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQueue {
     private static final long serialVersionUID = -1928681564741152336L;
@@ -57,7 +59,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     Thread thread;
     AtomicBoolean kill = new AtomicBoolean(false);
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public ChunkQueue(CraftPlayer player, List previousEntries) {
         this.player = player;
         internalQueue.addAll(previousEntries);
@@ -110,12 +112,14 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 processingQueue.clear();
                 outputQueue.clear();
                 lastPacket = null;
-            } else {
+            }
+            else {
                 // Process outputs and inputs
                 processOutput();
                 processInput();
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             Orebfuscator.log(e);
         }
         return true;
@@ -158,6 +162,14 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 // Start tracking entities in the chunk
                 ((WorldServer) player.getHandle().world).getTracker().a(player.getHandle(), player.getHandle().world.getChunkAt(chunk.x, chunk.z));
             }
+
+            // Force an update on ProximityHider
+            if (OrebfuscatorConfig.UseProximityHider) {
+                synchronized (ProximityHider.playersToCheck) {
+                    if (!ProximityHider.playersToCheck.containsKey(player))
+                        ProximityHider.playersToCheck.put(player, player.getLocation().add(1, 1, 1));
+                }
+            }
         }
     }
 
@@ -173,7 +185,8 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 if (!channel.isWritable()) {
                     return;
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Orebfuscator.log(e);
             }
 
@@ -238,9 +251,9 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
 
     private void updateTileEntity(Set<org.bukkit.block.Block> signs, TileEntity tileentity) {
         if (tileentity != null) {
-            if(tileentity instanceof TileEntitySign) {
+            if (tileentity instanceof TileEntitySign) {
                 org.bukkit.block.Block block = tileentity.getWorld().getWorld().getBlockAt(tileentity.x, tileentity.y, tileentity.z);
-                if(signs.contains(block)) {
+                if (signs.contains(block)) {
                     return;
                 }
             }
@@ -298,16 +311,13 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         }
 
         @Override
-        public void remove() {
-        }
+        public void remove() {}
 
         @Override
-        public void set(ChunkCoordIntPair e) {
-        }
+        public void set(ChunkCoordIntPair e) {}
 
         @Override
-        public void add(ChunkCoordIntPair e) {
-        }
+        public void add(ChunkCoordIntPair e) {}
     }
 
     private static class ChunkCoordComparator implements java.util.Comparator<ChunkCoordIntPair> {
@@ -338,13 +348,16 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             if (ax < 0) {
                 if (bx < 0) {
                     return bz - az;
-                } else {
+                }
+                else {
                     return -1;
                 }
-            } else {
+            }
+            else {
                 if (bx < 0) {
                     return 1;
-                } else {
+                }
+                else {
                     return az - bz;
                 }
             }
