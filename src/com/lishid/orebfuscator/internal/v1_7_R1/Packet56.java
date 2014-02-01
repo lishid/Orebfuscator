@@ -106,7 +106,8 @@ public class Packet56 implements IPacket56 {
 
         // Free memory
         ReflectionHelper.setPrivateField(packet, "buildBuffer", null);
-        ReflectionHelper.setPrivateField(packet, "inflatedBuffers", null);
+        // FUCK SPIGOT FOR STEPPNIG OVER OTHER PEOPLE'S OPTIMIZATIONS.
+        // ReflectionHelper.setPrivateField(packet, "inflatedBuffers", null);
 
         if (OrebfuscatorCommandExecutor.DebugMode) {
             System.out.println("Packet size: " + size);
