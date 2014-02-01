@@ -45,6 +45,7 @@ import com.lishid.orebfuscator.internal.IChunkQueue;
 import com.lishid.orebfuscator.internal.IPacket56;
 import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import com.lishid.orebfuscator.obfuscation.MinecraftBlock;
 import com.lishid.orebfuscator.obfuscation.ProximityHider;
 
 public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQueue {
@@ -153,7 +154,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                 @SuppressWarnings("rawtypes")
                 List tileEntities = ((WorldServer) player.getHandle().world).getTileEntities(chunk.x * 16, 0, chunk.z * 16, chunk.x * 16 + 16, 256, chunk.z * 16 + 16);
 
-                Set<org.bukkit.block.Block> signs = Calculations.getSignsList(player, chunk.x, chunk.z);
+                Set<MinecraftBlock> signs = Calculations.getSignsList(player, chunk.x, chunk.z);
                 for (Object o : tileEntities) {
                     // Send out packet for the tile entity data
                     this.updateTileEntity(signs, (TileEntity) o);
@@ -249,11 +250,13 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
         }
     }
 
-    private void updateTileEntity(Set<org.bukkit.block.Block> signs, TileEntity tileentity) {
+    private void updateTileEntity(Set<MinecraftBlock> signs, TileEntity tileentity) {
         if (tileentity != null) {
             if (tileentity instanceof TileEntitySign) {
-                org.bukkit.block.Block block = tileentity.getWorld().getWorld().getBlockAt(tileentity.x, tileentity.y, tileentity.z);
-                if (signs.contains(block)) {
+                if(signs == null) {
+                    System.out.println("NULL!");
+                }
+                else if (signs.contains(new MinecraftBlock(tileentity.x, tileentity.y, tileentity.z))) {
                     return;
                 }
             }

@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -52,27 +53,37 @@ public class Calculations {
         }
     };
     
-    private static WeakHashMap<Player, Map<ChunkAddress, Set<Block>>> signsMap = new WeakHashMap<Player, Map<ChunkAddress,Set<Block>>>();
+    private static WeakHashMap<Player, Map<ChunkAddress, Set<MinecraftBlock>>> signsMap = new WeakHashMap<Player, Map<ChunkAddress,Set<MinecraftBlock>>>();
     
-    private static Map<ChunkAddress, Set<Block>> getPlayerSignsMap(Player player) {
-        Map<ChunkAddress, Set<Block>> map = signsMap.get(player);
+    private static Map<ChunkAddress, Set<MinecraftBlock>> getPlayerSignsMap(Player player) {
+        Map<ChunkAddress, Set<MinecraftBlock>> map = signsMap.get(player);
         if(map == null){
-            map = new HashMap<ChunkAddress, Set<Block>>();
+            map = new HashMap<ChunkAddress, Set<MinecraftBlock>>();
             signsMap.put(player, map);
         }
         return map;
     }
     
-    private static void putSignsList(Player player, int chunkX, int chunkZ, Set<Block> blocks) {
-        Map<ChunkAddress, Set<Block>> map = getPlayerSignsMap(player);
+    private static void putSignsList(Player player, int chunkX, int chunkZ, Set<MinecraftBlock> blocks) {
+        Map<ChunkAddress, Set<MinecraftBlock>> map = getPlayerSignsMap(player);
         ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
         map.put(address, blocks);
     }
     
-    public static Set<Block> getSignsList(Player player, int chunkX, int chunkZ) {
-        Map<ChunkAddress, Set<Block>> map = getPlayerSignsMap(player);
+    public static Set<MinecraftBlock> getSignsList(Player player, int chunkX, int chunkZ) {
+        Map<ChunkAddress, Set<MinecraftBlock>> map = getPlayerSignsMap(player);
         ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
         return map.remove(address);
+    }
+    
+    public static void putSignsList(Player player, int chunkX, int chunkZ, List<Block> proximityBlocks) {
+        Set<MinecraftBlock> signs = new HashSet<MinecraftBlock>();
+        for(Block b : proximityBlocks) {
+            if(b.getState() instanceof Sign) {
+                signs.add(new MinecraftBlock(b));
+            }
+        }
+        putSignsList(player, chunkX, chunkZ, signs);
     }
 
     public static void Obfuscate(Object packet, Player player) {
@@ -271,6 +282,7 @@ public class Calculations {
                     }
                 }
                 // ProximityHider add blocks
+                putSignsList(info.player, info.chunkX, info.chunkZ, proximityBlocks);
                 ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
 
                 // Caching done, de-sanitize buffer
@@ -422,15 +434,8 @@ public class Calculations {
                 // }
             }
         }
-
-        Set<Block> signs = new HashSet<Block>();
-        for(Block b : proximityBlocks) {
-            if(b instanceof Sign) {
-                signs.add(b);
-            }
-        }
-        putSignsList(info.player, info.chunkX, info.chunkZ, signs);
         
+        putSignsList(info.player, info.chunkX, info.chunkZ, proximityBlocks);
         ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
 
         // If cache is still allowed

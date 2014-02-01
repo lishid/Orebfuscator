@@ -97,7 +97,8 @@ public class Orebfuscator extends JavaPlugin {
 
         // TODO: Disable spigot's built-in orebfuscator since it has limited functionality
         try {
-            // Field spigotConfig = getServer().getClass().getDeclaredField("spigotConfig");
+            Class.forName("org.spigotmc.SpigotConfig");
+            useSpigot = true;
         }
         catch (Exception e) {
             // If error occurred, then ignore.
