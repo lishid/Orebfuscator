@@ -73,7 +73,7 @@ public class Calculations {
     public static Set<MinecraftBlock> getSignsList(Player player, int chunkX, int chunkZ) {
         Map<ChunkAddress, Set<MinecraftBlock>> map = getPlayerSignsMap(player);
         ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
-        return map.remove(address);
+        return map.get(address);
     }
     
     public static void putSignsList(Player player, int chunkX, int chunkZ, List<Block> proximityBlocks) {
@@ -281,12 +281,13 @@ public class Calculations {
                         proximityBlocks.add(b);
                     }
                 }
+
+                // Caching done, de-sanitize buffer
+                RepaintChunkToBuffer(cache.data, info);
+                
                 // ProximityHider add blocks
                 putSignsList(info.player, info.chunkX, info.chunkZ, proximityBlocks);
                 ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
-
-                // Caching done, de-sanitize buffer
-                RepaintChunkToBuffer(info);
 
                 // Hash match, use the cached data instead and skip calculations
                 return cache.data;
@@ -460,7 +461,7 @@ public class Calculations {
 
         // Caching done, de-sanitize buffer
         if (OrebfuscatorConfig.UseCache) {
-            RepaintChunkToBuffer(info);
+            RepaintChunkToBuffer(info.buffer, info);
         }
 
         return info.buffer;
@@ -496,17 +497,16 @@ public class Calculations {
         return false;
     }
 
-    private static void RepaintChunkToBuffer(ChunkInfo info) {
+    private static void RepaintChunkToBuffer(byte[] data, ChunkInfo info) {
         if(OrebfuscatorConfig.useYLocation()) {
-            RepaintChunkToBuffer2(info);
+            RepaintChunkToBuffer2(data, info);
         }
         else {
-            RepaintChunkToBuffer1(info);
+            RepaintChunkToBuffer1(data, info);
         }
     }
 
-    private static void RepaintChunkToBuffer1(ChunkInfo info) {
-        byte[] data = info.buffer;
+    private static void RepaintChunkToBuffer1(byte[] data, ChunkInfo info) {
         byte[] original = info.data;
         int start = info.startIndex;
         int length = info.blockSize;
@@ -522,8 +522,7 @@ public class Calculations {
         }
     }
 
-    private static void RepaintChunkToBuffer2(ChunkInfo info) {
-        byte[] data = info.buffer;
+    private static void RepaintChunkToBuffer2(byte[] data, ChunkInfo info) {
         byte[] original = info.data;
         int start = info.startIndex;
         int dataIndexModifier = 0;

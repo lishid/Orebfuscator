@@ -253,10 +253,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     private void updateTileEntity(Set<MinecraftBlock> signs, TileEntity tileentity) {
         if (tileentity != null) {
             if (tileentity instanceof TileEntitySign) {
-                if(signs == null) {
-                    System.out.println("NULL!");
-                }
-                else if (signs.contains(new MinecraftBlock(tileentity.x, tileentity.y, tileentity.z))) {
+                if(signs != null && signs.contains(new MinecraftBlock(tileentity.x, tileentity.y, tileentity.z))) {
                     return;
                 }
             }
