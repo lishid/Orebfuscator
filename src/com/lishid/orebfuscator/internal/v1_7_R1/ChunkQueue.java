@@ -17,7 +17,6 @@
 package com.lishid.orebfuscator.internal.v1_7_R1;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -194,16 +193,17 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
             // A list to queue chunks
             List<Chunk> chunks = new LinkedList<Chunk>();
 
-            Iterator<ChunkCoordIntPair> iterator = internalQueue.iterator();
             World world = player.getHandle().world;
             WorldServer worldServer = (WorldServer) world;
+            int i = 0;
             // Queue up to 5 chunks
-            while (iterator.hasNext() && chunks.size() < 5) {
+            while (internalQueue.size() > i && chunks.size() < 5) {
                 // Dequeue a chunk from input
-                ChunkCoordIntPair chunkcoordintpair = iterator.next();
+                ChunkCoordIntPair chunkcoordintpair = internalQueue.get(i);
+                
                 // Check not null
                 if (chunkcoordintpair == null) {
-                    iterator.remove();
+                    internalQueue.remove(i);
                     continue;
                 }
                 // Check if the chunk is loaded
@@ -230,10 +230,12 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
                             processingQueue.add(chunkcoordintpair);
                             // Add the chunk to the list to create a packet
                             chunks.add(chunk);
-                            iterator.remove();
+                            internalQueue.remove(i);
+                            continue;
                         }
                     }
                 }
+                i++;
             }
 
             // If there are chunks to process
@@ -253,7 +255,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> implements IChunkQ
     private void updateTileEntity(Set<MinecraftBlock> signs, TileEntity tileentity) {
         if (tileentity != null) {
             if (tileentity instanceof TileEntitySign) {
-                if(signs != null && signs.contains(new MinecraftBlock(tileentity.x, tileentity.y, tileentity.z))) {
+                if (signs != null && signs.contains(new MinecraftBlock(tileentity.x, tileentity.y, tileentity.z))) {
                     return;
                 }
             }
