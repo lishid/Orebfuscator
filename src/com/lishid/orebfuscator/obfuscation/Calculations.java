@@ -52,34 +52,34 @@ public class Calculations {
             return new Deflater(Deflater.BEST_SPEED);
         }
     };
-    
-    private static WeakHashMap<Player, Map<ChunkAddress, Set<MinecraftBlock>>> signsMap = new WeakHashMap<Player, Map<ChunkAddress,Set<MinecraftBlock>>>();
-    
+
+    private static WeakHashMap<Player, Map<ChunkAddress, Set<MinecraftBlock>>> signsMap = new WeakHashMap<Player, Map<ChunkAddress, Set<MinecraftBlock>>>();
+
     private static Map<ChunkAddress, Set<MinecraftBlock>> getPlayerSignsMap(Player player) {
         Map<ChunkAddress, Set<MinecraftBlock>> map = signsMap.get(player);
-        if(map == null){
+        if (map == null) {
             map = new HashMap<ChunkAddress, Set<MinecraftBlock>>();
             signsMap.put(player, map);
         }
         return map;
     }
-    
+
     private static void putSignsList(Player player, int chunkX, int chunkZ, Set<MinecraftBlock> blocks) {
         Map<ChunkAddress, Set<MinecraftBlock>> map = getPlayerSignsMap(player);
         ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
         map.put(address, blocks);
     }
-    
+
     public static Set<MinecraftBlock> getSignsList(Player player, int chunkX, int chunkZ) {
         Map<ChunkAddress, Set<MinecraftBlock>> map = getPlayerSignsMap(player);
         ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
         return map.get(address);
     }
-    
+
     public static void putSignsList(Player player, int chunkX, int chunkZ, List<Block> proximityBlocks) {
         Set<MinecraftBlock> signs = new HashSet<MinecraftBlock>();
-        for(Block b : proximityBlocks) {
-            if(b.getState() instanceof Sign) {
+        for (Block b : proximityBlocks) {
+            if (b.getState() instanceof Sign) {
                 signs.add(new MinecraftBlock(b));
             }
         }
@@ -284,7 +284,7 @@ public class Calculations {
 
                 // Caching done, de-sanitize buffer
                 RepaintChunkToBuffer(cache.data, info);
-                
+
                 // ProximityHider add blocks
                 putSignsList(info.player, info.chunkX, info.chunkZ, proximityBlocks);
                 ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
@@ -373,7 +373,10 @@ public class Calculations {
                             // Check if the block should be obfuscated because of proximity check
                             if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(blockY, data)) {
                                 if (OrebfuscatorConfig.isProximityHiderOn(blockY, data)) {
-                                    proximityBlocks.add(CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, blockY, startZ + z));
+                                    Block block = CalculationsUtil.getBlockAt(info.player.getWorld(), startX + x, blockY, startZ + z);
+                                    if (block != null) {
+                                        proximityBlocks.add(block);
+                                    }
                                     obfuscate = true;
                                     if (OrebfuscatorConfig.UseSpecialBlockForProximityHider)
                                         specialObfuscate = true;
@@ -435,7 +438,7 @@ public class Calculations {
                 // }
             }
         }
-        
+
         putSignsList(info.player, info.chunkX, info.chunkZ, proximityBlocks);
         ProximityHider.AddProximityBlocks(info.player, proximityBlocks);
 
@@ -498,7 +501,7 @@ public class Calculations {
     }
 
     private static void RepaintChunkToBuffer(byte[] data, ChunkInfo info) {
-        if(OrebfuscatorConfig.useYLocation()) {
+        if (OrebfuscatorConfig.useYLocation()) {
             RepaintChunkToBuffer2(data, info);
         }
         else {
@@ -510,7 +513,7 @@ public class Calculations {
         byte[] original = info.data;
         int start = info.startIndex;
         int length = info.blockSize;
-        
+
         for (int i = 0; i < length; i++) {
             if (data[i] == 0 && original[start + i] != 0) {
                 if (OrebfuscatorConfig.isBlockTransparent(original[start + i])) {
