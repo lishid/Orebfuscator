@@ -34,7 +34,6 @@ import com.lishid.orebfuscator.internal.InternalAccessor;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
-import com.lishid.orebfuscator.utils.Metrics;
 import com.lishid.orebfuscator.utils.UpdateManager;
 
 /**
@@ -43,7 +42,6 @@ import com.lishid.orebfuscator.utils.UpdateManager;
  * @author lishid
  */
 public class Orebfuscator extends JavaPlugin {
-    private static Metrics metrics;
 
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
@@ -103,15 +101,6 @@ public class Orebfuscator extends JavaPlugin {
         catch (Exception e) {
             // If error occurred, then ignore.
         }
-
-        // Metrics
-        try {
-            metrics = new Metrics(this);
-            metrics.start();
-        }
-        catch (Exception e) {
-            Orebfuscator.log(e);
-        }
     }
 
     @Override
@@ -128,7 +117,9 @@ public class Orebfuscator extends JavaPlugin {
     }
     
     public void runTask(Runnable task) {
-        getServer().getScheduler().runTask(this, task);
+        if(this.isEnabled()) {
+            getServer().getScheduler().runTask(this, task);
+        }
     }
 
     /**
