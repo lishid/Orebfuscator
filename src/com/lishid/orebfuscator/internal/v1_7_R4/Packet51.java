@@ -37,19 +37,8 @@ public class Packet51 implements IPacket51 {
         if (packet instanceof PacketPlayOutMapChunk) {
             this.packet = (PacketPlayOutMapChunk) packet;
 
-            // Check if e is a byte[]
-            Object e = ReflectionHelper.getPrivateField(packetClass, packet, "e");
-            if (e instanceof byte[]) {
-                // e => buffer
-                // buffer => inflatedBuffer
-                // inflatedBuffer => e
-                buffer = (byte[]) e;
-                inflatedBuffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "buffer");
-            }
-            else {
-                buffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "buffer");
-                inflatedBuffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "inflatedBuffer");
-            }
+            buffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "e");
+            inflatedBuffer = (byte[]) ReflectionHelper.getPrivateField(packetClass, packet, "f");
         }
         else {
             InternalAccessor.Instance.PrintError();
@@ -93,6 +82,6 @@ public class Packet51 implements IPacket51 {
         deflater.reset();
         deflater.setInput(chunkInflatedBuffer, 0, chunkInflatedBuffer.length);
         deflater.finish();
-        ReflectionHelper.setPrivateField(packetClass, packet, "size", deflater.deflate(chunkBuffer));
+        ReflectionHelper.setPrivateField(packetClass, packet, "h", deflater.deflate(chunkBuffer));
     }
 }
