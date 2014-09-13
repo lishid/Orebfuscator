@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import net.minecraft.server.Material;
+
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -125,6 +127,9 @@ public class OrebfuscatorConfig {
     private static void generateTransparentBlocks() {
         for (int i = 0; i < TransparentBlocks.length; i++) {
             TransparentBlocks[i] = blockAccess.isBlockTransparent(i);
+            if(i == org.bukkit.Material.TNT.getId()) {
+                TransparentBlocks[i] = false;
+            }
         }
         TransparentCached = true;
     }
