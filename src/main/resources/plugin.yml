@@ -1,0 +1,21 @@
+name: Orebfuscator3
+main: com.lishid.orebfuscator.Orebfuscator
+version: 3.0.1
+author: lishid
+softdepend: [ProtocolLib]
+load: startup
+description: >
+             The most powerful and efficient Anti Xray
+commands:
+  ofc:
+    description: Manage Orebfuscator.
+    usage: |
+           /<command> engine <1/2> - Set engine mode to 1 or 2
+           /<command> initialradius [number] - Set Initial Radius
+           /<command> updateradius [number] - Set Update Radius
+           /<command> reload - Reload from config
+           /<command> status - Show plugin status
+           /<command> clearcache - Clear all cached chunks
+           /<command> <enable/disable> - Toggle plugin state
+           /<command> <enable/disable> world <worldname>
+           /<command> <enable/disable> <op/perms/cache/axr/notification>
