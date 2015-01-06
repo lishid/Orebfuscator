@@ -100,7 +100,7 @@ public class OrebfuscatorConfig {
     private static boolean[] TransparentBlocks = new boolean[256];
     private static boolean TransparentCached = false;
 
-    public static boolean isBlockTransparent(short id) {
+    public static boolean isBlockTransparent(int id) {
         if (blockAccess == null) {
             blockAccess = new BlockAccess();
         }

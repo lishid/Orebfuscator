@@ -400,7 +400,7 @@ public class Calculations {
     }
 
     public static boolean areAjacentBlocksTransparent(ChunkInfo info, int currentBlockID, int x, int y, int z, int countdown) {
-        byte id = 0;
+        int id = 0;
         boolean foundID = false;
 
         if (y >= info.world.getMaxHeight() || y < 0)
@@ -412,9 +412,9 @@ public class Calculations {
             int cX = ((x % 16) < 0) ? (x % 16 + 16) : (x % 16);
             int cZ = ((z % 16) < 0) ? (z % 16 + 16) : (z % 16);
 
-            int index = section * 4096 + (y % 16 << 8) + (cZ << 4) + cX;
+            int index = section * BLOCKS_PER_SECTION + (y % 16 << 8) + (cZ << 4) + cX;
             try {
-                id = info.original[index];
+                id = chunkGetBlockId(info.original, index);
                 foundID = true;
             } catch (Exception e) {
                 Orebfuscator.log(e);
@@ -423,7 +423,7 @@ public class Calculations {
 
         if (!foundID) {
             if (CalculationsUtil.isChunkLoaded(info.world, x >> 4, z >> 4)) {
-                id = (byte) info.world.getBlockTypeIdAt(x, y, z);
+                id = info.world.getBlockTypeIdAt(x, y, z);
             } else {
                 id = 1;
                 info.useCache = false;

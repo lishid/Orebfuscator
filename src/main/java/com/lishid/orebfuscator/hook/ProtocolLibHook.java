@@ -25,6 +25,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.internal.Packet51;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import net.minecraft.server.v1_8_R1.EnumPlayerDigType;
 import org.bukkit.plugin.Plugin;
 
 public class ProtocolLibHook {
@@ -50,8 +51,8 @@ public class ProtocolLibHook {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 if (event.getPacketID() == Packets.Client.BLOCK_DIG) {
-                    int status = event.getPacket().getIntegers().read(4);
-                    if (status == 1) {
+                    EnumPlayerDigType status = event.getPacket().getSpecificModifier(EnumPlayerDigType.class).read(0);
+                    if (status == EnumPlayerDigType.STOP_DESTROY_BLOCK) {
                         if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
                             event.setCancelled(true);
                         }
