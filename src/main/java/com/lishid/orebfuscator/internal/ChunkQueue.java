@@ -146,10 +146,7 @@ public class ChunkQueue extends LinkedList<ChunkCoordIntPair> {
 
             // Force an update on ProximityHider
             if (OrebfuscatorConfig.UseProximityHider) {
-                synchronized (ProximityHider.playersToCheck) {
-                    if (!ProximityHider.playersToCheck.containsKey(player))
-                        ProximityHider.playersToCheck.put(player, player.getLocation().add(1, 1, 1));
-                }
+                ProximityHider.playerMoved(player, player.getLocation().add(1, 1, 1));
             }
         }
     }

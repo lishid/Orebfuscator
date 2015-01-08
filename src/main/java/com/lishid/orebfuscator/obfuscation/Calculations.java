@@ -135,7 +135,7 @@ public class Calculations {
     }
 
     public static byte[] Obfuscate(ChunkInfo info) {
-        boolean isNether = info.world.getEnvironment() == Environment.NETHER;
+        Environment environment = info.world.getEnvironment();
         // Used for caching
         ObfuscatedCachedChunk cache = null;
         // Hash used to check cache consistency
@@ -202,7 +202,7 @@ public class Calculations {
         int maxChance = OrebfuscatorConfig.AirGeneratorMaxChance;
         int incrementMax = maxChance;
 
-        int randomBlocksLength = OrebfuscatorConfig.getRandomBlocks(false, isNether).length;
+        int randomBlocksLength = OrebfuscatorConfig.getRandomBlocks(false, environment).length;
         boolean randomAlternate = false;
 
         int startX = info.chunkX << 4;
@@ -217,7 +217,9 @@ public class Calculations {
                     for (int z = 0; z < 16; z++) {
                         incrementMax = (maxChance + OrebfuscatorConfig.random(maxChance)) / 2;
                         for (int x = 0; x < 16; x++) {
-                            int blockId = chunkGetBlockId(info.original, index);
+                            int blockData = chunkGetBlockData(info.original, index);
+                            int blockMeta = blockDataToMeta(blockData);
+                            int blockId = blockDataToId(blockData);
 
                             if (blockId >= 256) {
                                 index++;
@@ -231,7 +233,7 @@ public class Calculations {
                             specialObfuscate = false;
 
                             // Check if the block should be obfuscated for the default engine modes
-                            if (OrebfuscatorConfig.isObfuscated(blockId, isNether)) {
+                            if (OrebfuscatorConfig.isObfuscated(blockId, environment)) {
                                 if (initialRadius == 0) {
                                     // Do not interfere with PH
                                     if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(blockY, blockId)) {
@@ -258,8 +260,9 @@ public class Calculations {
                                         proximityBlocks.add(block);
                                     }
                                     obfuscate = true;
-                                    if (OrebfuscatorConfig.UseSpecialBlockForProximityHider)
+                                    if (OrebfuscatorConfig.UseSpecialBlockForProximityHider) {
                                         specialObfuscate = true;
+                                    }
                                 }
                             }
 
@@ -267,24 +270,24 @@ public class Calculations {
                             if (obfuscate) {
                                 if (specialObfuscate) {
                                     // Proximity hider
-                                    blockId = (byte) OrebfuscatorConfig.ProximityHiderID;
+                                    blockId = OrebfuscatorConfig.ProximityHiderID;
                                 } else {
                                     randomIncrement2 = OrebfuscatorConfig.random(incrementMax);
                                     // CalculationsUtil.increment(randomIncrement2, incrementMax);
 
                                     if (engineMode == 1) {
                                         // Engine mode 1, replace with stone
-                                        blockId = (byte) (isNether ? 87 : 1);
+                                        blockId = (environment == Environment.NETHER ? 87 : 1);
                                     } else if (engineMode == 2) {
                                         // Ending mode 2, replace with random block
                                         if (randomBlocksLength > 1)
                                             randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
-                                        blockId = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate, isNether);
+                                        blockId = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate, environment);
                                         randomAlternate = !randomAlternate;
                                     }
                                     // Anti texturepack and freecam
                                     if (OrebfuscatorConfig.AntiTexturePackAndFreecam) {
-                                        // Add random air blocks
+                                    // Add random air blocks
                                         if (randomIncrement2 == 0) {
                                             ramdomCave = 1 + OrebfuscatorConfig.random(3);
                                         }
@@ -295,6 +298,8 @@ public class Calculations {
                                         }
                                     }
                                 }
+
+                                blockMeta = 0;
                             }
 
                             // Check if the block should be obfuscated because of the darkness
@@ -302,10 +307,11 @@ public class Calculations {
                                 if (!areAjacentBlocksBright(info, startX + x, (i << 4) + y, startZ + z, 1)) {
                                     // Hide block, setting it to air
                                     blockId = 0;
+                                    blockMeta = 0;
                                 }
                             }
 
-                            chunkSetBlockId(info.buffer, index, blockId);
+                            chunkSetBlockIdMeta(info.buffer, index, blockId, blockMeta);
                             index++;
                         }
                     }
@@ -500,10 +506,26 @@ public class Calculations {
         return chunkGetBlockData(buffer, index) >> 4;
     }
 
+    private static int blockDataToId(int blockData) {
+        return blockData >> 4;
+    }
+
+    private static int blockDataToMeta(int blockData) {
+        return blockData & 0xF;
+    }
+
+    private static int blockIdMetaToData(int blockId, int blockMeta) {
+        return blockMeta | (blockId << 4);
+    }
+
     private static void chunkSetBlockId(byte[] buffer, int index, int id) {
         int blockData = chunkGetBlockData(buffer, index);
 
-        blockData = (blockData & 0xF) | (id << 4);
+        chunkSetBlockIdMeta(buffer, index, id, blockDataToMeta(blockData));
+    }
+
+    private static void chunkSetBlockIdMeta(byte[] buffer, int index, int id, int meta) {
+        int blockData = blockIdMetaToData(id, meta);
         chunkSetBlockData(buffer, index, blockData);
     }
 

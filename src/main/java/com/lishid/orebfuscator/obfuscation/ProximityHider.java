@@ -16,31 +16,25 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.OrebfuscatorConfig;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProximityHider extends Thread implements Runnable {
-    public static Map<Player, Set<Block>> proximityHiderTracker = new WeakHashMap<Player, Set<Block>>();
-    public Map<Player, Set<Block>> proximityHiderTrackerLocal = new WeakHashMap<Player, Set<Block>>();
-    public static Map<Player, Location> playersToCheck = new HashMap<Player, Location>();
+    private static final Map<Player, Set<Block>> proximityHiderTracker = new WeakHashMap<Player, Set<Block>>();
+    private static final Map<Player, Location> playersToCheck = new HashMap<Player, Location>();
 
-    public static ProximityHider thread = new ProximityHider();
+    private static ProximityHider thread = new ProximityHider();
 
-    public long lastExecute = System.currentTimeMillis();
-    public AtomicBoolean kill = new AtomicBoolean(false);
-    public static boolean running = false;
+    private Map<Player, Set<Block>> proximityHiderTrackerLocal = new WeakHashMap<Player, Set<Block>>();
+    private long lastExecute = System.currentTimeMillis();
+    private AtomicBoolean kill = new AtomicBoolean(false);
+    private static boolean running = false;
 
     public static void Load() {
         running = true;
@@ -53,8 +47,9 @@ public class ProximityHider extends Thread implements Runnable {
     }
 
     public static void terminate() {
-        if (thread != null)
+        if (thread != null) {
             thread.kill.set(true);
+        }
     }
 
     public void run() {
@@ -164,8 +159,7 @@ public class ProximityHider extends Thread implements Runnable {
                         }
                     }
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Orebfuscator.log(e);
             }
         }
@@ -196,6 +190,20 @@ public class ProximityHider extends Thread implements Runnable {
             }
             for (Block b : blocks) {
                 proximityHiderTracker.get(player).add(b);
+            }
+        }
+    }
+
+    public static void clearPlayer(Player player) {
+        synchronized (ProximityHider.proximityHiderTracker) {
+            ProximityHider.proximityHiderTracker.remove(player);
+        }
+    }
+
+    public static void playerMoved(Player player, Location location) {
+        synchronized (ProximityHider.playersToCheck) {
+            if (!ProximityHider.playersToCheck.containsKey(player)) {
+                ProximityHider.playersToCheck.put(player, location);
             }
         }
     }

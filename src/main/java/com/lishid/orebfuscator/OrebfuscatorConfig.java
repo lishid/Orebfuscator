@@ -19,6 +19,7 @@ package com.lishid.orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.internal.BlockAccess;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -68,7 +69,6 @@ public class OrebfuscatorConfig {
     public static boolean NoObfuscationForOps = false;
     public static boolean NoObfuscationForPermission = false;
     public static boolean LoginNotification = true;
-    public static boolean CheckForUpdates = true;
 
     // Anti Hit Hack
     public static int AntiHitHackDecrementFactor = 1000;
@@ -130,12 +130,12 @@ public class OrebfuscatorConfig {
         TransparentCached = true;
     }
 
-    public static boolean isObfuscated(int id, boolean nether) {
+    public static boolean isObfuscated(int id, World.Environment environment) {
         if (id < 0)
             id += 256;
 
         // Nether case
-        if (nether) {
+        if (environment == World.Environment.NETHER) {
             return id == 87 || NetherObfuscateBlocks[id];
         }
 
@@ -186,14 +186,14 @@ public class OrebfuscatorConfig {
         return retval.length() > 1 ? retval.substring(0, retval.length() - 2) : retval;
     }
 
-    public static byte getRandomBlock(int index, boolean alternate, boolean nether) {
-        if (nether)
+    public static byte getRandomBlock(int index, boolean alternate, World.Environment environment) {
+        if (environment == World.Environment.NETHER)
             return (byte) (int) (NetherRandomBlocks[index]);
         return (byte) (int) (alternate ? RandomBlocks2[index] : RandomBlocks[index]);
     }
 
-    public static Integer[] getRandomBlocks(boolean alternate, boolean nether) {
-        if (nether)
+    public static Integer[] getRandomBlocks(boolean alternate, World.Environment environment) {
+        if (environment == World.Environment.NETHER)
             return NetherRandomBlocks;
         return (alternate ? RandomBlocks2 : RandomBlocks);
     }
@@ -411,7 +411,6 @@ public class OrebfuscatorConfig {
         LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
-        CheckForUpdates = getBoolean("Booleans.CheckForUpdates", CheckForUpdates);
 
         // Read block lists
         setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14, 15, 16, 21, 54, 56, 73, 74, 129, 130})), false);

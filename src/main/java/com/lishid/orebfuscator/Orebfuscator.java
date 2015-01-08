@@ -25,7 +25,6 @@ import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
-import com.lishid.orebfuscator.utils.UpdateManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -46,8 +45,6 @@ public class Orebfuscator extends JavaPlugin {
     public static boolean usePL = false;
     public static boolean useSpigot = false;
 
-    private UpdateManager updater = new UpdateManager();
-
     @Override
     public void onEnable() {
         // Get plugin manager
@@ -56,8 +53,6 @@ public class Orebfuscator extends JavaPlugin {
         instance = this;
         // Load configurations
         OrebfuscatorConfig.load();
-
-        updater.Initialize(this, getFile());
 
         // Orebfuscator events
         pm.registerEvents(new OrebfuscatorPlayerListener(), this);

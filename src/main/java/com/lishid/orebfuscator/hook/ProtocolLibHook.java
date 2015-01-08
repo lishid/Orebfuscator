@@ -52,7 +52,7 @@ public class ProtocolLibHook {
             public void onPacketReceiving(PacketEvent event) {
                 if (event.getPacketID() == Packets.Client.BLOCK_DIG) {
                     EnumPlayerDigType status = event.getPacket().getSpecificModifier(EnumPlayerDigType.class).read(0);
-                    if (status == EnumPlayerDigType.STOP_DESTROY_BLOCK) {
+                    if (status == EnumPlayerDigType.ABORT_DESTROY_BLOCK) {
                         if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
                             event.setCancelled(true);
                         }

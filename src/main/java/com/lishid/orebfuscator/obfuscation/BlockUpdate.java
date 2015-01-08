@@ -17,73 +17,68 @@
 package com.lishid.orebfuscator.obfuscation;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.internal.MinecraftWorldServer;
+import com.lishid.orebfuscator.internal.BlockAccess;
 import org.bukkit.World;
-import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BlockUpdate {
-
     public static boolean needsUpdate(Block block) {
-        return !OrebfuscatorConfig.isBlockTransparent((short) block.getTypeId());
+        return !OrebfuscatorConfig.isBlockTransparent(block.getTypeId());
     }
 
     public static void Update(Block block) {
-        if (!needsUpdate(block))
+        if (!needsUpdate(block)) {
             return;
-
-        HashSet<Block> updateBlocks = GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius);
-
-        World world = block.getWorld();
-
-        for (Block nearbyBlock : updateBlocks) {
-            MinecraftWorldServer.Notify(world, nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
         }
+
+        Update(Arrays.asList(new Block[]{block}));
     }
 
     public static void Update(List<Block> blocks) {
-        if (blocks.size() <= 0)
-            return;
-
-        HashSet<Block> updateBlocks = new HashSet<Block>();
+        Set<Block> updateBlocks = new HashSet<Block>();
         for (Block block : blocks) {
             if (needsUpdate(block)) {
-                updateBlocks.addAll(GetAjacentBlocks(block.getWorld(), new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius));
+                updateBlocks.addAll(GetAjacentBlocks(new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius));
             }
         }
 
         World world = blocks.get(0).getWorld();
 
-        for (Block nearbyBlock : updateBlocks) {
-            MinecraftWorldServer.Notify(world, nearbyBlock.getX(), nearbyBlock.getY(), nearbyBlock.getZ());
+        sendUpdates(world, updateBlocks);
+    }
+
+    private static void sendUpdates(World world, Set<Block> blocks) {
+        for (Block block : blocks) {
+            BlockAccess.notifyBlockChange(world, block.getX(), block.getY(), block.getZ());
         }
     }
 
-    public static HashSet<Block> GetAjacentBlocks(World world, HashSet<Block> allBlocks, Block block, int countdown) {
-        if (block == null)
+    public static HashSet<Block> GetAjacentBlocks(HashSet<Block> allBlocks, Block block, int countdown) {
+        if (block == null) {
             return allBlocks;
+        }
 
-        AddBlockCheck(allBlocks, block);
-
-        if (countdown == 0)
-            return allBlocks;
-
-        GetAjacentBlocks(world, allBlocks, CalculationsUtil.getBlockAt(world, block.getX() + 1, block.getY(), block.getZ()), countdown - 1);
-        GetAjacentBlocks(world, allBlocks, CalculationsUtil.getBlockAt(world, block.getX() - 1, block.getY(), block.getZ()), countdown - 1);
-        GetAjacentBlocks(world, allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY() + 1, block.getZ()), countdown - 1);
-        GetAjacentBlocks(world, allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY() - 1, block.getZ()), countdown - 1);
-        GetAjacentBlocks(world, allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY(), block.getZ() + 1), countdown - 1);
-        GetAjacentBlocks(world, allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY(), block.getZ() - 1), countdown - 1);
-
-        return allBlocks;
-    }
-
-    public static void AddBlockCheck(HashSet<Block> allBlocks, Block block) {
-        if ((OrebfuscatorConfig.isObfuscated((byte) block.getTypeId(), block.getWorld().getEnvironment() == Environment.NETHER) || OrebfuscatorConfig.isDarknessObfuscated((byte) block.getTypeId()))) {
+        if ((OrebfuscatorConfig.isObfuscated(block.getTypeId(), block.getWorld().getEnvironment())
+                || OrebfuscatorConfig.isDarknessObfuscated(block.getTypeId()))) {
             allBlocks.add(block);
         }
+
+        if (countdown > 0) {
+            countdown--;
+            World world = block.getWorld();
+            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX() + 1, block.getY(), block.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX() - 1, block.getY(), block.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY() + 1, block.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY() - 1, block.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY(), block.getZ() + 1), countdown);
+            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY(), block.getZ() - 1), countdown);
+        }
+
+        return allBlocks;
     }
 }

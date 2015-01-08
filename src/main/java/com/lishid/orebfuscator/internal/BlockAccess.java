@@ -40,4 +40,8 @@ public class BlockAccess {
             player2.getHandle().playerConnection.sendPacket(packet);
         }
     }
+
+    public static void notifyBlockChange(org.bukkit.World world, int x, int y, int z) {
+        ((CraftWorld) world).getHandle().notify(new BlockPosition(x, y, z));
+    }
 }
