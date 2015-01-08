@@ -17,7 +17,7 @@
 package com.lishid.orebfuscator;
 
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.internal.BlockAccess;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -96,15 +96,10 @@ public class OrebfuscatorConfig {
         return CacheFolder;
     }
 
-    public static BlockAccess blockAccess;
     private static boolean[] TransparentBlocks = new boolean[256];
     private static boolean TransparentCached = false;
 
     public static boolean isBlockTransparent(int id) {
-        if (blockAccess == null) {
-            blockAccess = new BlockAccess();
-        }
-
         if (!TransparentCached) {
             // Generate TransparentBlocks by reading them from Minecraft
             generateTransparentBlocks();
@@ -122,7 +117,7 @@ public class OrebfuscatorConfig {
 
     private static void generateTransparentBlocks() {
         for (int i = 0; i < TransparentBlocks.length; i++) {
-            TransparentBlocks[i] = blockAccess.isBlockTransparent(i);
+            TransparentBlocks[i] = MinecraftInternals.isBlockTransparent(i);
             if (i == org.bukkit.Material.TNT.getId()) {
                 TransparentBlocks[i] = false;
             }

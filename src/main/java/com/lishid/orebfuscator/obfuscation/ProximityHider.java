@@ -18,6 +18,7 @@ package com.lishid.orebfuscator.obfuscation;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -147,7 +148,7 @@ public class ProximityHider extends Thread implements Runnable {
                                     Orebfuscator.instance.runTask(new Runnable() {
                                         @Override
                                         public void run() {
-                                            OrebfuscatorConfig.blockAccess.updateBlockTileEntity(block, player);
+                                            MinecraftInternals.updateBlockTileEntity(block, player);
                                         }
                                     });
                                 }

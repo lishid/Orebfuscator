@@ -17,7 +17,7 @@
 package com.lishid.orebfuscator.obfuscation;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.internal.BlockAccess;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
@@ -40,6 +40,10 @@ public class BlockUpdate {
     }
 
     public static void Update(List<Block> blocks) {
+        if (blocks.isEmpty()) {
+            return;
+        }
+
         Set<Block> updateBlocks = new HashSet<Block>();
         for (Block block : blocks) {
             if (needsUpdate(block)) {
@@ -54,7 +58,7 @@ public class BlockUpdate {
 
     private static void sendUpdates(World world, Set<Block> blocks) {
         for (Block block : blocks) {
-            BlockAccess.notifyBlockChange(world, block.getX(), block.getY(), block.getZ());
+            MinecraftInternals.notifyBlockChange(world, block.getX(), block.getY(), block.getZ());
         }
     }
 

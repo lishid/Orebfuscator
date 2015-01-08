@@ -16,19 +16,21 @@
 
 package com.lishid.orebfuscator.internal;
 
+import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.utils.ReflectionHelper;
+import net.minecraft.server.v1_8_R1.*;
+import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 //Volatile
-import net.minecraft.server.v1_8_R1.*;
-import org.bukkit.craftbukkit.v1_8_R1.entity.*;
-import org.bukkit.craftbukkit.v1_8_R1.*;
 
-public class BlockAccess {
-    public boolean isBlockTransparent(int id) {
+public class MinecraftInternals {
+    public static boolean isBlockTransparent(int id) {
         return !Block.getById(id).s();
     }
 
-    public void updateBlockTileEntity(org.bukkit.block.Block block, Player player) {
+    public static void updateBlockTileEntity(org.bukkit.block.Block block, Player player) {
         CraftWorld world = (CraftWorld) block.getWorld();
         TileEntity tileEntity = world.getTileEntityAt(block.getX(), block.getY(), block.getZ());
         if (tileEntity == null) {
@@ -43,5 +45,15 @@ public class BlockAccess {
 
     public static void notifyBlockChange(org.bukkit.World world, int x, int y, int z) {
         ((CraftWorld) world).getHandle().notify(new BlockPosition(x, y, z));
+    }
+
+    public static void tryDisableSpigotAntiXray(org.bukkit.World world) {
+        try {
+            World mcworld = ((CraftWorld) world).getHandle();
+            Object spigotWorldConfig = ReflectionHelper.getPrivateField(mcworld, "spigotConfig");
+            ReflectionHelper.setPrivateField(spigotWorldConfig, "antiXray", false);
+        } catch (Exception e) {
+            Orebfuscator.log(e);
+        }
     }
 }

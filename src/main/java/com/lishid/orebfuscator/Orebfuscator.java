@@ -22,10 +22,12 @@ import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.ChunkProcessingThread;
 import com.lishid.orebfuscator.hook.OrebfuscatorPlayerHook;
 import com.lishid.orebfuscator.hook.ProtocolLibHook;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
@@ -76,12 +78,15 @@ public class Orebfuscator extends JavaPlugin {
             }, 0, 60 * 1000);// Warn every minute
         }
 
-        // TODO: Disable spigot's built-in orebfuscator since it has limited functionality
+        // Disable spigot's built-in orebfuscator since it has limited functionality
         try {
-            Class.forName("org.spigotmc.SpigotConfig");
-            useSpigot = true;
+            Class.forName("org.spigotmc.AntiXray");
+            Orebfuscator.log("Spigot found! Automatically disabling built-in AntiXray.");
+            for (World world : getServer().getWorlds()) {
+                MinecraftInternals.tryDisableSpigotAntiXray(world);
+            }
         } catch (Exception e) {
-            // If error occurred, then ignore.
+            // Spigot not found
         }
     }
 
