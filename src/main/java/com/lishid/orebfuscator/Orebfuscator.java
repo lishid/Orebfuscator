@@ -95,7 +95,7 @@ public class Orebfuscator extends JavaPlugin {
         ObfuscatedDataCache.clearCache();
         BlockHitManager.clearAll();
         ChunkProcessingThread.KillAll();
-        getServer().getScheduler().cancelAllTasks();
+        getServer().getScheduler().cancelTasks(this);
     }
 
     @Override
