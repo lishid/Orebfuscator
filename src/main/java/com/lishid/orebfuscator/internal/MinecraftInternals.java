@@ -50,7 +50,7 @@ public class MinecraftInternals {
     public static void tryDisableSpigotAntiXray(org.bukkit.World world) {
         try {
             World mcworld = ((CraftWorld) world).getHandle();
-            Object spigotWorldConfig = ReflectionHelper.getPrivateField(mcworld, "spigotConfig");
+            Object spigotWorldConfig = World.class.getField("spigotConfig").get(mcworld);
             ReflectionHelper.setPrivateField(spigotWorldConfig, "antiXray", false);
         } catch (Exception e) {
             Orebfuscator.log(e);
