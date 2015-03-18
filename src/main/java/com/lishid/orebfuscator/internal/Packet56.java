@@ -17,8 +17,8 @@
 package com.lishid.orebfuscator.internal;
 
 import com.lishid.orebfuscator.utils.ReflectionHelper;
-import net.minecraft.server.v1_8_R1.ChunkMap;
-import net.minecraft.server.v1_8_R1.PacketPlayOutMapChunkBulk;
+import net.minecraft.server.v1_8_R2.PacketPlayOutMapChunk.ChunkMap;
+import net.minecraft.server.v1_8_R2.PacketPlayOutMapChunkBulk;
 
 //Volatile
 

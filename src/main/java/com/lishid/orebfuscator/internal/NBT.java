@@ -16,12 +16,13 @@
 
 package com.lishid.orebfuscator.internal;
 
-import net.minecraft.server.v1_8_R1.NBTCompressedStreamTools;
-import net.minecraft.server.v1_8_R1.NBTTagCompound;
+import net.minecraft.server.v1_8_R2.NBTCompressedStreamTools;
+import net.minecraft.server.v1_8_R2.NBTTagCompound;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
+import java.io.IOException;
 
 //Volatile
 
@@ -72,11 +73,11 @@ public class NBT {
         return nbt.getIntArray(tag);
     }
 
-    public void Read(DataInput stream) {
+    public void Read(DataInput stream) throws IOException {
         nbt = NBTCompressedStreamTools.a((DataInputStream) stream);
     }
 
-    public void Write(DataOutput stream) {
+    public void Write(DataOutput stream) throws IOException {
         NBTCompressedStreamTools.a(nbt, stream);
     }
 
