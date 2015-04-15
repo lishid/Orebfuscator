@@ -121,6 +121,9 @@ public class OrebfuscatorConfig {
             if (i == org.bukkit.Material.TNT.getId()) {
                 TransparentBlocks[i] = false;
             }
+            if (i == org.bukkit.Material.AIR.getId()) {
+                TransparentBlocks[i] = true;
+            }
         }
         TransparentCached = true;
     }
@@ -181,10 +184,10 @@ public class OrebfuscatorConfig {
         return retval.length() > 1 ? retval.substring(0, retval.length() - 2) : retval;
     }
 
-    public static byte getRandomBlock(int index, boolean alternate, World.Environment environment) {
+    public static int getRandomBlock(int index, boolean alternate, World.Environment environment) {
         if (environment == World.Environment.NETHER)
-            return (byte) (int) (NetherRandomBlocks[index]);
-        return (byte) (int) (alternate ? RandomBlocks2[index] : RandomBlocks[index]);
+            return (int) (NetherRandomBlocks[index]);
+        return (int) (alternate ? RandomBlocks2[index] : RandomBlocks[index]);
     }
 
     public static Integer[] getRandomBlocks(boolean alternate, World.Environment environment) {
