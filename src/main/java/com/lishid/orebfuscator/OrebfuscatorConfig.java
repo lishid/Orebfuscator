@@ -121,6 +121,9 @@ public class OrebfuscatorConfig {
             if (i == org.bukkit.Material.TNT.getId()) {
                 TransparentBlocks[i] = false;
             }
+            if (i == org.bukkit.Material.AIR.getId()) {
+                TransparentBlocks[i] = true;
+            }
         }
         TransparentCached = true;
     }
