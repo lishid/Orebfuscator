@@ -87,7 +87,6 @@ public class Calculations {
     }
 
     public static void Obfuscate(Packet56 packet, Player player) {
-        Orebfuscator.log("Obfuscate Packet56");
         ChunkInfo[] infos = getInfo(packet, player);
 
         for (ChunkInfo info : infos) {
@@ -96,14 +95,11 @@ public class Calculations {
     }
 
     public static void Obfuscate(Packet51 packet, Player player) {
-        Orebfuscator.log("Obfuscate Packet51_false");
         ChunkInfo info = getInfo(packet, player);
 
         if (info.chunkMask == 0) {
             return;
         }
-        
-        Orebfuscator.log("Obfuscate Packet51");
         ComputeChunkInfoAndObfuscate(info);
     }
 
@@ -159,13 +155,11 @@ public class Calculations {
             hash = CalculationsUtil.Hash(info.buffer, info.bytes);
             // Sanitize buffer for caching
             PrepareBufferForCaching(info.buffer, info.bytes);
-
             // Get cache folder
             File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), info.world.getName());
             // Create cache objects
             cache = new ObfuscatedCachedChunk(cacheFolder, info.chunkX, info.chunkZ);
-            info.useCache = true;
-                      
+            info.useCache = true;                     
             // Check if hash is consistent
             cache.Read();
             
