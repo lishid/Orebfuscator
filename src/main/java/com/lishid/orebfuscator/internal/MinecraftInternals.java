@@ -27,7 +27,7 @@ import org.bukkit.entity.Player;
 
 public class MinecraftInternals {
     public static boolean isBlockTransparent(int id) {
-        return Block.getById(id).s();
+        return Block.getById(id).u();
     }
 
     public static void updateBlockTileEntity(org.bukkit.block.Block block, Player player) {
