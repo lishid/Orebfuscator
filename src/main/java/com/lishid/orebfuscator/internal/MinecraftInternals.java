@@ -18,9 +18,9 @@ package com.lishid.orebfuscator.internal;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
-import net.minecraft.server.v1_8_R2.*;
-import org.bukkit.craftbukkit.v1_8_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
+import net.minecraft.server.v1_8_R3.*;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 //Volatile

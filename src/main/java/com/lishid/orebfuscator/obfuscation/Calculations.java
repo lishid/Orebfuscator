@@ -100,7 +100,6 @@ public class Calculations {
         if (info.chunkMask == 0) {
             return;
         }
-
         ComputeChunkInfoAndObfuscate(info);
     }
 
@@ -152,20 +151,18 @@ public class Calculations {
 
         // Caching
         if (OrebfuscatorConfig.UseCache) {
+            // Hash the chunk
+            hash = CalculationsUtil.Hash(info.buffer, info.bytes);
             // Sanitize buffer for caching
             PrepareBufferForCaching(info.buffer, info.bytes);
-
             // Get cache folder
             File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), info.world.getName());
             // Create cache objects
             cache = new ObfuscatedCachedChunk(cacheFolder, info.chunkX, info.chunkZ);
-            info.useCache = true;
-            // Hash the chunk
-            hash = CalculationsUtil.Hash(info.buffer, info.bytes);
-
+            info.useCache = true;                     
             // Check if hash is consistent
             cache.Read();
-
+            
             long storedHash = cache.getHash();
             int[] proximityList = cache.proximityList;
 

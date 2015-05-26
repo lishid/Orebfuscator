@@ -25,7 +25,7 @@ import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 
 //Volatile
-import net.minecraft.server.v1_8_R2.*;
+import net.minecraft.server.v1_8_R3.*;
 
 public class ChunkCache {
     private static final HashMap<File, RegionFile> cachedRegionFiles = new HashMap<File, RegionFile>();

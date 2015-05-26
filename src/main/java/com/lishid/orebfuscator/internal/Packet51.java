@@ -17,8 +17,8 @@
 package com.lishid.orebfuscator.internal;
 
 import com.lishid.orebfuscator.utils.ReflectionHelper;
-import net.minecraft.server.v1_8_R2.PacketPlayOutMapChunk;
-import net.minecraft.server.v1_8_R2.PacketPlayOutMapChunk.ChunkMap;
+import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk;
+import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk.ChunkMap;
 
 public class Packet51 {
     private static Class<PacketPlayOutMapChunk> packetClass = PacketPlayOutMapChunk.class;
