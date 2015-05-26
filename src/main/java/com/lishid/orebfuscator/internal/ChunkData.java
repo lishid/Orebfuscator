@@ -16,7 +16,7 @@
 
 package com.lishid.orebfuscator.internal;
 
-import net.minecraft.server.v1_8_R2.PacketPlayOutMapChunk.ChunkMap;
+import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunk.ChunkMap;
 
 public class ChunkData {
     public int x;
