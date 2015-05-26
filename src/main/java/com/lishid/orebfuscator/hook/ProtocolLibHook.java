@@ -25,7 +25,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.internal.Packet51;
 import com.lishid.orebfuscator.obfuscation.Calculations;
-import net.minecraft.server.v1_8_R2.PacketPlayInBlockDig.EnumPlayerDigType;
+import net.minecraft.server.v1_8_R3.PacketPlayInBlockDig.EnumPlayerDigType;
 import org.bukkit.plugin.Plugin;
 
 public class ProtocolLibHook {

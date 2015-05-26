@@ -23,8 +23,8 @@ import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.obfuscation.MinecraftBlock;
 import com.lishid.orebfuscator.obfuscation.ProximityHider;
 import io.netty.channel.Channel;
-import net.minecraft.server.v1_8_R2.*;
-import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
+import net.minecraft.server.v1_8_R3.*;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
