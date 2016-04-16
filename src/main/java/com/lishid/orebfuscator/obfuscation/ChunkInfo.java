@@ -16,9 +16,11 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import com.lishid.orebfuscator.internal.ChunkData;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.reflect.StructureModifier;
 
 public class ChunkInfo {
     public Player player;
@@ -36,14 +38,17 @@ public class ChunkInfo {
     public int sections;
     public int[] sectionIndices;
 
-    public ChunkInfo(Player player, ChunkData chunkData, byte[] buffer) {
+    public ChunkInfo(Player player, PacketContainer packet, byte[] buffer) {
+    	StructureModifier<Integer> ints = packet.getIntegers();
+        StructureModifier<byte[]> byteArray = packet.getByteArrays();
+    	
         this.player = player;
         this.world = player.getWorld();
 
-        this.chunkX = chunkData.x;
-        this.chunkZ = chunkData.z;
-        this.chunkMask = chunkData.mask;
-        this.original = chunkData.buffer;
+        this.chunkX = ints.read(0);
+        this.chunkZ = ints.read(1);
+        this.chunkMask = ints.read(2);
+        this.original = byteArray.read(0);
 
         this.buffer = buffer;
         this.sectionIndices = new int[16];
@@ -58,6 +63,7 @@ public class ChunkInfo {
                 sectionIndex++;
             }
         }
+        
         this.bytes = sections * Calculations.BYTES_PER_SECTION;
     }
 }

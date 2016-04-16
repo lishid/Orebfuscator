@@ -16,16 +16,8 @@
 
 package com.lishid.orebfuscator;
 
-import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
-import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.hook.ChunkProcessingThread;
-import com.lishid.orebfuscator.hook.OrebfuscatorPlayerHook;
-import com.lishid.orebfuscator.hook.ProtocolLibHook;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
-import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
-import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
-import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
+import java.util.logging.Logger;
+
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -33,7 +25,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.logging.Logger;
+import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
+import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
+import com.lishid.orebfuscator.hithack.BlockHitManager;
+import com.lishid.orebfuscator.hook.ProtocolLibHook;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
+import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
+import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
+import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -60,8 +59,6 @@ public class Orebfuscator extends JavaPlugin {
         pm.registerEvents(new OrebfuscatorPlayerListener(), this);
         pm.registerEvents(new OrebfuscatorEntityListener(), this);
         pm.registerEvents(new OrebfuscatorBlockListener(), this);
-
-        pm.registerEvents(new OrebfuscatorPlayerHook(), this);
 
         if (pm.getPlugin("ProtocolLib") != null) {
             Orebfuscator.log("ProtocolLib found! Hooking into ProtocolLib.");
@@ -94,7 +91,6 @@ public class Orebfuscator extends JavaPlugin {
     public void onDisable() {
         ObfuscatedDataCache.clearCache();
         BlockHitManager.clearAll();
-        ChunkProcessingThread.KillAll();
         getServer().getScheduler().cancelTasks(this);
     }
 

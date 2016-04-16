@@ -84,6 +84,9 @@ public class OrebfuscatorConfig {
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
 
+    public static int[] NetherPaletteBlocks;
+    public static int[] NormalPaletteBlocks;
+
     public static File getCacheFolder() {
         // Try to make the folder
         if (!CacheFolder.exists()) {
@@ -121,7 +124,7 @@ public class OrebfuscatorConfig {
             if (i == org.bukkit.Material.TNT.getId()) {
                 TransparentBlocks[i] = false;
             }
-            if (i == org.bukkit.Material.AIR.getId()) {
+            if (i == org.bukkit.Material.AIR.getId() || i == org.bukkit.Material.WATER.getId() || i == org.bukkit.Material.STATIONARY_WATER.getId()) {
                 TransparentBlocks[i] = true;
             }
         }
@@ -436,6 +439,54 @@ public class OrebfuscatorConfig {
         RandomBlocks2 = RandomBlocks;
 
         save();
+        
+        createPaletteBlocks();
+    }
+    
+    private static void createPaletteBlocks() {
+    	//Nether
+    	ArrayList<Integer> nether = new ArrayList<Integer>();
+    	
+    	nether.add(0);
+    	nether.add(87);
+    	
+    	if(ProximityHiderID != 0 && ProximityHiderID != 87) {
+    		nether.add(ProximityHiderID);
+    	}
+    	
+    	for(Integer id : NetherRandomBlocks) {
+    		if(id != null && nether.indexOf(id) < 0) {
+    			nether.add(id);
+    		}
+    	}
+    	
+    	NetherPaletteBlocks = new int[nether.size()];
+    	for(int i = 0; i < NetherPaletteBlocks.length; i++) NetherPaletteBlocks[i] = nether.get(i);
+
+    	//Normal
+    	ArrayList<Integer> normal = new ArrayList<Integer>();
+    	
+    	normal.add(0);
+    	normal.add(1);
+    	
+    	if(ProximityHiderID != 0 && ProximityHiderID != 1) {
+    		normal.add(ProximityHiderID);
+    	}
+    	
+    	for(Integer id : RandomBlocks) {
+    		if(id != null && normal.indexOf(id) < 0) {
+    			normal.add(id);
+    		}
+    	}
+    	
+    	for(Integer id : RandomBlocks2) {
+    		if(id != null && normal.indexOf(id) < 0) {
+    			normal.add(id);
+    		}
+    	}
+
+    	NormalPaletteBlocks = new int[nether.size()];
+    	for(int i = 0; i < NormalPaletteBlocks.length; i++) NormalPaletteBlocks[i] = nether.get(i);
     }
 
     public static void reload() {

@@ -71,8 +71,9 @@ public class OrebfuscatorPlayerListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
         BlockHitManager.clearHistory(event.getPlayer());
+        
         if (OrebfuscatorConfig.UseProximityHider) {
-            ProximityHider.clearPlayer(event.getPlayer());
+            ProximityHider.clearBlocksForOldWorld(event.getPlayer());
         }
     }
 
