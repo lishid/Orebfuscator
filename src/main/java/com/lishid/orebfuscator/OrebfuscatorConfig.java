@@ -485,8 +485,8 @@ public class OrebfuscatorConfig {
     		}
     	}
 
-    	NormalPaletteBlocks = new int[nether.size()];
-    	for(int i = 0; i < NormalPaletteBlocks.length; i++) NormalPaletteBlocks[i] = nether.get(i);
+    	NormalPaletteBlocks = new int[normal.size()];
+    	for(int i = 0; i < NormalPaletteBlocks.length; i++) NormalPaletteBlocks[i] = normal.get(i);
     }
 
     public static void reload() {

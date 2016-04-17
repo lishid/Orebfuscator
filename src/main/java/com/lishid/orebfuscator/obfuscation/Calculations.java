@@ -270,7 +270,7 @@ public class Calculations {
 						}
 						
 						//if(blockState.id == 5) blockState.id = 0;//\\
-                        
+						
                         blockData = ChunkMapManager.blockStateToData(blockState);
 
                         manager.writeOutputBlock(blockData);
@@ -293,7 +293,7 @@ public class Calculations {
     	if(environment == Environment.THE_END || !manager.inputHasNonAirBlock()) {
     		return;
     	}
-    	
+
     	int[] list = environment == Environment.NORMAL
     			? OrebfuscatorConfig.NormalPaletteBlocks
     			: OrebfuscatorConfig.NetherPaletteBlocks;

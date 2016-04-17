@@ -83,7 +83,7 @@ public class ProtocolLibHook {
 				try {
 					byte[] newData = Calculations.ObfuscateOrUseCache(chunkData, event.getPlayer());
 	                byteArray.write(0, newData);
-				} catch (IOException e) {
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

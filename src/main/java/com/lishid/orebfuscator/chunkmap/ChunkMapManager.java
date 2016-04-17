@@ -181,6 +181,12 @@ public class ChunkMapManager {
     	if(this.buffer.outputPaletteLength > 0) {
     		long paletteIndex = this.buffer.outputPaletteMap[blockData] & 0xffL;
     		
+    		if(paletteIndex == 255) {
+    			BlockState blockState = new BlockState();
+    			blockDataToState(blockData, blockState);
+    			throw new IllegalArgumentException("Block " + blockState.id + ":" + blockState.meta + " is absent in output palette.");
+    		}
+    		
     		this.buffer.writer.writeBlockBits(paletteIndex);
     	} else {
     		this.buffer.writer.writeBlockBits(blockData);
