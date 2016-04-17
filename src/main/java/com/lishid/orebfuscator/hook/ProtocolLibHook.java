@@ -16,10 +16,6 @@
 
 package com.lishid.orebfuscator.hook;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 import net.minecraft.server.v1_9_R1.PacketPlayInBlockDig.EnumPlayerDigType;
 
 import org.bukkit.World;
@@ -33,7 +29,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
-import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 
@@ -62,29 +57,12 @@ public class ProtocolLibHook {
         		chunkData.groundUpContinuous = bools.read(0);
         		chunkData.primaryBitMask = ints.read(2);
         		chunkData.data = byteArray.read(0);
-        		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL; 
-        		
-        		/*
-				try {
-					byte[] newData = test(chunkData);
-	        		byteArray.write(0, newData);
-				} catch (Exception e) {
-					e.printStackTrace();
-					//saveTestData(chunkData);
-				}
-				*/
-				
-				//Orebfuscator.log(event.getPlayer().getWorld().getEnvironment().toString());
-        		
-                //Orebfuscator.log("Orebfuscator packet.getIntegers(): " + ints.size());
-                //Orebfuscator.log("Orebfuscator packet.getByteArrays(): " + byteArray.size());
-                //Orebfuscator.log("Orebfuscator packet.getByteArrays().length: " + byteArray.read(0).length);
+        		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
                 
 				try {
 					byte[] newData = Calculations.ObfuscateOrUseCache(chunkData, event.getPlayer());
 	                byteArray.write(0, newData);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
             }
@@ -101,63 +79,5 @@ public class ProtocolLibHook {
                 }
             }
         });
-    }
-    
-    private byte[] test(ChunkData chunkData) throws IOException {
-		ChunkMapManager manager = new ChunkMapManager(chunkData);
-		manager.init();
-		
-		for(int i = 0; i < manager.getSectionCount(); i++) {
-			for(int j = 0; j < 16; j++) {
-				for(int offsetZ = 0; offsetZ < 16; offsetZ++) {
-					for(int offsetX = 0; offsetX < 16; offsetX++) {						
-						int blockData = manager.readNextBlock();
-
-						if(j == 0 && offsetZ == 0 && offsetX == 0) {
-							manager.finalizeOutput();
-							
-							manager.initOutputPalette();
-							manager.addToOutputPalette(16);
-							manager.initOutputSection();
-						}
-						
-						//manager.writeOutputBlock(blockData);
-						
-						blockData = blockData == 32 ? 16: blockData;
-						
-						manager.writeOutputBlock(blockData);
-					}
-				}
-			}
-		}
-		
-		manager.finalizeOutput();
-		
-		return manager.createOutput();
-    }
-    
-    private void saveTestData(ChunkData chunkData) {
-		_isSaved = true;
-
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream("D:\\Temp\\chunk.dat");
-			fos.write(chunkData.chunkX & 0xff);
-			fos.write((chunkData.chunkX >> 8) & 0xff);
-			fos.write(chunkData.chunkZ & 0xff);
-			fos.write((chunkData.chunkZ >> 8) & 0xff);
-			fos.write(chunkData.primaryBitMask & 0xff);
-			fos.write((chunkData.primaryBitMask >> 8) & 0xff);
-			fos.write(chunkData.data.length & 0xff);
-			fos.write((chunkData.data.length >> 8) & 0xff);
-    		fos.write(chunkData.data);
-    		fos.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
     }
 }

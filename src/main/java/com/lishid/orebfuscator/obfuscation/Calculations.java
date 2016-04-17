@@ -32,7 +32,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.chunkmap.BlockState;
@@ -40,20 +39,7 @@ import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
 
 public class Calculations {
-    public static final int BYTES_PER_BLOCK = 2;
 
-    public static final int BLOCKS_PER_SECTION = 16 * 16 * 16;
-    public static final int BYTES_PER_SECTION = BYTES_PER_BLOCK * BLOCKS_PER_SECTION;
-
-    public static final int MAX_SECTIONS_PER_CHUNK = 16;
-    public static final int MAX_BYTES_PER_CHUNK = BYTES_PER_SECTION * MAX_SECTIONS_PER_CHUNK;
-
-
-    public static final ThreadLocal<byte[]> buffer = new ThreadLocal<byte[]>() {
-        protected byte[] initialValue() {
-            return new byte[MAX_BYTES_PER_CHUNK];
-        }
-    };
     
     private static Map<Player, Map<ChunkAddress, Set<MinecraftBlock>>> signsMap = new WeakHashMap<Player, Map<ChunkAddress, Set<MinecraftBlock>>>();
 
@@ -114,6 +100,7 @@ public class Calculations {
         	if(chunkData.useCache) {
 	            // Save cache
 	            int[] proximityList = new int[proximityBlocks.size() * 3];
+	            
 	            for (int i = 0; i < proximityBlocks.size(); i++) {
 	                Block b = proximityBlocks.get(i);
 	                if (b != null) {
@@ -224,15 +211,16 @@ public class Calculations {
                                 blockState.id = OrebfuscatorConfig.ProximityHiderID;
                             } else {
                                 randomIncrement2 = OrebfuscatorConfig.random(incrementMax);
-                                // CalculationsUtil.increment(randomIncrement2, incrementMax);
 
                                 if (engineMode == 1) {
                                     // Engine mode 1, replace with stone
                                 	blockState.id = (environment == Environment.NETHER ? 87 : 1);
                                 } else if (engineMode == 2) {
                                     // Ending mode 2, replace with random block
-                                    if (randomBlocksLength > 1)
+                                    if (randomBlocksLength > 1) {
                                         randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
+                                    }
+                                    
                                     blockState.id = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate, environment);
                                     randomAlternate = !randomAlternate;
                                 }
@@ -269,8 +257,6 @@ public class Calculations {
 							manager.initOutputSection();
 						}
 						
-						//if(blockState.id == 5) blockState.id = 0;//\\
-						
                         blockData = ChunkMapManager.blockStateToData(blockState);
 
                         manager.writeOutputBlock(blockData);
@@ -305,18 +291,12 @@ public class Calculations {
     }
     
     private static ObfuscatedCachedChunk tryUseCache(ChunkData chunkData, Player player) {
-    	OrebfuscatorConfig.UseCache = false;
-    	
         if (!OrebfuscatorConfig.UseCache) return null;
         
         chunkData.useCache = true;
         
-        byte[] output = new byte[1];//\\initialize cache output
-        
         // Hash the chunk
         long hash = CalculationsUtil.Hash(chunkData.data, chunkData.data.length);
-        // Sanitize buffer for caching
-        PrepareBufferForCaching(output, chunkData.data.length);
         // Get cache folder
         File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), player.getWorld().getName());
         // Create cache objects
@@ -326,9 +306,9 @@ public class Calculations {
         cache.Read();
         
         long storedHash = cache.getHash();
-        int[] proximityList = cache.proximityList;
 
         if (storedHash == hash && cache.data != null) {
+            int[] proximityList = cache.proximityList;
         	ArrayList<Block> proximityBlocks = new ArrayList<Block>();
         	
             // Decrypt chest list
@@ -339,9 +319,6 @@ public class Calculations {
                 }
             }
 
-            // Caching done, de-sanitize buffer
-            //\\RepaintChunkToBuffer(cache.data, info);
-
             // ProximityHider add blocks
             putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
             ProximityHider.AddProximityBlocks(player, proximityBlocks);
@@ -351,65 +328,11 @@ public class Calculations {
         }
         
         cache.hash = hash;
+        cache.data = null;
         
         return cache;
     }
-
-    //16 bit char for block data, including 12 bits for block id
-    private static final int BLOCKID_MAX = 4096;
-    private static char[] cacheMap = new char[BLOCKID_MAX];
-
-    static {
-        buildCacheMap();
-    }
-
-    public static void buildCacheMap() {
-        for (int i = 0; i < 4096; i++) {
-            cacheMap[i] = (char) i;
-            if (OrebfuscatorConfig.isBlockTransparent((short) i) && !isBlockSpecialObfuscated(64, (char) i)) {
-                cacheMap[i] = 0;
-            }
-        }
-    }
-
-    private static void PrepareBufferForCaching(byte[] data, int bytes) {
-        for (int i = 0; i < bytes / 2; i++) {
-            int blockId = chunkGetBlockId(data, i);
-
-            blockId = cacheMap[blockId % BLOCKID_MAX];
-
-            chunkSetBlockId(data, i, blockId);
-        }
-    }
-
-    private static boolean isBlockSpecialObfuscated(int y, char id) {
-        if (OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(id)) {
-            return true;
-        }
-        if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, id)) {
-            return true;
-        }
-        return false;
-    }
-
-    private static void RepaintChunkToBuffer(byte[] data, ChunkInfo info) {
-        byte[] original = info.original;
-        int bytes = info.bytes;
-
-        for (int i = 0; i < bytes / 2; i++) {
-            int newId = chunkGetBlockId(data, i);
-            int originalId = chunkGetBlockId(original, i);
-
-            if (newId == 0 && originalId != 0) {
-                if (OrebfuscatorConfig.isBlockTransparent((short) originalId)) {
-                    if (!isBlockSpecialObfuscated(0, (char) originalId)) {
-                        chunkSetBlockId(data, i, originalId);
-                    }
-                }
-            }
-        }
-    }
-
+    
     public static boolean areAjacentBlocksTransparent(
     		ChunkMapManager manager,
     		World world,
@@ -489,51 +412,60 @@ public class Calculations {
         return false;
     }
 
-    /**
-     * Blocks are 2-bytes aligned
-     * Every 2 bytes represents the block data as:
-     * First byte = lower 8 bits
-     * Second byte = upper 8 bits
-     *
-     * @param buffer
-     * @param index
-     * @return
-     */
-    private static int chunkGetBlockData(byte[] buffer, int index) {
-        index = index << 1;
-        return (buffer[index] & 0xFF) | ((buffer[index + 1] & 0xFF) << 8);
+    //16 bit char for block data, including 12 bits for block id
+    /*
+    private static final int BLOCKID_MAX = 4096;
+    private static char[] cacheMap = new char[BLOCKID_MAX];
+
+    static {
+        buildCacheMap();
     }
 
-    private static int chunkGetBlockId(byte[] buffer, int index) {
-        return chunkGetBlockData(buffer, index) >> 4;
+    public static void buildCacheMap() {
+        for (int i = 0; i < 4096; i++) {
+            cacheMap[i] = (char) i;
+            if (OrebfuscatorConfig.isBlockTransparent((short) i) && !isBlockSpecialObfuscated(64, (char) i)) {
+                cacheMap[i] = 0;
+            }
+        }
     }
 
-    private static int blockDataToId(int blockData) {
-        return blockData >> 4;
+    private static void PrepareBufferForCaching(byte[] data, int bytes) {
+        for (int i = 0; i < bytes / 2; i++) {
+            int blockId = chunkGetBlockId(data, i);
+
+            blockId = cacheMap[blockId % BLOCKID_MAX];
+
+            chunkSetBlockId(data, i, blockId);
+        }
     }
 
-    private static int blockDataToMeta(int blockData) {
-        return blockData & 0xF;
+    private static boolean isBlockSpecialObfuscated(int y, char id) {
+        if (OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(id)) {
+            return true;
+        }
+        if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, id)) {
+            return true;
+        }
+        return false;
     }
 
-    private static int blockIdMetaToData(int blockId, int blockMeta) {
-        return blockMeta | (blockId << 4);
-    }
+    private static void RepaintChunkToBuffer(byte[] data, ChunkInfo info) {
+        byte[] original = info.original;
+        int bytes = info.bytes;
 
-    private static void chunkSetBlockId(byte[] buffer, int index, int id) {
-        int blockData = chunkGetBlockData(buffer, index);
+        for (int i = 0; i < bytes / 2; i++) {
+            int newId = chunkGetBlockId(data, i);
+            int originalId = chunkGetBlockId(original, i);
 
-        chunkSetBlockIdMeta(buffer, index, id, blockDataToMeta(blockData));
+            if (newId == 0 && originalId != 0) {
+                if (OrebfuscatorConfig.isBlockTransparent((short) originalId)) {
+                    if (!isBlockSpecialObfuscated(0, (char) originalId)) {
+                        chunkSetBlockId(data, i, originalId);
+                    }
+                }
+            }
+        }
     }
-
-    private static void chunkSetBlockIdMeta(byte[] buffer, int index, int id, int meta) {
-        int blockData = blockIdMetaToData(id, meta);
-        chunkSetBlockData(buffer, index, blockData);
-    }
-
-    private static void chunkSetBlockData(byte[] buffer, int index, int data) {
-        index = index << 1;
-        buffer[index] = (byte) (data & 0xFF);
-        buffer[index + 1] = (byte) ((data >> 8) & 0xFF);
-    }
+    */
 }

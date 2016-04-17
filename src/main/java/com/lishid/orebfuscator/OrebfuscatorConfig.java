@@ -16,16 +16,24 @@
 
 package com.lishid.orebfuscator;
 
-import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.util.*;
+import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorConfig {
     // Constant/persistent data
@@ -119,16 +127,27 @@ public class OrebfuscatorConfig {
     }
 
     private static void generateTransparentBlocks() {
-        for (int i = 0; i < TransparentBlocks.length; i++) {
-            TransparentBlocks[i] = MinecraftInternals.isBlockTransparent(i);
-            if (i == org.bukkit.Material.TNT.getId()) {
-                TransparentBlocks[i] = false;
+    	Arrays.fill(TransparentBlocks, false);
+    	
+		InputStream stream = Orebfuscator.class.getResourceAsStream("/resources/transparent_blocks.txt");
+    	
+    	try {
+    		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+    		String line;
+    		
+            while ((line = reader.readLine()) != null) { 
+            	int index1 = line.indexOf(":");
+            	int index2 = line.indexOf(" ", index1);
+            	int blockId = Integer.parseInt(line.substring(0,  index1));
+            	boolean isTransparent = line.substring(index1 + 1, index2).equals("true");
+            	
+            	TransparentBlocks[blockId] = isTransparent;
             }
-            if (i == org.bukkit.Material.AIR.getId() || i == org.bukkit.Material.WATER.getId() || i == org.bukkit.Material.STATIONARY_WATER.getId()) {
-                TransparentBlocks[i] = true;
-            }
-        }
-        TransparentCached = true;
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+
+    	TransparentCached = true;
     }
 
     public static boolean isObfuscated(int id, World.Environment environment) {

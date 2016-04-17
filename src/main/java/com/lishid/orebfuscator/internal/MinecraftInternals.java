@@ -22,7 +22,6 @@ import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.TileEntity;
 import net.minecraft.server.v1_9_R1.World;
 
-import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.block.CraftBlock;
@@ -35,19 +34,13 @@ import com.lishid.orebfuscator.utils.ReflectionHelper;
 //Volatile
 
 public class MinecraftInternals {
-	public static boolean isBlockTransparent(int id) {
-		Material material = Material.getMaterial(id);
-		
-        return material != null && material.isTransparent();
-    }
-
     public static void updateBlockTileEntity(org.bukkit.block.Block block, Player player) {
         CraftWorld world = (CraftWorld) block.getWorld();
         TileEntity tileEntity = world.getTileEntityAt(block.getX(), block.getY(), block.getZ());
         if (tileEntity == null) {
             return;
         }
-        Packet packet = tileEntity.getUpdatePacket();
+        Packet<?> packet = tileEntity.getUpdatePacket();
         if (packet != null) {
             CraftPlayer player2 = (CraftPlayer) player;
             player2.getHandle().playerConnection.sendPacket(packet);
