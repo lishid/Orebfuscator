@@ -271,7 +271,7 @@ public class Calculations {
 
         putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
         ProximityHider.AddProximityBlocks(player, proximityBlocks);
-        
+		
         return output;
     }
     

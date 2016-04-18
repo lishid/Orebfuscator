@@ -284,7 +284,7 @@ public class ChunkMapManager {
 			
 			moveToNextSection();
 			
-			if(oldSectionIndex + 1 == this.sectionIndex) {
+			if(this.sectionIndex < 16 && oldSectionIndex + 1 == this.sectionIndex) {
 				readLayer(this.buffer.nextLayer);
 			}
 		} else {
