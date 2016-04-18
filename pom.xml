@@ -1,11 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.lishid</groupId>
   <artifactId>orebfuscator</artifactId>
+  <version>4.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <version>4.0.0</version>
-  <name>Orebfuscator</name>
+
+  <name>Orebfuscator4</name>
   <url>http://dev.bukkit.org/server-mods/orebfuscator/</url>
 
   <properties>
@@ -23,25 +25,20 @@
     </repository>
   </repositories>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>bukkit-plugins</id>
-      <url>http://repo.bukkit.org/content/groups/public</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencies>
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot</artifactId>
-      <version>1.9-R0.1-SNAPSHOT</version>
+      <version>1.9.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.comphenix.protocol</groupId>
-      <artifactId>ProtocolLib</artifactId>
-      <version>3.7.0-SNAPSHOT</version>
+      <artifactId>ProtocolLib-API</artifactId>
+      <version>4.0-SNAPSHOT</version>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 
@@ -51,18 +48,25 @@
     <testSourceDirectory>src/test/java</testSourceDirectory>
     <resources>
       <resource>
+        <directory>.</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>LICENSE</include>
+        </includes>
+      </resource>
+      <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
+        <includes>
+          <include>**/*</include>
+        </includes>
       </resource>
     </resources>
 
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.5.1</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -77,4 +81,3 @@
     <url>https://github.com/lishid/Orebfuscator</url>
   </scm>
 </project>
-
