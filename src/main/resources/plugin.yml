@@ -1,4 +1,4 @@
-name: {project.name}
+name: ${project.name}
 main: com.lishid.orebfuscator.Orebfuscator
 version: ${project.version}
 author: lishid

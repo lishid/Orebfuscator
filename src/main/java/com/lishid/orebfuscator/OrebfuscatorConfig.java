@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -547,7 +548,7 @@ public class OrebfuscatorConfig {
         return Orebfuscator.instance.getConfig();
     }
 
-    public static int clamp(int value, int min, int max) {
+    private static int clamp(int value, int min, int max) {
         if (value < min)
             value = min;
         if (value > max)

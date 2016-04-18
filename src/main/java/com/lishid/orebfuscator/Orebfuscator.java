@@ -16,10 +16,12 @@
 
 package com.lishid.orebfuscator;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
@@ -29,10 +31,10 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.ProtocolLibHook;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
+import com.lishid.orebfuscator.utils.FileHelper;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -54,6 +56,9 @@ public class Orebfuscator extends JavaPlugin {
         instance = this;
         // Load configurations
         OrebfuscatorConfig.load();
+        
+        //Make sure cache is cleared if config was changed since last start
+        checkCacheAndConfigSynchronized();
 
         // Orebfuscator events
         pm.registerEvents(new OrebfuscatorPlayerListener(), this);
@@ -65,28 +70,31 @@ public class Orebfuscator extends JavaPlugin {
             (new ProtocolLibHook()).register(this);
             usePL = true;
         }
-
-        /* NoLagg is deprecated now
-        if (pm.getPlugin("NoLagg") != null && !usePL) {
-            getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-                @Override
-                public void run() {
-                    Orebfuscator.log("WARNING! NoLagg Absolutely NEED ProtocolLib to work with Orebfuscator!");
-                }
-            }, 0, 60 * 1000);// Warn every minute
-        }
-        */
-
-        // Disable spigot's built-in orebfuscator since it has limited functionality
-        try {
-            Class.forName("org.spigotmc.AntiXray");
-            Orebfuscator.log("Spigot found! Automatically disabling built-in AntiXray.");
-            for (World world : getServer().getWorlds()) {
-                MinecraftInternals.tryDisableSpigotAntiXray(world);
-            }
-        } catch (Exception e) {
-            // Spigot not found
-        }
+    }
+    
+    private void checkCacheAndConfigSynchronized() {
+    	String configContent = getConfig().saveToString();
+    	
+    	File cacheFolder = OrebfuscatorConfig.getCacheFolder();
+    	File cacheConfigFile = new File(cacheFolder, "cache_config.yml");
+    	
+    	try {
+			String cacheConfigContent = FileHelper.readFile(cacheConfigFile);
+			
+			if(Objects.equals(configContent, cacheConfigContent)) return;
+			
+			Orebfuscator.log("Clear cache.");
+			
+			if(cacheFolder.exists()) {
+				FileHelper.delete(cacheFolder);
+			}
+			
+			cacheFolder.mkdirs();
+			
+			getConfig().save(cacheConfigFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
     @Override
