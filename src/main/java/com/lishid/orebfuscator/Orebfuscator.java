@@ -66,6 +66,7 @@ public class Orebfuscator extends JavaPlugin {
             usePL = true;
         }
 
+        /* NoLagg is deprecated now
         if (pm.getPlugin("NoLagg") != null && !usePL) {
             getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
                 @Override
@@ -74,6 +75,7 @@ public class Orebfuscator extends JavaPlugin {
                 }
             }, 0, 60 * 1000);// Warn every minute
         }
+        */
 
         // Disable spigot's built-in orebfuscator since it has limited functionality
         try {
