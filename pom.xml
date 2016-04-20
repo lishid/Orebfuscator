@@ -1,11 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.lishid</groupId>
   <artifactId>orebfuscator</artifactId>
+  <version>4.0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <version>3.0.6</version>
-  <name>Orebfuscator</name>
+
+  <name>Orebfuscator4</name>
   <url>http://dev.bukkit.org/server-mods/orebfuscator/</url>
 
   <properties>
@@ -14,34 +16,35 @@
 
   <repositories>
     <repository>
-      <id>comphenix-snapshots</id>
-      <url>http://repo.comphenix.net/content/repositories/snapshots/</url>
-    </repository>
-    <repository>
-      <id>repobo-snap</id>
-      <url>http://repo.bukkit.org/content/groups/public</url>
+      <id>dmulloy2-repo</id>
+      <url>http://repo.dmulloy2.net/content/groups/public/</url>
     </repository>
   </repositories>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>bukkit-plugins</id>
-      <url>http://repo.bukkit.org/content/groups/public</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencies>
     <dependency>
-      <groupId>org.bukkit</groupId>
-      <artifactId>craftbukkit</artifactId>
-      <version>1.8.3-R0.1-SNAPSHOT</version>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot</artifactId>
+      <version>1.9.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.comphenix.protocol</groupId>
-      <artifactId>ProtocolLib</artifactId>
-      <version>3.5.0-SNAPSHOT</version>
+      <artifactId>ProtocolLib-API</artifactId>
+      <version>4.0-SNAPSHOT</version>
       <scope>provided</scope>
+      <optional>true</optional>
+      <exclusions>
+      	<exclusion>
+      		<artifactId>cglib-nodep</artifactId>
+      		<groupId>cglib</groupId>
+      	</exclusion>
+      	<exclusion>
+      		<artifactId>BukkitExecutors</artifactId>
+      		<groupId>com.comphenix.executors</groupId>
+      	</exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
@@ -51,18 +54,25 @@
     <testSourceDirectory>src/test/java</testSourceDirectory>
     <resources>
       <resource>
+        <directory>.</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>LICENSE</include>
+        </includes>
+      </resource>
+      <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
+        <includes>
+          <include>**/*</include>
+        </includes>
       </resource>
     </resources>
 
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.5.1</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -77,4 +87,3 @@
     <url>https://github.com/lishid/Orebfuscator</url>
   </scm>
 </project>
-

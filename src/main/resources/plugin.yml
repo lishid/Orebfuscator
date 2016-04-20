@@ -1,11 +1,10 @@
-name: Orebfuscator3
+name: ${project.name}
 main: com.lishid.orebfuscator.Orebfuscator
-version: 3.0.6
+version: ${project.version}
 author: lishid
 softdepend: [ProtocolLib]
 load: startup
-description: >
-             The most powerful and efficient Anti Xray
+description: 'The most powerful and efficient Anti Xray plugin compatible with any CraftBukkit fork!'
 commands:
   ofc:
     description: Manage Orebfuscator.

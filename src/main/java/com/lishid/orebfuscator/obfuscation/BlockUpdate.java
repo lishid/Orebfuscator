@@ -16,15 +16,17 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_9_R1.block.CraftBlock;
+
+import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
 
 public class BlockUpdate {
     public static boolean needsUpdate(Block block) {
@@ -58,7 +60,7 @@ public class BlockUpdate {
 
     private static void sendUpdates(World world, Set<Block> blocks) {
         for (Block block : blocks) {
-            MinecraftInternals.notifyBlockChange(world, block.getX(), block.getY(), block.getZ());
+            MinecraftInternals.notifyBlockChange(world, (CraftBlock)block);
         }
     }
 

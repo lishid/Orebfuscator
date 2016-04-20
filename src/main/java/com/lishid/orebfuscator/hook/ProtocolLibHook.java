@@ -16,46 +16,69 @@
 
 package com.lishid.orebfuscator.hook;
 
-import com.comphenix.protocol.Packets;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ConnectionSide;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketEvent;
-import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.internal.Packet51;
-import com.lishid.orebfuscator.obfuscation.Calculations;
-import net.minecraft.server.v1_8_R2.PacketPlayInBlockDig.EnumPlayerDigType;
+import net.minecraft.server.v1_9_R1.PacketPlayInBlockDig.EnumPlayerDigType;
+
+import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.reflect.StructureModifier;
+import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.chunkmap.ChunkData;
+import com.lishid.orebfuscator.hithack.BlockHitManager;
+import com.lishid.orebfuscator.obfuscation.Calculations;
+
 public class ProtocolLibHook {
+	private static boolean _isSaved = false;
+	
     private ProtocolManager manager;
 
     public void register(Plugin plugin) {
-        manager = ProtocolLibrary.getProtocolManager();
-        Integer[] packets = new Integer[]{Packets.Server.MAP_CHUNK};
+        this.manager = ProtocolLibrary.getProtocolManager();
 
-        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.SERVER_SIDE, packets) {
+        this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
             @Override
             public void onPacketSending(PacketEvent event) {
-                if (event.getPacketID() == Packets.Server.MAP_CHUNK) {
-                    Packet51 packet = new Packet51();
-                    packet.setPacket(event.getPacket().getHandle());
-                    Calculations.Obfuscate(packet, event.getPlayer());
-                }
+            	if(_isSaved) return;
+            	
+            	PacketContainer packet = event.getPacket();
+            	
+            	StructureModifier<Integer> ints = packet.getIntegers();
+                StructureModifier<byte[]> byteArray = packet.getByteArrays();
+                StructureModifier<Boolean> bools = packet.getBooleans();
+                
+                ChunkData chunkData = new ChunkData();
+        		chunkData.chunkX = ints.read(0);
+        		chunkData.chunkZ = ints.read(1);
+        		chunkData.groundUpContinuous = bools.read(0);
+        		chunkData.primaryBitMask = ints.read(2);
+        		chunkData.data = byteArray.read(0);
+        		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
+                
+				try {
+					byte[] newData = Calculations.ObfuscateOrUseCache(chunkData, event.getPlayer());
+					
+					if(newData != null) {
+						byteArray.write(0, newData);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
             }
         });
 
-        Integer[] packets2 = new Integer[]{Packets.Client.BLOCK_DIG};
-        manager.addPacketListener(new PacketAdapter(plugin, ConnectionSide.CLIENT_SIDE, packets2) {
+        manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                if (event.getPacketID() == Packets.Client.BLOCK_DIG) {
-                    EnumPlayerDigType status = event.getPacket().getSpecificModifier(EnumPlayerDigType.class).read(0);
-                    if (status == EnumPlayerDigType.ABORT_DESTROY_BLOCK) {
-                        if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
-                            event.setCancelled(true);
-                        }
+                EnumPlayerDigType status = event.getPacket().getSpecificModifier(EnumPlayerDigType.class).read(0);
+                if (status == EnumPlayerDigType.ABORT_DESTROY_BLOCK) {
+                    if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
+                        event.setCancelled(true);
                     }
                 }
             }

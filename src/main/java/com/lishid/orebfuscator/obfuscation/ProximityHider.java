@@ -16,18 +16,25 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
 
 public class ProximityHider extends Thread implements Runnable {
-    private static final Map<Player, Set<Block>> proximityHiderTracker = new WeakHashMap<Player, Set<Block>>();
+    private static final Map<Player, ProximityHiderPlayer> proximityHiderTracker = new WeakHashMap<Player, ProximityHiderPlayer>();
     private static final Map<Player, Location> playersToCheck = new HashMap<Player, Location>();
 
     private static ProximityHider thread = new ProximityHider();
@@ -67,7 +74,7 @@ public class ProximityHider extends Thread implements Runnable {
                     running = false;
                     return;
                 }
-
+                
                 HashMap<Player, Location> checkPlayers = new HashMap<Player, Location>();
 
                 synchronized (playersToCheck) {
@@ -119,13 +126,13 @@ public class ProximityHider extends Thread implements Runnable {
                     boolean skip = OrebfuscatorConfig.skipProximityHiderCheck(y);
 
                     synchronized (proximityHiderTracker) {
-                        Set<Block> synchronizedBlocks = proximityHiderTracker.get(p);
+                        Set<Block> synchronizedBlocks = proximityHiderTracker.get(p).blocks;
                         if (synchronizedBlocks != null) {
                             blocks.addAll(synchronizedBlocks);
                             synchronizedBlocks.clear();
                         }
                     }
-
+                    
                     if (!skip) {
                         for (Block b : blocks) {
                             if (b == null || b.getWorld() == null || p.getWorld() == null) {
@@ -181,16 +188,27 @@ public class ProximityHider extends Thread implements Runnable {
     }
 
     public static void AddProximityBlocks(Player player, ArrayList<Block> blocks) {
-        if (!OrebfuscatorConfig.UseProximityHider) {
-            return;
-        }
+        if (!OrebfuscatorConfig.UseProximityHider) return;
+        
         restart();
+        
         synchronized (proximityHiderTracker) {
+        	ProximityHiderPlayer playerInfo;
+        	UUID worldUID = player.getWorld().getUID();
+        	
             if (!proximityHiderTracker.containsKey(player)) {
-                proximityHiderTracker.put(player, new HashSet<Block>());
+                proximityHiderTracker.put(player, playerInfo = new ProximityHiderPlayer(worldUID));
+            } else {
+            	playerInfo = proximityHiderTracker.get(player);
+            	
+            	if(!playerInfo.worldUID.equals(worldUID)) {
+            		playerInfo.worldUID = worldUID;
+            		playerInfo.blocks.clear();
+            	}
             }
+            
             for (Block b : blocks) {
-                proximityHiderTracker.get(player).add(b);
+                playerInfo.blocks.add(b);
             }
         }
     }
@@ -198,6 +216,20 @@ public class ProximityHider extends Thread implements Runnable {
     public static void clearPlayer(Player player) {
         synchronized (ProximityHider.proximityHiderTracker) {
             ProximityHider.proximityHiderTracker.remove(player);
+        }
+    }
+
+    public static void clearBlocksForOldWorld(Player player) {
+        synchronized (ProximityHider.proximityHiderTracker) {
+        	if(ProximityHider.proximityHiderTracker.containsKey(player)) {
+        		ProximityHiderPlayer playerInfo = ProximityHider.proximityHiderTracker.get(player);
+        		UUID worldUID = player.getWorld().getUID();
+        		
+        		if(!playerInfo.worldUID.equals(worldUID)) {
+                	playerInfo.worldUID = worldUID;
+                    playerInfo.blocks.clear();
+        		}
+        	}
         }
     }
 

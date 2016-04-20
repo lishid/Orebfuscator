@@ -16,16 +16,25 @@
 
 package com.lishid.orebfuscator;
 
-import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.util.*;
+import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorConfig {
     // Constant/persistent data
@@ -84,6 +93,9 @@ public class OrebfuscatorConfig {
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
 
+    public static int[] NetherPaletteBlocks;
+    public static int[] NormalPaletteBlocks;
+
     public static File getCacheFolder() {
         // Try to make the folder
         if (!CacheFolder.exists()) {
@@ -116,16 +128,27 @@ public class OrebfuscatorConfig {
     }
 
     private static void generateTransparentBlocks() {
-        for (int i = 0; i < TransparentBlocks.length; i++) {
-            TransparentBlocks[i] = MinecraftInternals.isBlockTransparent(i);
-            if (i == org.bukkit.Material.TNT.getId()) {
-                TransparentBlocks[i] = false;
+    	Arrays.fill(TransparentBlocks, false);
+    	
+		InputStream stream = Orebfuscator.class.getResourceAsStream("/resources/transparent_blocks.txt");
+    	
+    	try {
+    		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+    		String line;
+    		
+            while ((line = reader.readLine()) != null) { 
+            	int index1 = line.indexOf(":");
+            	int index2 = line.indexOf(" ", index1);
+            	int blockId = Integer.parseInt(line.substring(0,  index1));
+            	boolean isTransparent = line.substring(index1 + 1, index2).equals("true");
+            	
+            	TransparentBlocks[blockId] = isTransparent;
             }
-            if (i == org.bukkit.Material.AIR.getId()) {
-                TransparentBlocks[i] = true;
-            }
-        }
-        TransparentCached = true;
+    	} catch (IOException e) {
+    		e.printStackTrace();
+    	}
+
+    	TransparentCached = true;
     }
 
     public static boolean isObfuscated(int id, World.Environment environment) {
@@ -436,6 +459,54 @@ public class OrebfuscatorConfig {
         RandomBlocks2 = RandomBlocks;
 
         save();
+        
+        createPaletteBlocks();
+    }
+    
+    private static void createPaletteBlocks() {
+    	//Nether
+    	ArrayList<Integer> nether = new ArrayList<Integer>();
+    	
+    	nether.add(0);
+    	nether.add(87);
+    	
+    	if(ProximityHiderID != 0 && ProximityHiderID != 87) {
+    		nether.add(ProximityHiderID);
+    	}
+    	
+    	for(Integer id : NetherRandomBlocks) {
+    		if(id != null && nether.indexOf(id) < 0) {
+    			nether.add(id);
+    		}
+    	}
+    	
+    	NetherPaletteBlocks = new int[nether.size()];
+    	for(int i = 0; i < NetherPaletteBlocks.length; i++) NetherPaletteBlocks[i] = nether.get(i);
+
+    	//Normal
+    	ArrayList<Integer> normal = new ArrayList<Integer>();
+    	
+    	normal.add(0);
+    	normal.add(1);
+    	
+    	if(ProximityHiderID != 0 && ProximityHiderID != 1) {
+    		normal.add(ProximityHiderID);
+    	}
+    	
+    	for(Integer id : RandomBlocks) {
+    		if(id != null && normal.indexOf(id) < 0) {
+    			normal.add(id);
+    		}
+    	}
+    	
+    	for(Integer id : RandomBlocks2) {
+    		if(id != null && normal.indexOf(id) < 0) {
+    			normal.add(id);
+    		}
+    	}
+
+    	NormalPaletteBlocks = new int[normal.size()];
+    	for(int i = 0; i < NormalPaletteBlocks.length; i++) NormalPaletteBlocks[i] = normal.get(i);
     }
 
     public static void reload() {
@@ -477,7 +548,7 @@ public class OrebfuscatorConfig {
         return Orebfuscator.instance.getConfig();
     }
 
-    public static int clamp(int value, int min, int max) {
+    private static int clamp(int value, int min, int max) {
         if (value < min)
             value = min;
         if (value > max)
