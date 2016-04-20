@@ -276,13 +276,13 @@ public class Calculations {
     }
     
     private static void addBlocksToPalette(ChunkMapManager manager, Environment environment) {
-    	if(environment == Environment.THE_END || !manager.inputHasNonAirBlock()) {
+    	if(!manager.inputHasNonAirBlock()) {
     		return;
     	}
 
-    	int[] list = environment == Environment.NORMAL
-    			? OrebfuscatorConfig.NormalPaletteBlocks
-    			: OrebfuscatorConfig.NetherPaletteBlocks;
+    	int[] list = environment == Environment.NETHER
+    			? OrebfuscatorConfig.NetherPaletteBlocks
+    			: OrebfuscatorConfig.NormalPaletteBlocks;
     	
     	for(int id : list) {
     		int blockData = ChunkMapManager.getBlockDataFromId(id);

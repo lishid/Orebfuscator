@@ -28,6 +28,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
@@ -61,7 +62,10 @@ public class ProtocolLibHook {
                 
 				try {
 					byte[] newData = Calculations.ObfuscateOrUseCache(chunkData, event.getPlayer());
-	                byteArray.write(0, newData);
+					
+					if(newData != null) {
+						byteArray.write(0, newData);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
