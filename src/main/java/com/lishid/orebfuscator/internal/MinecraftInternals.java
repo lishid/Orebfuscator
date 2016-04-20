@@ -20,16 +20,12 @@ import net.minecraft.server.v1_9_R1.BlockPosition;
 import net.minecraft.server.v1_9_R1.IBlockData;
 import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.TileEntity;
-import net.minecraft.server.v1_9_R1.World;
 
 import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.utils.ReflectionHelper;
 
 //Volatile
 
@@ -52,15 +48,5 @@ public class MinecraftInternals {
     	IBlockData blockData = ((CraftChunk)block.getChunk()).getHandle().getBlockData(blockPosition);
     	
         ((CraftWorld) world).getHandle().notify(blockPosition, blockData, blockData, 0);
-    }
-
-    public static void tryDisableSpigotAntiXray(org.bukkit.World world) {
-        try {
-            World mcworld = ((CraftWorld) world).getHandle();
-            Object spigotWorldConfig = World.class.getField("spigotConfig").get(mcworld);
-            ReflectionHelper.setPrivateField(spigotWorldConfig, "antiXray", false);
-        } catch (Exception e) {
-            Orebfuscator.log(e);
-        }
     }
 }

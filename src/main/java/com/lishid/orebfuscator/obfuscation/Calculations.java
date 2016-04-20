@@ -270,7 +270,7 @@ public class Calculations {
 		byte[] output = manager.createOutput();
 
         putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
-        ProximityHider.AddProximityBlocks(player, proximityBlocks);
+        ProximityHider.addProximityBlocks(player, proximityBlocks);
 		
         return output;
     }
@@ -321,7 +321,7 @@ public class Calculations {
 
             // ProximityHider add blocks
             putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
-            ProximityHider.AddProximityBlocks(player, proximityBlocks);
+            ProximityHider.addProximityBlocks(player, proximityBlocks);
 
             // Hash match, use the cached data instead and skip calculations
             return cache;

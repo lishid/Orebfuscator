@@ -81,7 +81,7 @@ public class ProximityHider extends Thread implements Runnable {
                     checkPlayers.putAll(playersToCheck);
                     playersToCheck.clear();
                 }
-
+                
                 int distance = OrebfuscatorConfig.ProximityHiderDistance;
                 int distanceSquared = distance * distance;
 
@@ -97,21 +97,15 @@ public class ProximityHider extends Thread implements Runnable {
                         }
                     }
 
-                    Location loc1 = p.getLocation();
-                    Location loc2 = checkPlayers.get(p);
-
-                    // If player changed world
-                    if (!loc1.getWorld().equals(loc2.getWorld())) {
-                        synchronized (proximityHiderTracker) {
-                            proximityHiderTracker.remove(p);
-                            proximityHiderTrackerLocal.remove(p);
-                        }
-                        continue;
-                    }
-
-                    // Player didn't actually move
-                    if (loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ()) {
-                        continue;
+                    Location oldLocation = checkPlayers.get(p);
+                    
+                    if(oldLocation != null) {
+	                    Location curLocation = p.getLocation();
+	
+	                    // Player didn't actually move
+	                    if (curLocation.getBlockX() == oldLocation.getBlockX() && curLocation.getBlockY() == oldLocation.getBlockY() && curLocation.getBlockZ() == oldLocation.getBlockZ()) {
+	                        continue;
+	                    }
                     }
 
                     Set<Block> blocks = proximityHiderTrackerLocal.get(p);
@@ -127,6 +121,7 @@ public class ProximityHider extends Thread implements Runnable {
 
                     synchronized (proximityHiderTracker) {
                         Set<Block> synchronizedBlocks = proximityHiderTracker.get(p).blocks;
+
                         if (synchronizedBlocks != null) {
                             blocks.addAll(synchronizedBlocks);
                             synchronizedBlocks.clear();
@@ -187,7 +182,7 @@ public class ProximityHider extends Thread implements Runnable {
         }
     }
 
-    public static void AddProximityBlocks(Player player, ArrayList<Block> blocks) {
+    public static void addProximityBlocks(Player player, ArrayList<Block> blocks) {
         if (!OrebfuscatorConfig.UseProximityHider) return;
         
         restart();
@@ -233,7 +228,7 @@ public class ProximityHider extends Thread implements Runnable {
         }
     }
 
-    public static void playerMoved(Player player, Location location) {
+    public static void addPlayerToCheck(Player player, Location location) {
         synchronized (ProximityHider.playersToCheck) {
             if (!ProximityHider.playersToCheck.containsKey(player)) {
                 ProximityHider.playersToCheck.put(player, location);
