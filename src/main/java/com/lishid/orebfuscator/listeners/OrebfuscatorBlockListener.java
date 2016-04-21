@@ -16,15 +16,20 @@
 
 package com.lishid.orebfuscator.listeners;
 
-import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
+
+import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.hithack.BlockHitManager;
+import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 
 public class OrebfuscatorBlockListener implements Listener {
 

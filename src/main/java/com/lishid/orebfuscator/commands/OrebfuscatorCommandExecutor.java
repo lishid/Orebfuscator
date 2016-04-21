@@ -16,6 +16,8 @@
 
 package com.lishid.orebfuscator.commands;
 
+import java.io.IOException;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -179,8 +181,12 @@ public class OrebfuscatorCommandExecutor {
         }
 
         else if (args[0].equalsIgnoreCase("clearcache")) {
-            ObfuscatedDataCache.ClearCache();
-            Orebfuscator.message(sender, "Cache cleared.");
+            try {
+				ObfuscatedDataCache.clearCache();
+	            Orebfuscator.message(sender, "Cache cleared.");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
         }
 
         else if (args[0].equalsIgnoreCase("debug")) {

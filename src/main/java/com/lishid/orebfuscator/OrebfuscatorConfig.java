@@ -378,24 +378,6 @@ public class OrebfuscatorConfig {
         // Version check
         int version = getInt("ConfigVersion", CONFIG_VERSION);
         if (version < CONFIG_VERSION) {
-            // Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
-            // File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
-            // File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
-            // if (destination.exists())
-            // {
-            // try
-            // {
-            // destination.delete();
-            // }
-            // catch (Exception e)
-            // {
-            // Orebfuscator.log(e);
-            // }
-            // }
-            // configFile.renameTo(destination);
-            // reload();
-
-            ObfuscatedDataCache.ClearCache();
             setData("ConfigVersion", CONFIG_VERSION);
         }
 
@@ -460,6 +442,13 @@ public class OrebfuscatorConfig {
         save();
         
         createPaletteBlocks();
+        
+        //Make sure cache is cleared if config was changed since last start
+        try {
+			ObfuscatedDataCache.checkCacheAndConfigSynchronized();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
     private static void createPaletteBlocks() {

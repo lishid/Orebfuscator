@@ -16,9 +16,6 @@
 
 package com.lishid.orebfuscator;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -34,7 +31,6 @@ import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
-import com.lishid.orebfuscator.utils.FileHelper;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -45,8 +41,6 @@ public class Orebfuscator extends JavaPlugin {
 
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
-    public static boolean usePL = false;
-    public static boolean useSpigot = false;
 
     @Override
     public void onEnable() {
@@ -56,50 +50,23 @@ public class Orebfuscator extends JavaPlugin {
         instance = this;
         // Load configurations
         OrebfuscatorConfig.load();
-        
-        //Make sure cache is cleared if config was changed since last start
-        checkCacheAndConfigSynchronized();
+
+        if (pm.getPlugin("ProtocolLib") == null) {
+            Orebfuscator.log("ProtocolLib is not found! Plugin cannot be enabled.");
+            return;
+        }
 
         // Orebfuscator events
         pm.registerEvents(new OrebfuscatorPlayerListener(), this);
         pm.registerEvents(new OrebfuscatorEntityListener(), this);
         pm.registerEvents(new OrebfuscatorBlockListener(), this);
 
-        if (pm.getPlugin("ProtocolLib") != null) {
-            Orebfuscator.log("ProtocolLib found! Hooking into ProtocolLib.");
-            (new ProtocolLibHook()).register(this);
-            usePL = true;
-        }
-    }
-    
-    private void checkCacheAndConfigSynchronized() {
-    	String configContent = getConfig().saveToString();
-    	
-    	File cacheFolder = OrebfuscatorConfig.getCacheFolder();
-    	File cacheConfigFile = new File(cacheFolder, "cache_config.yml");
-    	
-    	try {
-			String cacheConfigContent = FileHelper.readFile(cacheConfigFile);
-			
-			if(Objects.equals(configContent, cacheConfigContent)) return;
-			
-			Orebfuscator.log("Clear cache.");
-			
-			if(cacheFolder.exists()) {
-				FileHelper.delete(cacheFolder);
-			}
-			
-			cacheFolder.mkdirs();
-			
-			getConfig().save(cacheConfigFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+        (new ProtocolLibHook()).register(this);
     }
 
     @Override
     public void onDisable() {
-        ObfuscatedDataCache.clearCache();
+        ObfuscatedDataCache.closeCacheFiles();
         BlockHitManager.clearAll();
         getServer().getScheduler().cancelTasks(this);
     }

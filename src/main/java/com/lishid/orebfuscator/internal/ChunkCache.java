@@ -44,7 +44,7 @@ public class ChunkCache {
             }
 
             if (cachedRegionFiles.size() >= OrebfuscatorConfig.MaxLoadedCacheFiles) {
-                clearCache();
+                closeCacheFiles();
             }
 
             regionFile = new RegionFile(file);
@@ -73,7 +73,7 @@ public class ChunkCache {
         return regionFile.b(x & 0x1F, z & 0x1F);
     }
 
-    public synchronized void clearCache() {
+    public synchronized void closeCacheFiles() {
         for (RegionFile regionFile : cachedRegionFiles.values()) {
             try {
                 if (regionFile != null)
