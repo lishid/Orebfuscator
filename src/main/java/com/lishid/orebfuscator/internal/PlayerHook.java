@@ -21,11 +21,11 @@ import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
 import io.netty.channel.*;
-import net.minecraft.server.v1_8_R2.PacketPlayInBlockDig.EnumPlayerDigType;
-import net.minecraft.server.v1_8_R2.NetworkManager;
-import net.minecraft.server.v1_8_R2.PacketPlayInBlockDig;
-import net.minecraft.server.v1_8_R2.PacketPlayOutMapChunk;
-import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
+import net.minecraft.server.v1_8_R1.EnumPlayerDigType;
+import net.minecraft.server.v1_8_R1.NetworkManager;
+import net.minecraft.server.v1_8_R1.PacketPlayInBlockDig;
+import net.minecraft.server.v1_8_R1.PacketPlayOutMapChunk;
+import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;

@@ -18,16 +18,16 @@ package com.lishid.orebfuscator.internal;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.ReflectionHelper;
-import net.minecraft.server.v1_8_R2.*;
-import org.bukkit.craftbukkit.v1_8_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_8_R2.entity.CraftPlayer;
+import net.minecraft.server.v1_8_R1.*;
+import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 //Volatile
 
 public class MinecraftInternals {
     public static boolean isBlockTransparent(int id) {
-        return Block.getById(id).u();
+        return Block.getById(id).s();
     }
 
     public static void updateBlockTileEntity(org.bukkit.block.Block block, Player player) {

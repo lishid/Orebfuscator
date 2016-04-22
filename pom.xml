@@ -4,9 +4,9 @@
   <groupId>com.lishid</groupId>
   <artifactId>orebfuscator</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.6-R2</version>
+  <version>3.0.6-R1</version>
   <name>Orebfuscator</name>
-  <description>This release is appropriate for CraftBukkit 1.8.3</description>
+  <description>This release is appropriate for CraftBukkit 1.8</description>
   <url>http://dev.bukkit.org/server-mods/orebfuscator/</url>
 
   <properties>
@@ -35,7 +35,7 @@
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>craftbukkit</artifactId>
-      <version>1.8.3-R0.1-SNAPSHOT</version>
+      <version>1.8-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

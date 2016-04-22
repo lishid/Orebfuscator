@@ -1,11 +1,11 @@
 name: Orebfuscator3
 main: com.lishid.orebfuscator.Orebfuscator
-version: 3.0.6-R2
+version: 3.0.6-R1
 author: lishid
 softdepend: [ProtocolLib]
 load: startup
 description: >
-             The most powerful and efficient Anti Xray for CraftBukkit 1.8.3
+             The most powerful and efficient Anti Xray for CraftBukkit 1.8
 commands:
   ofc:
     description: Manage Orebfuscator.
