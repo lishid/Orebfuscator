@@ -90,6 +90,10 @@ public class ChunkMapManager {
     	return blockData >>> 4;
     }
 
+    public static int getBlockMetaFromData(int blockData) {
+    	return blockData & 0xf;
+    }
+
     public static int blockStateToData(BlockState blockState) {
     	return (blockState.id << 4) | blockState.meta; 
     }

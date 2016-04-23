@@ -7,16 +7,15 @@ package com.lishid.orebfuscator.obfuscation;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
-import org.bukkit.block.Block;
+import org.bukkit.World;
 
 public class ProximityHiderPlayer {
-	public UUID worldUID; 
-	public Set<Block> blocks;
+	public World world; 
+	public Set<ProximityHiderBlock> blocks;
 	
-	public ProximityHiderPlayer(UUID worldUID) {
-		this.worldUID = worldUID;
-		this.blocks = new HashSet<Block>();
+	public ProximityHiderPlayer(World world) {
+		this.world = world;
+		this.blocks = new HashSet<ProximityHiderBlock>();
 	}
 }

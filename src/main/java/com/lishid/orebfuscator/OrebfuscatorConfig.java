@@ -29,7 +29,6 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -37,7 +36,7 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorConfig {
     // Constant/persistent data
-    private static final int CONFIG_VERSION = 10;
+    private static final int CONFIG_VERSION = 11;
     private static Random random = new Random();
     private static int AvailableProcessors = Runtime.getRuntime().availableProcessors();
 
@@ -186,7 +185,7 @@ public class OrebfuscatorConfig {
         return UseYLocationProximity && y < ProximityHiderEnd;
     }
 
-    public static boolean proximityHiderDeobfuscate(int playerY, Block block) {
+    public static boolean proximityHiderDeobfuscate() {
         return UseYLocationProximity;
     }
 

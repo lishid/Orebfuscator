@@ -21,6 +21,7 @@ import net.minecraft.server.v1_9_R1.IBlockData;
 import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.TileEntity;
 
+import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.block.CraftBlock;
@@ -30,9 +31,9 @@ import org.bukkit.entity.Player;
 //Volatile
 
 public class MinecraftInternals {
-    public static void updateBlockTileEntity(org.bukkit.block.Block block, Player player) {
-        CraftWorld world = (CraftWorld) block.getWorld();
-        TileEntity tileEntity = world.getTileEntityAt(block.getX(), block.getY(), block.getZ());
+    public static void updateBlockTileEntity(int blockX, int blockY, int blockZ, Player player) {
+        CraftWorld world = (CraftWorld) player.getWorld();
+        TileEntity tileEntity = world.getTileEntityAt(blockX, blockY, blockZ);
         if (tileEntity == null) {
             return;
         }
@@ -48,5 +49,12 @@ public class MinecraftInternals {
     	IBlockData blockData = ((CraftChunk)block.getChunk()).getHandle().getBlockData(blockPosition);
     	
         ((CraftWorld) world).getHandle().notify(blockPosition, blockData, blockData, 0);
+    }
+    
+    public static boolean isSign(int blockId) {
+    	return blockId == Material.CHORUS_FLOWER.getId()
+    			|| blockId == Material.CLAY_BALL.getId()
+    			|| blockId == Material.PRISMARINE_SHARD.getId()
+    			;
     }
 }
