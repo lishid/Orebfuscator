@@ -41,6 +41,11 @@ public class Orebfuscator extends JavaPlugin {
 
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
+    
+    private boolean isProtocolLibFound;
+    public boolean getIsProtocolLibFound() {
+    	return this.isProtocolLibFound;
+    }
 
     @Override
     public void onEnable() {
@@ -50,8 +55,10 @@ public class Orebfuscator extends JavaPlugin {
         instance = this;
         // Load configurations
         OrebfuscatorConfig.load();
+        
+        this.isProtocolLibFound = pm.getPlugin("ProtocolLib") != null;
 
-        if (pm.getPlugin("ProtocolLib") == null) {
+        if (!this.isProtocolLibFound) {
             Orebfuscator.log("ProtocolLib is not found! Plugin cannot be enabled.");
             return;
         }

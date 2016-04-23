@@ -175,7 +175,7 @@ public class Calculations {
                             if (initialRadius == 0) {
                                 // Do not interfere with PH
                                 if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
-                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), blockState.id, x, y, z, 1)) {
+                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
                                         obfuscate = true;
                                     }
                                 } else {
@@ -184,7 +184,7 @@ public class Calculations {
                                 }
                             } else {
                                 // Check if any nearby blocks are transparent
-                                if (!areAjacentBlocksTransparent(manager, player.getWorld(), blockState.id, x, y, z, initialRadius)) {
+                                if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
                                     obfuscate = true;
                                 }
                             }
@@ -336,7 +336,7 @@ public class Calculations {
     public static boolean areAjacentBlocksTransparent(
     		ChunkMapManager manager,
     		World world,
-    		int currentBlockID,
+    		boolean checkCurrentBlock,
     		int x,
     		int y,
     		int z,
@@ -346,39 +346,41 @@ public class Calculations {
         if (y >= world.getMaxHeight() || y < 0)
             return true;
 
-    	ChunkData chunkData = manager.getChunkData();
-        int blockData = manager.get(x, y, z);
-        int id;
-
-        if (blockData < 0) {
-            if (CalculationsUtil.isChunkLoaded(world, chunkData.chunkX, chunkData.chunkZ)) {
-                id = world.getBlockTypeIdAt(x, y, z);
-            } else {
-                id = 1;
-                chunkData.useCache = false;
-            }
-        } else {
-        	id = ChunkMapManager.getBlockIdFromData(blockData);
-        }
-
-        if (id != currentBlockID && OrebfuscatorConfig.isBlockTransparent(id)) {
-            return true;
+        if(checkCurrentBlock) {
+	    	ChunkData chunkData = manager.getChunkData();
+	        int blockData = manager.get(x, y, z);
+	        int id;
+	
+	        if (blockData < 0) {
+	            if (CalculationsUtil.isChunkLoaded(world, chunkData.chunkX, chunkData.chunkZ)) {
+	                id = world.getBlockTypeIdAt(x, y, z);
+	            } else {
+	                id = 1;
+	                chunkData.useCache = false;
+	            }
+	        } else {
+	        	id = ChunkMapManager.getBlockIdFromData(blockData);
+	        }
+	
+	        if (OrebfuscatorConfig.isBlockTransparent(id)) {
+	            return true;
+	        }
         }
 
         if (countdown == 0)
             return false;
 
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y + 1, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y + 1, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y - 1, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y - 1, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x + 1, y, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x + 1, y, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x - 1, y, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x - 1, y, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y, z + 1, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y, z + 1, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y, z - 1, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y, z - 1, countdown - 1))
             return true;
 
         return false;

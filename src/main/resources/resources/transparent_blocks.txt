@@ -9,7 +9,7 @@
 8:true //minecraft:flowing_water
 9:true //minecraft:water
 10:true //minecraft:flowing_lava
-11:false //minecraft:lava
+11:true //minecraft:lava
 12:false //minecraft:sand
 13:false //minecraft:gravel
 14:false //minecraft:gold_ore
@@ -118,7 +118,7 @@
 117:true //minecraft:brewing_stand
 118:true //minecraft:cauldron
 119:true //minecraft:end_portal
-120:false //minecraft:end_portal_frame
+120:true //minecraft:end_portal_frame
 121:false //minecraft:end_stone
 122:true //minecraft:dragon_egg
 123:false //minecraft:redstone_lamp
@@ -164,7 +164,7 @@
 163:true //minecraft:acacia_stairs
 164:true //minecraft:dark_oak_stairs
 165:true //minecraft:slime
-166:false //minecraft:barrier
+166:true //minecraft:barrier
 167:true //minecraft:iron_trapdoor
 168:false //minecraft:prismarine
 169:false //minecraft:sea_lantern
@@ -206,8 +206,8 @@
 205:true //minecraft:purpur_slab
 206:false //minecraft:end_bricks
 207:true //minecraft:beetroots
-208:false //minecraft:grass_path
-209:false //minecraft:end_gateway
+208:true //minecraft:grass_path
+209:true //minecraft:end_gateway
 210:false //minecraft:repeating_command_block
 211:false //minecraft:chain_command_block
 212:true //minecraft:frosted_ice
