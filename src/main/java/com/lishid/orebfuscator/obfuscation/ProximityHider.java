@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -140,7 +141,7 @@ public class ProximityHider extends Thread implements Runnable {
                         continue;
                     }
                     
-                    ArrayList<ProximityHiderBlock> removedBlocks = new ArrayList<ProximityHiderBlock>();
+                    ArrayList<Block> removedBlocks = new ArrayList<Block>();
                     Location playerLocation = p.getLocation();
                     int minChunkX = (playerLocation.getBlockX() >> 4) - checkRadius;
                     int maxChunkX = minChunkX + (checkRadius << 1);
@@ -149,31 +150,31 @@ public class ProximityHider extends Thread implements Runnable {
                     
                     for(int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
 	                    for(int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-	                    	ArrayList<ProximityHiderBlock> blocks = localPlayerInfo.getBlocks(chunkX, chunkZ);
+	                    	ArrayList<Block> blocks = localPlayerInfo.getBlocks(chunkX, chunkZ);
 	                    	
 	                    	if(blocks == null) continue;
 	                    	
 	                    	removedBlocks.clear();
                     
-		                    for (ProximityHiderBlock b : blocks) {
+		                    for (Block b : blocks) {
 		                        if (b == null) {
 		                            removedBlocks.add(b);
 		                            continue;
 		                        }
 		                        
-		                        Location blockLocation = new Location(localPlayerInfo.getWorld(), b.x, b.y, b.z);
-		
+		                        Location blockLocation = b.getLocation();
+		                        
 		                        if (OrebfuscatorConfig.proximityHiderDeobfuscate() || playerLocation.distanceSquared(blockLocation) < distanceSquared) {
 		                            removedBlocks.add(b);
 		
-		                            if (CalculationsUtil.isChunkLoaded(localPlayerInfo.getWorld(), b.x >> 4, b.z >> 4)) {
-		                                p.sendBlockChange(blockLocation, b.getId(), (byte)b.getMeta());
-		                                final ProximityHiderBlock block = b;
+		                            if (CalculationsUtil.isChunkLoaded(localPlayerInfo.getWorld(), b.getChunk().getX(), b.getChunk().getZ())) {
+		                                p.sendBlockChange(blockLocation, b.getTypeId(), (byte)b.getData());
+		                                final Block block = b;
 		                                final Player player = p;
 		                                Orebfuscator.instance.runTask(new Runnable() {
 		                                    @Override
 		                                    public void run() {
-		                                        MinecraftInternals.updateBlockTileEntity(block.x, block.y, block.z, player);
+		                                        MinecraftInternals.updateBlockTileEntity(block, player);
 		                                    }
 		                                });
 		                            }
@@ -208,7 +209,7 @@ public class ProximityHider extends Thread implements Runnable {
         }
     }
 
-    public static void addProximityBlocks(Player player, int chunkX, int chunkZ, ArrayList<ProximityHiderBlock> blocks) {
+    public static void addProximityBlocks(Player player, int chunkX, int chunkZ, ArrayList<Block> blocks) {
         if (!OrebfuscatorConfig.UseProximityHider) return;
         
         restart();

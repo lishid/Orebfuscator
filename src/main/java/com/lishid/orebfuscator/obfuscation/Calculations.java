@@ -28,6 +28,8 @@ import java.util.WeakHashMap;
 
 import org.bukkit.World;
 import org.bukkit.World.Environment;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
@@ -35,7 +37,6 @@ import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.chunkmap.BlockState;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
 
 public class Calculations {
 
@@ -63,11 +64,11 @@ public class Calculations {
         return map.get(address);
     }
 
-    public static void putSignsList(Player player, int chunkX, int chunkZ, List<ProximityHiderBlock> proximityBlocks) {
+    public static void putSignsList(Player player, int chunkX, int chunkZ, List<Block> proximityBlocks) {
         Set<MinecraftBlock> signs = new HashSet<MinecraftBlock>();
-        for (ProximityHiderBlock b : proximityBlocks) {
-            if (MinecraftInternals.isSign(b.getId())) {
-                signs.add(new MinecraftBlock(b.x, b.y, b.z));
+        for (Block b : proximityBlocks) {
+            if (b.getState() instanceof Sign) {
+                signs.add(new MinecraftBlock(b));
             }
         }
         putSignsList(player, chunkX, chunkZ, signs);
@@ -90,7 +91,7 @@ public class Calculations {
         }
         
         // Blocks kept track for ProximityHider
-        ArrayList<ProximityHiderBlock> proximityBlocks = new ArrayList<ProximityHiderBlock>();
+        ArrayList<Block> proximityBlocks = new ArrayList<Block>();
         
         byte[] output = Obfuscate(chunkData, player, proximityBlocks);
 
@@ -98,16 +99,15 @@ public class Calculations {
             // If cache is still allowed
         	if(chunkData.useCache) {
 	            // Save cache
-	            int[] proximityList = new int[proximityBlocks.size() * 4];
+	            int[] proximityList = new int[proximityBlocks.size() * 3];
 	            int index = 0;
 	            
 	            for (int i = 0; i < proximityBlocks.size(); i++) {
-	            	ProximityHiderBlock b = proximityBlocks.get(i);
+	            	Block b = proximityBlocks.get(i);
 	                if (b != null) {
-	                	proximityList[index++] = b.blockData;
-	                    proximityList[index++] = b.x;
-	                    proximityList[index++] = b.y;
-	                    proximityList[index++] = b.z;
+	                    proximityList[index++] = b.getX();
+	                    proximityList[index++] = b.getY();
+	                    proximityList[index++] = b.getZ();
 	                }
 	            }
 	            
@@ -120,7 +120,7 @@ public class Calculations {
         return output;
     }
     
-    private static byte[] Obfuscate(ChunkData chunkData, Player player, ArrayList<ProximityHiderBlock> proximityBlocks) throws IOException {
+    private static byte[] Obfuscate(ChunkData chunkData, Player player, ArrayList<Block> proximityBlocks) throws IOException {
     	Environment environment = player.getWorld().getEnvironment();
     	int initialRadius = OrebfuscatorConfig.InitialRadius;
 
@@ -194,7 +194,7 @@ public class Calculations {
                         // Check if the block should be obfuscated because of proximity check
                         if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
                             if (OrebfuscatorConfig.isProximityHiderOn(y, blockState.id)) {
-                            	ProximityHiderBlock block = new ProximityHiderBlock(blockData, x, y, z);
+                            	Block block = CalculationsUtil.getBlockAt(player.getWorld(), x, y, z);
                                 if (block != null) {
                                     proximityBlocks.add(block);
                                 }
@@ -310,18 +310,17 @@ public class Calculations {
 
         if (storedHash == hash && cache.data != null) {
             int[] proximityList = cache.proximityList;
-        	ArrayList<ProximityHiderBlock> proximityBlocks = new ArrayList<ProximityHiderBlock>();
+        	ArrayList<Block> proximityBlocks = new ArrayList<Block>();
         	
             // Decrypt chest list
             if (proximityList != null) {
             	int index = 0;
             	
                 while (index < proximityList.length) {
-                	int blockData = proximityList[index++];
                 	int x = proximityList[index++];
                 	int y = proximityList[index++];
                 	int z = proximityList[index++];
-                	ProximityHiderBlock b = new ProximityHiderBlock(blockData, x, y, z);
+                	Block b = CalculationsUtil.getBlockAt(player.getWorld(), x, y, z);
                 	
                     proximityBlocks.add(b);
                 }

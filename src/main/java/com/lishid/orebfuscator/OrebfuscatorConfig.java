@@ -36,7 +36,7 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorConfig {
     // Constant/persistent data
-    private static final int CONFIG_VERSION = 11;
+    private static final int CONFIG_VERSION = 12;
     private static Random random = new Random();
     private static int AvailableProcessors = Runtime.getRuntime().availableProcessors();
 
