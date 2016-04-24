@@ -100,13 +100,14 @@ public class Calculations {
         	if(chunkData.useCache) {
 	            // Save cache
 	            int[] proximityList = new int[proximityBlocks.size() * 3];
+	            int index = 0;
 	            
 	            for (int i = 0; i < proximityBlocks.size(); i++) {
-	                Block b = proximityBlocks.get(i);
+	            	Block b = proximityBlocks.get(i);
 	                if (b != null) {
-	                    proximityList[i * 3] = b.getX();
-	                    proximityList[i * 3 + 1] = b.getY();
-	                    proximityList[i * 3 + 2] = b.getZ();
+	                    proximityList[index++] = b.getX();
+	                    proximityList[index++] = b.getY();
+	                    proximityList[index++] = b.getZ();
 	                }
 	            }
 	            
@@ -175,7 +176,7 @@ public class Calculations {
                             if (initialRadius == 0) {
                                 // Do not interfere with PH
                                 if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
-                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), blockState.id, x, y, z, 1)) {
+                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
                                         obfuscate = true;
                                     }
                                 } else {
@@ -184,7 +185,7 @@ public class Calculations {
                                 }
                             } else {
                                 // Check if any nearby blocks are transparent
-                                if (!areAjacentBlocksTransparent(manager, player.getWorld(), blockState.id, x, y, z, initialRadius)) {
+                                if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
                                     obfuscate = true;
                                 }
                             }
@@ -193,7 +194,7 @@ public class Calculations {
                         // Check if the block should be obfuscated because of proximity check
                         if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
                             if (OrebfuscatorConfig.isProximityHiderOn(y, blockState.id)) {
-                                Block block = CalculationsUtil.getBlockAt(player.getWorld(), x, y, z);
+                            	Block block = CalculationsUtil.getBlockAt(player.getWorld(), x, y, z);
                                 if (block != null) {
                                     proximityBlocks.add(block);
                                 }
@@ -270,7 +271,7 @@ public class Calculations {
 		byte[] output = manager.createOutput();
 
         putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
-        ProximityHider.addProximityBlocks(player, proximityBlocks);
+        ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
 		
         return output;
     }
@@ -313,15 +314,21 @@ public class Calculations {
         	
             // Decrypt chest list
             if (proximityList != null) {
-                for (int i = 0; i < proximityList.length; i += 3) {
-                    Block b = CalculationsUtil.getBlockAt(player.getWorld(), proximityList[i], proximityList[i + 1], proximityList[i + 2]);
+            	int index = 0;
+            	
+                while (index < proximityList.length) {
+                	int x = proximityList[index++];
+                	int y = proximityList[index++];
+                	int z = proximityList[index++];
+                	Block b = CalculationsUtil.getBlockAt(player.getWorld(), x, y, z);
+                	
                     proximityBlocks.add(b);
                 }
             }
 
             // ProximityHider add blocks
             putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
-            ProximityHider.addProximityBlocks(player, proximityBlocks);
+            ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
 
             // Hash match, use the cached data instead and skip calculations
             return cache;
@@ -336,7 +343,7 @@ public class Calculations {
     public static boolean areAjacentBlocksTransparent(
     		ChunkMapManager manager,
     		World world,
-    		int currentBlockID,
+    		boolean checkCurrentBlock,
     		int x,
     		int y,
     		int z,
@@ -346,39 +353,41 @@ public class Calculations {
         if (y >= world.getMaxHeight() || y < 0)
             return true;
 
-    	ChunkData chunkData = manager.getChunkData();
-        int blockData = manager.get(x, y, z);
-        int id;
-
-        if (blockData < 0) {
-            if (CalculationsUtil.isChunkLoaded(world, chunkData.chunkX, chunkData.chunkZ)) {
-                id = world.getBlockTypeIdAt(x, y, z);
-            } else {
-                id = 1;
-                chunkData.useCache = false;
-            }
-        } else {
-        	id = ChunkMapManager.getBlockIdFromData(blockData);
-        }
-
-        if (id != currentBlockID && OrebfuscatorConfig.isBlockTransparent(id)) {
-            return true;
+        if(checkCurrentBlock) {
+	    	ChunkData chunkData = manager.getChunkData();
+	        int blockData = manager.get(x, y, z);
+	        int id;
+	
+	        if (blockData < 0) {
+	            if (CalculationsUtil.isChunkLoaded(world, chunkData.chunkX, chunkData.chunkZ)) {
+	                id = world.getBlockTypeIdAt(x, y, z);
+	            } else {
+	                id = 1;
+	                chunkData.useCache = false;
+	            }
+	        } else {
+	        	id = ChunkMapManager.getBlockIdFromData(blockData);
+	        }
+	
+	        if (OrebfuscatorConfig.isBlockTransparent(id)) {
+	            return true;
+	        }
         }
 
         if (countdown == 0)
             return false;
 
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y + 1, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y + 1, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y - 1, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y - 1, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x + 1, y, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x + 1, y, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x - 1, y, z, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x - 1, y, z, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y, z + 1, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y, z + 1, countdown - 1))
             return true;
-        if (areAjacentBlocksTransparent(manager, world, currentBlockID, x, y, z - 1, countdown - 1))
+        if (areAjacentBlocksTransparent(manager, world, true, x, y, z - 1, countdown - 1))
             return true;
 
         return false;

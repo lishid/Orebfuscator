@@ -29,7 +29,6 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -37,7 +36,7 @@ import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorConfig {
     // Constant/persistent data
-    private static final int CONFIG_VERSION = 10;
+    private static final int CONFIG_VERSION = 12;
     private static Random random = new Random();
     private static int AvailableProcessors = Runtime.getRuntime().availableProcessors();
 
@@ -186,7 +185,7 @@ public class OrebfuscatorConfig {
         return UseYLocationProximity && y < ProximityHiderEnd;
     }
 
-    public static boolean proximityHiderDeobfuscate(int playerY, Block block) {
+    public static boolean proximityHiderDeobfuscate() {
         return UseYLocationProximity;
     }
 
@@ -378,24 +377,6 @@ public class OrebfuscatorConfig {
         // Version check
         int version = getInt("ConfigVersion", CONFIG_VERSION);
         if (version < CONFIG_VERSION) {
-            // Orebfuscator.log("Configuration out of date. Recreating new configuration file.");
-            // File configFile = new File(Orebfuscator.instance.getDataFolder(), "config.yml");
-            // File destination = new File(Orebfuscator.instance.getDataFolder(), "config_old.yml");
-            // if (destination.exists())
-            // {
-            // try
-            // {
-            // destination.delete();
-            // }
-            // catch (Exception e)
-            // {
-            // Orebfuscator.log(e);
-            // }
-            // }
-            // configFile.renameTo(destination);
-            // reload();
-
-            ObfuscatedDataCache.ClearCache();
             setData("ConfigVersion", CONFIG_VERSION);
         }
 
@@ -460,6 +441,13 @@ public class OrebfuscatorConfig {
         save();
         
         createPaletteBlocks();
+        
+        //Make sure cache is cleared if config was changed since last start
+        try {
+			ObfuscatedDataCache.checkCacheAndConfigSynchronized();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
     private static void createPaletteBlocks() {

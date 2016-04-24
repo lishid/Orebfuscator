@@ -21,6 +21,7 @@ import net.minecraft.server.v1_9_R1.IBlockData;
 import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.TileEntity;
 
+import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.block.CraftBlock;
@@ -30,8 +31,8 @@ import org.bukkit.entity.Player;
 //Volatile
 
 public class MinecraftInternals {
-    public static void updateBlockTileEntity(org.bukkit.block.Block block, Player player) {
-        CraftWorld world = (CraftWorld) block.getWorld();
+    public static void updateBlockTileEntity(Block block, Player player) {
+        CraftWorld world = (CraftWorld) player.getWorld();
         TileEntity tileEntity = world.getTileEntityAt(block.getX(), block.getY(), block.getZ());
         if (tileEntity == null) {
             return;

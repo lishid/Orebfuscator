@@ -16,6 +16,8 @@
 
 package com.lishid.orebfuscator.commands;
 
+import java.io.IOException;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -165,11 +167,16 @@ public class OrebfuscatorCommandExecutor {
         }
 
         else if (args[0].equalsIgnoreCase("status")) {
-            Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + (OrebfuscatorConfig.Enabled ? "Enabled" : "Disabled"));
+        	String status = Orebfuscator.instance.getIsProtocolLibFound()
+        			? (OrebfuscatorConfig.Enabled ? "Enabled" : "Disabled")
+        			: "ProtocolLib is not found! Plugin cannot be enabled.";
+        	
+            Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + status);
             Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.EngineMode);
 
             Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.UseCache ? "Enabled" : "Disabled"));
             Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.UseProximityHider ? "Enabled" : "Disabled"));
+            Orebfuscator.message(sender, "DarknessHideBlocks: " + (OrebfuscatorConfig.DarknessHideBlocks ? "Enabled": "Disabled"));
 
             Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.InitialRadius);
             Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.UpdateRadius);
@@ -179,8 +186,12 @@ public class OrebfuscatorCommandExecutor {
         }
 
         else if (args[0].equalsIgnoreCase("clearcache")) {
-            ObfuscatedDataCache.ClearCache();
-            Orebfuscator.message(sender, "Cache cleared.");
+            try {
+				ObfuscatedDataCache.clearCache();
+	            Orebfuscator.message(sender, "Cache cleared.");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
         }
 
         else if (args[0].equalsIgnoreCase("debug")) {
