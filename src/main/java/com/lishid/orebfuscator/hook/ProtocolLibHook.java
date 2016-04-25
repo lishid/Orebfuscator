@@ -16,8 +16,7 @@
 
 package com.lishid.orebfuscator.hook;
 
-import net.minecraft.server.v1_9_R1.PacketPlayInBlockDig.EnumPlayerDigType;
-
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 
@@ -74,8 +73,8 @@ public class ProtocolLibHook {
         manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                EnumPlayerDigType status = event.getPacket().getSpecificModifier(EnumPlayerDigType.class).read(0);
-                if (status == EnumPlayerDigType.ABORT_DESTROY_BLOCK) {
+                EnumWrappers.PlayerDigType status = event.getPacket().getPlayerDigTypes().read(0);
+                if (status == EnumWrappers.PlayerDigType.ABORT_DESTROY_BLOCK) {
                     if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
                         event.setCancelled(true);
                     }
