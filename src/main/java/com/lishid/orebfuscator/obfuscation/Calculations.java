@@ -32,6 +32,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.chunkmap.BlockState;
@@ -83,7 +84,7 @@ public class Calculations {
         {
             return null; 
         }
-
+        
         ObfuscatedCachedChunk cache = tryUseCache(chunkData, player);
         
         if(cache != null && cache.data != null) {
@@ -272,7 +273,7 @@ public class Calculations {
 
         putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
         ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
-		
+        
         return output;
     }
     
