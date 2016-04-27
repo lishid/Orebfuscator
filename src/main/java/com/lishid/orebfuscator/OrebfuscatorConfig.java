@@ -131,6 +131,22 @@ public class OrebfuscatorConfig {
     			: TransparentBlocksMode2;
     	
     	System.arraycopy(transparentBlocks, 0, TransparentBlocks, 0, TransparentBlocks.length);
+    	
+    	List<Integer> customTransparentBlocks = getIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[]{ }));
+    	
+    	for(int blockId : customTransparentBlocks) {
+    		if(blockId >= 0 && blockId <= 255) {
+    			TransparentBlocks[blockId] = true;
+    		}
+    	}
+    	
+    	List<Integer> customNonTransparentBlocks = getIntList("Lists.NonTransparentBlocks", Arrays.asList(new Integer[]{ }));
+
+    	for(int blockId : customNonTransparentBlocks) {
+    		if(blockId >= 0 && blockId <= 255) {
+    			TransparentBlocks[blockId] = false;
+    		}
+    	}
     }
     
     private static void readInitialTransparentBlocks() {
