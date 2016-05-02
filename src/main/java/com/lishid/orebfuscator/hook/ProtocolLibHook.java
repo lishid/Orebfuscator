@@ -55,7 +55,7 @@ public class ProtocolLibHook {
         		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
                 
 				try {
-					byte[] newData = Calculations.ObfuscateOrUseCache(chunkData, event.getPlayer());
+					byte[] newData = Calculations.obfuscateOrUseCache(chunkData, event.getPlayer());
 					
 					if(newData != null) {
 						byteArray.write(0, newData);

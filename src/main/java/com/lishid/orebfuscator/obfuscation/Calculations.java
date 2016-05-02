@@ -34,7 +34,7 @@ import com.lishid.orebfuscator.internal.MinecraftInternals;
 
 public class Calculations {
 
-    public static byte[] ObfuscateOrUseCache(ChunkData chunkData, Player player) throws IOException {
+    public static byte[] obfuscateOrUseCache(ChunkData chunkData, Player player) throws IOException {
     	if(chunkData.primaryBitMask == 0) return null;
     	
         if (!OrebfuscatorConfig.Enabled // Plugin enabled
@@ -47,13 +47,14 @@ public class Calculations {
         ObfuscatedCachedChunk cache = tryUseCache(chunkData, player);
         
         if(cache != null && cache.data != null) {
+        	//\\Orebfuscator.log("Read from cache");//\\
         	return cache.data;
         }
         
         // Blocks kept track for ProximityHider
         ArrayList<BlockCoord> proximityBlocks = new ArrayList<BlockCoord>();
         
-        byte[] output = Obfuscate(chunkData, player, proximityBlocks);
+        byte[] output = obfuscate(chunkData, player, proximityBlocks);
 
         if (cache != null) {
             // If cache is still allowed
@@ -72,6 +73,8 @@ public class Calculations {
 	            }
 	            
 	            cache.Write(cache.hash, output, proximityList);
+	            
+	            //\\Orebfuscator.log("Write to cache");//\\
         	}
         	
             cache.free();
@@ -80,7 +83,7 @@ public class Calculations {
         return output;
     }
     
-    private static byte[] Obfuscate(ChunkData chunkData, Player player, ArrayList<BlockCoord> proximityBlocks) throws IOException {
+    private static byte[] obfuscate(ChunkData chunkData, Player player, ArrayList<BlockCoord> proximityBlocks) throws IOException {
     	Environment environment = player.getWorld().getEnvironment();
     	int initialRadius = OrebfuscatorConfig.InitialRadius;
 
@@ -232,6 +235,8 @@ public class Calculations {
 		byte[] output = manager.createOutput();
 
         ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
+        
+        //\\Orebfuscator.log("Create new chunk data");//\\
         
         return output;
     }

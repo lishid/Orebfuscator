@@ -45,7 +45,7 @@ public class ObfuscatedCachedChunk {
         path.mkdirs();
     }
 
-    public void Invalidate() {
+    public void invalidate() {
         Write(0L, new byte[0], new int[0]);
     }
 
