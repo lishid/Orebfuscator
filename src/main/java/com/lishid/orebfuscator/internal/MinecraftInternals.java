@@ -16,27 +16,31 @@
 
 package com.lishid.orebfuscator.internal;
 
+import net.minecraft.server.v1_9_R1.Block;
 import net.minecraft.server.v1_9_R1.BlockPosition;
+import net.minecraft.server.v1_9_R1.Chunk;
+import net.minecraft.server.v1_9_R1.ChunkProviderServer;
 import net.minecraft.server.v1_9_R1.IBlockData;
 import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.TileEntity;
+import net.minecraft.server.v1_9_R1.WorldServer;
 
-import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_9_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-//Volatile
+import com.lishid.orebfuscator.chunkmap.BlockState;
 
 public class MinecraftInternals {
-    public static void updateBlockTileEntity(Block block, Player player) {
+    public static void updateBlockTileEntity(BlockCoord blockCoord, Player player) {
         CraftWorld world = (CraftWorld) player.getWorld();
-        TileEntity tileEntity = world.getTileEntityAt(block.getX(), block.getY(), block.getZ());
+        TileEntity tileEntity = world.getTileEntityAt(blockCoord.x, blockCoord.y, blockCoord.y);
+        
         if (tileEntity == null) {
             return;
         }
+        
         Packet<?> packet = tileEntity.getUpdatePacket();
         if (packet != null) {
             CraftPlayer player2 = (CraftPlayer) player;
@@ -44,10 +48,55 @@ public class MinecraftInternals {
         }
     }
 
-    public static void notifyBlockChange(org.bukkit.World world, CraftBlock block) {
-    	BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
-    	IBlockData blockData = ((CraftChunk)block.getChunk()).getHandle().getBlockData(blockPosition);
+    public static void notifyBlockChange(org.bukkit.World world, BlockInfo blockInfo) {
+    	BlockPosition blockPosition = new BlockPosition(blockInfo.x, blockInfo.y, blockInfo.z);
     	
-        ((CraftWorld) world).getHandle().notify(blockPosition, blockData, blockData, 0);
+        ((CraftWorld) world).getHandle().notify(blockPosition, blockInfo.blockData, blockInfo.blockData, 0);
     }
+    
+    public static int getBlockLightLevel(World world, int x, int y, int z) {
+		return ((CraftWorld)world).getHandle().getLightLevel(new BlockPosition(x, y, z));
+    }
+    
+	public static BlockInfo getBlockInfo(World world, int x, int y, int z) {
+		IBlockData blockData = getBlockData(world, x, y, z);
+		
+		if(blockData == null) return null;
+		
+		BlockInfo block = new BlockInfo();
+		block.x = x;
+		block.y = y;
+		block.z = z;
+		block.blockData = blockData;
+		
+		return block;
+	}
+	
+	public static BlockState getBlockState(World world, int x, int y, int z) {
+		IBlockData blockData = getBlockData(world, x, y, z);
+		
+		if(blockData == null) return null;
+		
+		Block block = blockData.getBlock();
+		
+		BlockState blockState = new BlockState();
+		blockState.id = Block.getId(block);
+		blockState.meta = block.toLegacyData(blockData);
+		
+		return blockState;
+	}
+	
+	public static int getBlockId(World world, int x, int y, int z) {
+		IBlockData blockData = getBlockData(world, x, y, z);
+		
+		return blockData != null ? Block.getId(blockData.getBlock()): -1;
+	}
+	
+	private static IBlockData getBlockData(World world, int x, int y, int z) {
+		WorldServer worldServer = ((CraftWorld)world).getHandle();
+		ChunkProviderServer chunkProviderServer = worldServer.getChunkProviderServer();
+		Chunk chunk = chunkProviderServer.getChunkIfLoaded(x >> 4, z >> 4);
+		
+		return chunk != null ? chunk.getBlockData(new BlockPosition(x, y, z)): null;
+	}
 }

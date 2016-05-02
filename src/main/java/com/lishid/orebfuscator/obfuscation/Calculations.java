@@ -19,61 +19,20 @@ package com.lishid.orebfuscator.obfuscation;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
 
 import org.bukkit.World;
 import org.bukkit.World.Environment;
-import org.bukkit.block.Block;
-import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.chunkmap.BlockState;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
+import com.lishid.orebfuscator.internal.BlockCoord;
+import com.lishid.orebfuscator.internal.MinecraftInternals;
 
 public class Calculations {
-
-    
-    private static Map<Player, Map<ChunkAddress, Set<MinecraftBlock>>> signsMap = new WeakHashMap<Player, Map<ChunkAddress, Set<MinecraftBlock>>>();
-
-    private static Map<ChunkAddress, Set<MinecraftBlock>> getPlayerSignsMap(Player player) {
-        Map<ChunkAddress, Set<MinecraftBlock>> map = signsMap.get(player);
-        if (map == null) {
-            map = new HashMap<ChunkAddress, Set<MinecraftBlock>>();
-            signsMap.put(player, map);
-        }
-        return map;
-    }
-
-    private static void putSignsList(Player player, int chunkX, int chunkZ, Set<MinecraftBlock> blocks) {
-        Map<ChunkAddress, Set<MinecraftBlock>> map = getPlayerSignsMap(player);
-        ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
-        map.put(address, blocks);
-    }
-
-    public static Set<MinecraftBlock> getSignsList(Player player, int chunkX, int chunkZ) {
-        Map<ChunkAddress, Set<MinecraftBlock>> map = getPlayerSignsMap(player);
-        ChunkAddress address = new ChunkAddress(chunkX, chunkZ);
-        return map.get(address);
-    }
-
-    public static void putSignsList(Player player, int chunkX, int chunkZ, List<Block> proximityBlocks) {
-        Set<MinecraftBlock> signs = new HashSet<MinecraftBlock>();
-        for (Block b : proximityBlocks) {
-            if (b.getState() instanceof Sign) {
-                signs.add(new MinecraftBlock(b));
-            }
-        }
-        putSignsList(player, chunkX, chunkZ, signs);
-    }
 
     public static byte[] ObfuscateOrUseCache(ChunkData chunkData, Player player) throws IOException {
     	if(chunkData.primaryBitMask == 0) return null;
@@ -92,7 +51,7 @@ public class Calculations {
         }
         
         // Blocks kept track for ProximityHider
-        ArrayList<Block> proximityBlocks = new ArrayList<Block>();
+        ArrayList<BlockCoord> proximityBlocks = new ArrayList<BlockCoord>();
         
         byte[] output = Obfuscate(chunkData, player, proximityBlocks);
 
@@ -104,11 +63,11 @@ public class Calculations {
 	            int index = 0;
 	            
 	            for (int i = 0; i < proximityBlocks.size(); i++) {
-	            	Block b = proximityBlocks.get(i);
+	            	BlockCoord b = proximityBlocks.get(i);
 	                if (b != null) {
-	                    proximityList[index++] = b.getX();
-	                    proximityList[index++] = b.getY();
-	                    proximityList[index++] = b.getZ();
+	                    proximityList[index++] = b.x;
+	                    proximityList[index++] = b.y;
+	                    proximityList[index++] = b.z;
 	                }
 	            }
 	            
@@ -121,7 +80,7 @@ public class Calculations {
         return output;
     }
     
-    private static byte[] Obfuscate(ChunkData chunkData, Player player, ArrayList<Block> proximityBlocks) throws IOException {
+    private static byte[] Obfuscate(ChunkData chunkData, Player player, ArrayList<BlockCoord> proximityBlocks) throws IOException {
     	Environment environment = player.getWorld().getEnvironment();
     	int initialRadius = OrebfuscatorConfig.InitialRadius;
 
@@ -195,10 +154,11 @@ public class Calculations {
                         // Check if the block should be obfuscated because of proximity check
                         if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
                             if (OrebfuscatorConfig.isProximityHiderOn(y, blockState.id)) {
-                            	Block block = CalculationsUtil.getBlockAt(player.getWorld(), x, y, z);
+                            	BlockCoord block = new BlockCoord(x, y, z);
                                 if (block != null) {
                                     proximityBlocks.add(block);
                                 }
+                                
                                 obfuscate = true;
                                 if (OrebfuscatorConfig.UseSpecialBlockForProximityHider) {
                                     specialObfuscate = true;
@@ -245,7 +205,7 @@ public class Calculations {
 
                         // Check if the block should be obfuscated because of the darkness
                         if (!obfuscate && OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(blockState.id)) {
-                            if (!areAjacentBlocksBright(chunkData, player.getWorld(), x, y, z, 1)) {
+                            if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
                                 // Hide block, setting it to air
                             	blockState.id = 0;
                             	blockState.meta = 0;
@@ -271,7 +231,6 @@ public class Calculations {
 		
 		byte[] output = manager.createOutput();
 
-        putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
         ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
         
         return output;
@@ -311,7 +270,7 @@ public class Calculations {
 
         if (storedHash == hash && cache.data != null) {
             int[] proximityList = cache.proximityList;
-        	ArrayList<Block> proximityBlocks = new ArrayList<Block>();
+        	ArrayList<BlockCoord> proximityBlocks = new ArrayList<BlockCoord>();
         	
             // Decrypt chest list
             if (proximityList != null) {
@@ -321,14 +280,15 @@ public class Calculations {
                 	int x = proximityList[index++];
                 	int y = proximityList[index++];
                 	int z = proximityList[index++];
-                	Block b = CalculationsUtil.getBlockAt(player.getWorld(), x, y, z);
+                	BlockCoord b = new BlockCoord(x, y, z);
                 	
-                    proximityBlocks.add(b);
+                	if(b != null) {
+                		proximityBlocks.add(b);
+                	}
                 }
             }
 
             // ProximityHider add blocks
-            putSignsList(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
             ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
 
             // Hash match, use the cached data instead and skip calculations
@@ -360,9 +320,9 @@ public class Calculations {
 	        int id;
 	
 	        if (blockData < 0) {
-	            if (CalculationsUtil.isChunkLoaded(world, chunkData.chunkX, chunkData.chunkZ)) {
-	                id = world.getBlockTypeIdAt(x, y, z);
-	            } else {
+	        	id = MinecraftInternals.getBlockId(world, x, y, z);
+	        	
+	            if (id < 0) {
 	                id = 1;
 	                chunkData.useCache = false;
 	            }
@@ -394,29 +354,25 @@ public class Calculations {
         return false;
     }
 
-    public static boolean areAjacentBlocksBright(ChunkData chunkData, World world, int x, int y, int z, int countdown) {
-        if (CalculationsUtil.isChunkLoaded(world, chunkData.chunkX, chunkData.chunkZ)) {
-            if (world.getBlockAt(x, y, z).getLightLevel() > 0) {
-                return true;
-            }
-        } else {
-            return true;
-        }
+    public static boolean areAjacentBlocksBright(World world, int x, int y, int z, int countdown) {
+    	if(MinecraftInternals.getBlockLightLevel(world, x, y, z) > 0) {
+    		return true;
+    	}
 
         if (countdown == 0)
             return false;
 
-        if (areAjacentBlocksBright(chunkData, world, x, y + 1, z, countdown - 1))
+        if (areAjacentBlocksBright(world, x, y + 1, z, countdown - 1))
             return true;
-        if (areAjacentBlocksBright(chunkData, world, x, y - 1, z, countdown - 1))
+        if (areAjacentBlocksBright(world, x, y - 1, z, countdown - 1))
             return true;
-        if (areAjacentBlocksBright(chunkData, world, x + 1, y, z, countdown - 1))
+        if (areAjacentBlocksBright(world, x + 1, y, z, countdown - 1))
             return true;
-        if (areAjacentBlocksBright(chunkData, world, x - 1, y, z, countdown - 1))
+        if (areAjacentBlocksBright(world, x - 1, y, z, countdown - 1))
             return true;
-        if (areAjacentBlocksBright(chunkData, world, x, y, z + 1, countdown - 1))
+        if (areAjacentBlocksBright(world, x, y, z + 1, countdown - 1))
             return true;
-        if (areAjacentBlocksBright(chunkData, world, x, y, z - 1, countdown - 1))
+        if (areAjacentBlocksBright(world, x, y, z - 1, countdown - 1))
             return true;
 
         return false;

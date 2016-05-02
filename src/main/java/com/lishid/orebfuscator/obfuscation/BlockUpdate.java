@@ -21,11 +21,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import net.minecraft.server.v1_9_R1.BlockPosition;
+import net.minecraft.server.v1_9_R1.IBlockData;
+
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_9_R1.block.CraftBlock;
+import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.internal.BlockInfo;
 import com.lishid.orebfuscator.internal.MinecraftInternals;
 
 public class BlockUpdate {
@@ -46,45 +50,53 @@ public class BlockUpdate {
             return;
         }
 
-        Set<Block> updateBlocks = new HashSet<Block>();
+        World world = blocks.get(0).getWorld();
+        HashSet<BlockInfo> updateBlocks = new HashSet<BlockInfo>();
+        
         for (Block block : blocks) {
             if (needsUpdate(block)) {
-                updateBlocks.addAll(GetAjacentBlocks(new HashSet<Block>(), block, OrebfuscatorConfig.UpdateRadius));
+            	BlockInfo blockInfo = new BlockInfo();
+            	blockInfo.x = block.getX();
+            	blockInfo.y = block.getY();
+            	blockInfo.z = block.getZ();
+            	
+            	BlockPosition blockPosition = new BlockPosition(blockInfo.x, blockInfo.y, blockInfo.z);
+            	IBlockData blockData = ((CraftChunk)block.getChunk()).getHandle().getBlockData(blockPosition);
+            	
+            	blockInfo.blockData = blockData;
+
+            	GetAjacentBlocks(updateBlocks, world, blockInfo, OrebfuscatorConfig.UpdateRadius);
             }
         }
-
-        World world = blocks.get(0).getWorld();
 
         sendUpdates(world, updateBlocks);
     }
 
-    private static void sendUpdates(World world, Set<Block> blocks) {
-        for (Block block : blocks) {
-            MinecraftInternals.notifyBlockChange(world, (CraftBlock)block);
+    private static void sendUpdates(World world, Set<BlockInfo> blocks) {
+        for (BlockInfo blockInfo : blocks) {
+            MinecraftInternals.notifyBlockChange(world, blockInfo);
         }
     }
 
-    public static HashSet<Block> GetAjacentBlocks(HashSet<Block> allBlocks, Block block, int countdown) {
-        if (block == null) {
-            return allBlocks;
-        }
+    private static void GetAjacentBlocks(HashSet<BlockInfo> allBlocks, World world, BlockInfo blockInfo, int countdown) {
+        if (blockInfo == null) return;
+        
+        int blockId = blockInfo.getTypeId();
 
-        if ((OrebfuscatorConfig.isObfuscated(block.getTypeId(), block.getWorld().getEnvironment())
-                || OrebfuscatorConfig.isDarknessObfuscated(block.getTypeId()))) {
-            allBlocks.add(block);
+        if ((OrebfuscatorConfig.isObfuscated(blockId, world.getEnvironment())
+                || OrebfuscatorConfig.isDarknessObfuscated(blockId)))
+        {
+            allBlocks.add(blockInfo);
         }
 
         if (countdown > 0) {
             countdown--;
-            World world = block.getWorld();
-            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX() + 1, block.getY(), block.getZ()), countdown);
-            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX() - 1, block.getY(), block.getZ()), countdown);
-            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY() + 1, block.getZ()), countdown);
-            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY() - 1, block.getZ()), countdown);
-            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY(), block.getZ() + 1), countdown);
-            GetAjacentBlocks(allBlocks, CalculationsUtil.getBlockAt(world, block.getX(), block.getY(), block.getZ() - 1), countdown);
+            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x + 1, blockInfo.y, blockInfo.z), countdown);
+            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x - 1, blockInfo.y, blockInfo.z), countdown);
+            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y + 1, blockInfo.z), countdown);
+            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y - 1, blockInfo.z), countdown);
+            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y, blockInfo.z + 1), countdown);
+            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y, blockInfo.z - 1), countdown);
         }
-
-        return allBlocks;
     }
 }
