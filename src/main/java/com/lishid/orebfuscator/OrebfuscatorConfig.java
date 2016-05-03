@@ -106,15 +106,11 @@ public class OrebfuscatorConfig {
         return CacheFolder;
     }
 
-    private static boolean[] TransparentBlocks = new boolean[256];
-    private static boolean TransparentCached = false;
+    private static boolean[] TransparentBlocks;
+    private static boolean[] TransparentBlocksMode1;
+    private static boolean[] TransparentBlocksMode2;
 
     public static boolean isBlockTransparent(int id) {
-        if (!TransparentCached) {
-            // Generate TransparentBlocks by reading them from Minecraft
-            generateTransparentBlocks();
-        }
-
         if (id < 0)
             id += 256;
 
@@ -124,12 +120,54 @@ public class OrebfuscatorConfig {
 
         return TransparentBlocks[id];
     }
-
+    
     private static void generateTransparentBlocks() {
+    	if(TransparentBlocks == null) {
+    		readInitialTransparentBlocks();
+    	}
+    	
+    	boolean[] transparentBlocks = EngineMode == 1
+    			? TransparentBlocksMode1
+    			: TransparentBlocksMode2;
+    	
+    	System.arraycopy(transparentBlocks, 0, TransparentBlocks, 0, TransparentBlocks.length);
+    	
+    	List<Integer> customTransparentBlocks = getIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[]{ }));
+    	
+    	for(int blockId : customTransparentBlocks) {
+    		if(blockId >= 0 && blockId <= 255) {
+    			TransparentBlocks[blockId] = true;
+    		}
+    	}
+    	
+    	List<Integer> customNonTransparentBlocks = getIntList("Lists.NonTransparentBlocks", Arrays.asList(new Integer[]{ }));
+
+    	for(int blockId : customNonTransparentBlocks) {
+    		if(blockId >= 0 && blockId <= 255) {
+    			TransparentBlocks[blockId] = false;
+    		}
+    	}
+    }
+    
+    private static void readInitialTransparentBlocks() {
+    	TransparentBlocks = new boolean[256];
     	Arrays.fill(TransparentBlocks, false);
     	
-		InputStream stream = Orebfuscator.class.getResourceAsStream("/resources/transparent_blocks.txt");
+		InputStream mainStream = Orebfuscator.class.getResourceAsStream("/resources/transparent_blocks.txt");
+		readTransparentBlocks(TransparentBlocks, mainStream);
     	
+		TransparentBlocksMode1 = new boolean[256];
+		System.arraycopy(TransparentBlocks, 0, TransparentBlocksMode1, 0, TransparentBlocksMode1.length);
+		InputStream mode1Stream = Orebfuscator.class.getResourceAsStream("/resources/transparent_blocks_mode1.txt");
+		if(mode1Stream != null) readTransparentBlocks(TransparentBlocksMode1, mode1Stream);
+
+		TransparentBlocksMode2 = new boolean[256];
+		System.arraycopy(TransparentBlocks, 0, TransparentBlocksMode2, 0, TransparentBlocksMode2.length);
+		InputStream mode2Stream = Orebfuscator.class.getResourceAsStream("/resources/transparent_blocks_mode2.txt");
+		if(mode2Stream != null) readTransparentBlocks(TransparentBlocksMode2, mode2Stream);
+    }
+    
+    private static void readTransparentBlocks(boolean[] transparentBlocks, InputStream stream) {
     	try {
     		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
     		String line;
@@ -140,13 +178,11 @@ public class OrebfuscatorConfig {
             	int blockId = Integer.parseInt(line.substring(0,  index1));
             	boolean isTransparent = line.substring(index1 + 1, index2).equals("true");
             	
-            	TransparentBlocks[blockId] = isTransparent;
+            	transparentBlocks[blockId] = isTransparent;
             }
     	} catch (IOException e) {
     		e.printStackTrace();
     	}
-
-    	TransparentCached = true;
     }
 
     public static boolean isObfuscated(int id, World.Environment environment) {
@@ -412,6 +448,8 @@ public class OrebfuscatorConfig {
         LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
+
+        generateTransparentBlocks();
 
         // Read block lists
         setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14, 15, 16, 21, 54, 56, 73, 74, 129, 130})), false);

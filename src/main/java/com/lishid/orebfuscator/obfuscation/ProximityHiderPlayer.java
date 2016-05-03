@@ -10,15 +10,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.World;
-import org.bukkit.block.Block;
+
+import com.lishid.orebfuscator.internal.BlockCoord;
 
 public class ProximityHiderPlayer {
 	private World world; 
-	private Map<Long, ArrayList<Block>> chunks;
+	private Map<Long, ArrayList<BlockCoord>> chunks;
 	
 	public ProximityHiderPlayer(World world) {
 		this.world = world;
-		this.chunks = new HashMap<Long, ArrayList<Block>>();
+		this.chunks = new HashMap<Long, ArrayList<BlockCoord>>();
 	}
 	
 	public World getWorld() {
@@ -33,12 +34,12 @@ public class ProximityHiderPlayer {
 		this.chunks.clear();
 	}
 	
-	public void putBlocks(int chunkX, int chunkZ, ArrayList<Block> blocks) {
+	public void putBlocks(int chunkX, int chunkZ, ArrayList<BlockCoord> blocks) {
 		long key = getKey(chunkX, chunkZ);
 		this.chunks.put(key, blocks);
 	}
 	
-	public ArrayList<Block> getBlocks(int chunkX, int chunkZ) {
+	public ArrayList<BlockCoord> getBlocks(int chunkX, int chunkZ) {
 		long key = getKey(chunkX, chunkZ);
 		return this.chunks.get(key);
 	}

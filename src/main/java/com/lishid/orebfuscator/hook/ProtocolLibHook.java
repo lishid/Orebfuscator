@@ -32,8 +32,6 @@ import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 
 public class ProtocolLibHook {
-	private static boolean _isSaved = false;
-	
     private ProtocolManager manager;
 
     public void register(Plugin plugin) {
@@ -42,8 +40,6 @@ public class ProtocolLibHook {
         this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
             @Override
             public void onPacketSending(PacketEvent event) {
-            	if(_isSaved) return;
-            	
             	PacketContainer packet = event.getPacket();
             	
             	StructureModifier<Integer> ints = packet.getIntegers();
@@ -59,7 +55,7 @@ public class ProtocolLibHook {
         		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
                 
 				try {
-					byte[] newData = Calculations.ObfuscateOrUseCache(chunkData, event.getPlayer());
+					byte[] newData = Calculations.obfuscateOrUseCache(chunkData, event.getPlayer());
 					
 					if(newData != null) {
 						byteArray.write(0, newData);

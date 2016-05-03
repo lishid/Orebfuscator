@@ -112,13 +112,13 @@ public class ChunkMapManager {
     	
     	this.buffer.outputPaletteLength = this.buffer.paletteLength;
     	
-    	for(byte i = 0; i < this.buffer.paletteLength; i++) {
+    	for(int i = 0; i < this.buffer.paletteLength; i++) {
     		int blockData = this.buffer.palette[i];
     		    		
     		this.buffer.outputPalette[i] = blockData;
     		
     		if(blockData >= 0) {
-    			this.buffer.outputPaletteMap[blockData] = i;
+    			this.buffer.outputPaletteMap[blockData] = (byte)i;
     		}
     	}
     	
