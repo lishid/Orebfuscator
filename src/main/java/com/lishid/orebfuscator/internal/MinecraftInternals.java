@@ -93,10 +93,16 @@ public class MinecraftInternals {
 	}
 	
 	private static IBlockData getBlockData(World world, int x, int y, int z) {
+		int chunkX = x >> 4;
+		int chunkZ = z >> 4;
+
 		WorldServer worldServer = ((CraftWorld)world).getHandle();
 		ChunkProviderServer chunkProviderServer = worldServer.getChunkProviderServer();
-		Chunk chunk = chunkProviderServer.getChunkIfLoaded(x >> 4, z >> 4);
 		
-		return chunk != null ? chunk.getBlockData(new BlockPosition(x, y, z)): null;
+		if(!chunkProviderServer.isChunkLoaded(chunkX, chunkZ)) return null;
+		
+		Chunk chunk = chunkProviderServer.getOrCreateChunkFast(chunkX, chunkZ);
+		
+		return chunk.getBlockData(new BlockPosition(x, y, z));
 	}
 }
