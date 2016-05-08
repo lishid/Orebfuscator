@@ -100,7 +100,7 @@ public class BlockUpdate {
             ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunk.x, chunk.z);
             cache.invalidate();
             
-            //\\Orebfuscator.log("Chunk x = " + chunk.x + ", z = " + chunk.z + " is invalidated");//\\
+            //Orebfuscator.log("Chunk x = " + chunk.x + ", z = " + chunk.z + " is invalidated");/*debug*/
         }
     }
 

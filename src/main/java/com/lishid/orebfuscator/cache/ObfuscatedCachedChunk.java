@@ -46,7 +46,7 @@ public class ObfuscatedCachedChunk {
     }
 
     public void invalidate() {
-        Write(0L, new byte[0], new int[0]);
+        write(0L, new byte[0], new int[0]);
     }
 
     public void free() {
@@ -55,7 +55,7 @@ public class ObfuscatedCachedChunk {
     }
 
     public long getHash() {
-        Read();
+        read();
 
         if (!loaded)
             return 0L;
@@ -63,7 +63,7 @@ public class ObfuscatedCachedChunk {
         return hash;
     }
 
-    public void Read() {
+    public void read() {
         if (loaded)
             return;
 
@@ -95,7 +95,7 @@ public class ObfuscatedCachedChunk {
         }
     }
 
-    public void Write(long hash, byte[] data, int[] proximityList) {
+    public void write(long hash, byte[] data, int[] proximityList) {
         try {
             NBT nbt = nbtAccessor.get();
             nbt.reset();

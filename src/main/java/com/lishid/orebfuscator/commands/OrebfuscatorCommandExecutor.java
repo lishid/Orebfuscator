@@ -172,7 +172,7 @@ public class OrebfuscatorCommandExecutor {
         			: "ProtocolLib is not found! Plugin cannot be enabled.";
         	
             Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + status);
-            Orebfuscator.message(sender, "EngineMode: " + OrebfuscatorConfig.EngineMode);
+            Orebfuscator.message(sender, "Engine Mode: " + OrebfuscatorConfig.EngineMode);
 
             Orebfuscator.message(sender, "Caching: " + (OrebfuscatorConfig.UseCache ? "Enabled" : "Disabled"));
             Orebfuscator.message(sender, "ProximityHider: " + (OrebfuscatorConfig.UseProximityHider ? "Enabled" : "Disabled"));
