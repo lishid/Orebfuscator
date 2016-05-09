@@ -91,8 +91,12 @@ public class OrebfuscatorConfig {
     private static Integer[] RandomBlocks2 = RandomBlocks;
     private static List<String> DisabledWorlds = new ArrayList<String>();
 
+    // Palette
     public static int[] NetherPaletteBlocks;
     public static int[] NormalPaletteBlocks;
+    
+    // ChunkReloader
+    public static int ChunkReloaderRate = 500;
 
     public static File getCacheFolder() {
         // Try to make the folder

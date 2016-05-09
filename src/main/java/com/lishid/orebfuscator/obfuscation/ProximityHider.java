@@ -200,7 +200,7 @@ public class ProximityHider extends Thread implements Runnable {
         running = false;
     }
 
-    public static void restart() {
+    private static void restart() {
         synchronized (thread) {
             if (thread.isInterrupted() || !thread.isAlive())
                 running = false;

@@ -47,7 +47,7 @@ public class Calculations {
         ObfuscatedCachedChunk cache = tryUseCache(chunkData, player);
         
         if(cache != null && cache.data != null) {
-        	//\\Orebfuscator.log("Read from cache");//\\
+        	//Orebfuscator.log("Read from cache");/*debug*/
         	return cache.data;
         }
         
@@ -72,9 +72,9 @@ public class Calculations {
 	                }
 	            }
 	            
-	            cache.Write(cache.hash, output, proximityList);
+	            cache.write(cache.hash, output, proximityList);
 	            
-	            //\\Orebfuscator.log("Write to cache");//\\
+	            //Orebfuscator.log("Write to cache");/*debug*/
         	}
         	
             cache.free();
@@ -236,7 +236,7 @@ public class Calculations {
 
         ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
         
-        //\\Orebfuscator.log("Create new chunk data");//\\
+        //Orebfuscator.log("Create new chunk data for x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ);/*debug*/
         
         return output;
     }
@@ -269,7 +269,7 @@ public class Calculations {
         ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunkData.chunkX, chunkData.chunkZ);
         
         // Check if hash is consistent
-        cache.Read();
+        cache.read();
         
         long storedHash = cache.getHash();
 
