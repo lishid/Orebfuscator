@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.minecraft.server.v1_9_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_9_R1.PlayerChunk;
 import net.minecraft.server.v1_9_R1.PlayerChunkMap;
 import net.minecraft.server.v1_9_R1.WorldServer;
@@ -124,21 +123,22 @@ public class ChunkReloader extends Thread implements Runnable {
     }
     
     private static void reloadChunks(
-    		World world,
+    		final World world,
     		HashSet<ChunkCoord> chunksForReloadForWorld,
     		ArrayList<ChunkCoord> reloadedChunks
     		)
     {
     	WorldServer worldServer = ((CraftWorld)world).getHandle();
     	PlayerChunkMap chunkMap = worldServer.getPlayerChunkMap();
-    	File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());
+    	File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());    	
+    	final ArrayList<ChunkCoord> scheduledChunksForReload = new ArrayList<ChunkCoord>();
     	
     	for(ChunkCoord chunk : chunksForReloadForWorld) {
     		if(!chunkMap.isChunkInUse(chunk.x, chunk.z)) continue;
-
+    		
     		PlayerChunk playerChunk = chunkMap.b(chunk.x, chunk.z);
     		if(playerChunk == null || playerChunk.chunk == null || !playerChunk.chunk.isReady()) continue;
-    		
+
     		reloadedChunks.add(chunk);
     		
     		if(OrebfuscatorConfig.UseCache) {
@@ -146,10 +146,22 @@ public class ChunkReloader extends Thread implements Runnable {
 	    		if(cache.getHash() != 0) continue;
     		}
     		
-   			//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " reload for players");/*debug*/
+    		scheduledChunksForReload.add(chunk);
     		
-    		playerChunk.a(new PacketPlayOutMapChunk(playerChunk.chunk, true, 0xffff));//Reload chunks for players loaded it
+   			//Orebfuscator.log("Add chunk x = " + chunk.x + ", z = " + chunk.z + " to schedule for reload for players");/*debug*/
     	}
+    	
+        Orebfuscator.instance.runTask(new Runnable() {
+            @Override
+            public void run() {
+        		//Reload chunk for players
+    			for(ChunkCoord chunk : scheduledChunksForReload) {
+    				world.refreshChunk(chunk.x, chunk.z);
+
+        			//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " to reload for players");/*debug*/
+    			}
+            }
+        });
     }
     
     private static void restart() {
