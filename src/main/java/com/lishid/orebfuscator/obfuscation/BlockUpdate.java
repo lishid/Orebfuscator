@@ -22,11 +22,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.minecraft.server.v1_9_R1.BlockPosition;
+import net.minecraft.server.v1_9_R2.BlockPosition;
 
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_9_R1.CraftChunk;
+import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
 
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;

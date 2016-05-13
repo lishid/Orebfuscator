@@ -16,18 +16,18 @@
 
 package com.lishid.orebfuscator.internal;
 
-import net.minecraft.server.v1_9_R1.Block;
-import net.minecraft.server.v1_9_R1.BlockPosition;
-import net.minecraft.server.v1_9_R1.Chunk;
-import net.minecraft.server.v1_9_R1.ChunkProviderServer;
-import net.minecraft.server.v1_9_R1.IBlockData;
-import net.minecraft.server.v1_9_R1.Packet;
-import net.minecraft.server.v1_9_R1.TileEntity;
-import net.minecraft.server.v1_9_R1.WorldServer;
+import net.minecraft.server.v1_9_R2.Block;
+import net.minecraft.server.v1_9_R2.BlockPosition;
+import net.minecraft.server.v1_9_R2.Chunk;
+import net.minecraft.server.v1_9_R2.ChunkProviderServer;
+import net.minecraft.server.v1_9_R2.IBlockData;
+import net.minecraft.server.v1_9_R2.Packet;
+import net.minecraft.server.v1_9_R2.TileEntity;
+import net.minecraft.server.v1_9_R2.WorldServer;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_9_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.chunkmap.BlockState;
@@ -92,16 +92,16 @@ public class MinecraftInternals {
 		return blockData != null ? Block.getId(blockData.getBlock()): -1;
 	}
 	
-	private static IBlockData getBlockData(World world, int x, int y, int z) {
+	public static IBlockData getBlockData(World world, int x, int y, int z) {
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
 
 		WorldServer worldServer = ((CraftWorld)world).getHandle();
 		ChunkProviderServer chunkProviderServer = worldServer.getChunkProviderServer();
 		
-		if(!chunkProviderServer.isChunkLoaded(chunkX, chunkZ)) return null;
+		if(!chunkProviderServer.isLoaded(chunkX, chunkZ)) return null;
 		
-		Chunk chunk = chunkProviderServer.getOrCreateChunkFast(chunkX, chunkZ);
+		Chunk chunk = chunkProviderServer.getOrLoadChunkAt(chunkX, chunkZ);
 		
 		return chunk.getBlockData(new BlockPosition(x, y, z));
 	}
