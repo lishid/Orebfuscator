@@ -16,13 +16,13 @@
 
 package com.lishid.orebfuscator.internal;
 
-import net.minecraft.server.v1_9_R1.NBTCompressedStreamTools;
-import net.minecraft.server.v1_9_R1.NBTTagCompound;
-
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
+
+import net.minecraft.server.v1_9_R2.NBTCompressedStreamTools;
+import net.minecraft.server.v1_9_R2.NBTTagCompound;
 
 //Volatile
 

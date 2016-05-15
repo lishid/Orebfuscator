@@ -21,11 +21,11 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.util.HashMap;
 
+import net.minecraft.server.v1_9_R2.RegionFile;
+
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-
 //Volatile
-import net.minecraft.server.v1_9_R1.*;
 
 public class ChunkCache {
     private static final HashMap<File, RegionFile> cachedRegionFiles = new HashMap<File, RegionFile>();
