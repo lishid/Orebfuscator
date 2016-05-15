@@ -7,12 +7,12 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.minecraft.server.v1_9_R2.PlayerChunk;
-import net.minecraft.server.v1_9_R2.PlayerChunkMap;
-import net.minecraft.server.v1_9_R2.WorldServer;
+import net.minecraft.server.v1_9_R1.PlayerChunk;
+import net.minecraft.server.v1_9_R1.PlayerChunkMap;
+import net.minecraft.server.v1_9_R1.WorldServer;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
@@ -136,7 +136,7 @@ public class ChunkReloader extends Thread implements Runnable {
     	for(ChunkCoord chunk : chunksForReloadForWorld) {
     		if(!chunkMap.isChunkInUse(chunk.x, chunk.z)) continue;
     		
-    		PlayerChunk playerChunk = chunkMap.getChunk(chunk.x, chunk.z);
+    		PlayerChunk playerChunk = chunkMap.b(chunk.x, chunk.z);
     		if(playerChunk == null || playerChunk.chunk == null || !playerChunk.chunk.isReady()) continue;
 
     		reloadedChunks.add(chunk);
@@ -173,7 +173,6 @@ public class ChunkReloader extends Thread implements Runnable {
     }
 
     public static void addLoadedChunk(World world, int chunkX, int chunkZ) {
-    	/*
         restart();
         
         synchronized (loadedChunks) {
@@ -185,11 +184,9 @@ public class ChunkReloader extends Thread implements Runnable {
         	
         	chunks.add(new ChunkCoord(chunkX, chunkZ));
         }
-        */
     }
 
     public static void addUnloadedChunk(World world, int chunkX, int chunkZ) {
-    	/*
         restart();
         
         synchronized (unloadedChunks) {
@@ -201,6 +198,5 @@ public class ChunkReloader extends Thread implements Runnable {
         	
         	chunks.add(new ChunkCoord(chunkX, chunkZ));
         }
-        */
     }
 }

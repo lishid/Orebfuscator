@@ -1,7 +1,7 @@
 package com.lishid.orebfuscator.internal;
 
-import net.minecraft.server.v1_9_R2.Block;
-import net.minecraft.server.v1_9_R2.IBlockData;
+import net.minecraft.server.v1_9_R1.Block;
+import net.minecraft.server.v1_9_R1.IBlockData;
 
 public class BlockInfo {
 	public int x;
