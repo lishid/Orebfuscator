@@ -1,4 +1,9 @@
-package com.lishid.orebfuscator.internal;
+/**
+ * @author Aleksey Terzi
+ *
+ */
+
+package com.lishid.orebfuscator.types;
 
 public class BlockCoord {
 	public int x;

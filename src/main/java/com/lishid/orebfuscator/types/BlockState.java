@@ -3,7 +3,7 @@
  *
  */
  
-package com.lishid.orebfuscator.chunkmap;
+package com.lishid.orebfuscator.types;
 
 public class BlockState {
 	public int id;

@@ -1,3 +1,8 @@
+/**
+ * @author Aleksey Terzi
+ *
+ */
+
 package com.lishid.orebfuscator.utils;
 
 import java.io.BufferedReader;

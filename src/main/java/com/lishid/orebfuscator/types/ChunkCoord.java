@@ -1,5 +1,9 @@
-package com.lishid.orebfuscator.internal;
+/**
+ * @author Aleksey Terzi
+ *
+ */
 
+package com.lishid.orebfuscator.types;
 
 public class ChunkCoord {
 	public int x;

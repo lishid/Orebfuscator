@@ -24,13 +24,13 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
-import com.lishid.orebfuscator.chunkmap.BlockState;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
-import com.lishid.orebfuscator.internal.BlockCoord;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
+import com.lishid.orebfuscator.types.BlockCoord;
+import com.lishid.orebfuscator.types.BlockState;
 
 public class Calculations {
 
@@ -44,41 +44,45 @@ public class Calculations {
             return null; 
         }
         
+        byte[] output;
+        
         ObfuscatedCachedChunk cache = tryUseCache(chunkData, player);
         
         if(cache != null && cache.data != null) {
         	//Orebfuscator.log("Read from cache");/*debug*/
-        	return cache.data;
+        	output = cache.data;
+        } else {
+	        // Blocks kept track for ProximityHider
+	        ArrayList<BlockCoord> proximityBlocks = new ArrayList<BlockCoord>();
+	        
+	        output = obfuscate(chunkData, player, proximityBlocks);
+	
+	        if (cache != null) {
+	            // If cache is still allowed
+	        	if(chunkData.useCache) {
+		            // Save cache
+		            int[] proximityList = new int[proximityBlocks.size() * 3];
+		            int index = 0;
+		            
+		            for (int i = 0; i < proximityBlocks.size(); i++) {
+		            	BlockCoord b = proximityBlocks.get(i);
+		                if (b != null) {
+		                    proximityList[index++] = b.x;
+		                    proximityList[index++] = b.y;
+		                    proximityList[index++] = b.z;
+		                }
+		            }
+		            
+		            cache.write(cache.hash, output, proximityList);
+		            
+		            //Orebfuscator.log("Write to cache");/*debug*/
+	        	}
+	        	
+	            cache.free();
+	        }
         }
         
-        // Blocks kept track for ProximityHider
-        ArrayList<BlockCoord> proximityBlocks = new ArrayList<BlockCoord>();
-        
-        byte[] output = obfuscate(chunkData, player, proximityBlocks);
-
-        if (cache != null) {
-            // If cache is still allowed
-        	if(chunkData.useCache) {
-	            // Save cache
-	            int[] proximityList = new int[proximityBlocks.size() * 3];
-	            int index = 0;
-	            
-	            for (int i = 0; i < proximityBlocks.size(); i++) {
-	            	BlockCoord b = proximityBlocks.get(i);
-	                if (b != null) {
-	                    proximityList[index++] = b.x;
-	                    proximityList[index++] = b.y;
-	                    proximityList[index++] = b.z;
-	                }
-	            }
-	            
-	            cache.write(cache.hash, output, proximityList);
-	            
-	            //Orebfuscator.log("Write to cache");/*debug*/
-        	}
-        	
-            cache.free();
-        }
+        //Orebfuscator.log("Send chunk x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ + " to player " + player.getName());/*debug*/
 
         return output;
     }
@@ -325,7 +329,7 @@ public class Calculations {
 	        int id;
 	
 	        if (blockData < 0) {
-	        	id = MinecraftInternals.getBlockId(world, x, y, z);
+	        	id = Orebfuscator.nms.getBlockId(world, x, y, z);
 	        	
 	            if (id < 0) {
 	                id = 1;
@@ -360,7 +364,7 @@ public class Calculations {
     }
 
     public static boolean areAjacentBlocksBright(World world, int x, int y, int z, int countdown) {
-    	if(MinecraftInternals.getBlockLightLevel(world, x, y, z) > 0) {
+    	if(Orebfuscator.nms.getBlockLightLevel(world, x, y, z) > 0) {
     		return true;
     	}
 

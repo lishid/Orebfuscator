@@ -11,7 +11,7 @@ import java.util.Map;
 
 import org.bukkit.World;
 
-import com.lishid.orebfuscator.internal.BlockCoord;
+import com.lishid.orebfuscator.types.BlockCoord;
 
 public class ProximityHiderPlayer {
 	private World world; 

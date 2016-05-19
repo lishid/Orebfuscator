@@ -32,6 +32,7 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorChunkListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
+import com.lishid.orebfuscator.nms.INmsManager;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -42,6 +43,8 @@ public class Orebfuscator extends JavaPlugin {
 
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
+    
+    public static INmsManager nms;
     
     private boolean isProtocolLibFound;
     public boolean getIsProtocolLibFound() {
@@ -54,6 +57,8 @@ public class Orebfuscator extends JavaPlugin {
         PluginManager pm = getServer().getPluginManager();
 
         instance = this;
+        nms = new com.lishid.orebfuscator.nms.nms194.NmsManager();
+        
         // Load configurations
         OrebfuscatorConfig.load();
         

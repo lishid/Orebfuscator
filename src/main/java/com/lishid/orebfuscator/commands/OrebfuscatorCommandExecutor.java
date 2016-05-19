@@ -27,8 +27,6 @@ import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorCommandExecutor {
-    public static boolean DebugMode = false;
-
     public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if ((sender instanceof Player) && !sender.hasPermission("Orebfuscator.admin")) {
@@ -193,11 +191,7 @@ public class OrebfuscatorCommandExecutor {
 				e.printStackTrace();
 			}
         }
-
-        else if (args[0].equalsIgnoreCase("debug")) {
-            DebugMode = !DebugMode;
-        }
-
+        
         return true;
     }
 }

@@ -24,16 +24,16 @@ import java.util.Objects;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.internal.ChunkCache;
+import com.lishid.orebfuscator.nms.IChunkCache;
 import com.lishid.orebfuscator.utils.FileHelper;
 
 public class ObfuscatedDataCache {
 	private static final String cacheFileName = "cache_config.yml";
-    private static ChunkCache internalCache;
+    private static IChunkCache internalCache;
 
-    private static ChunkCache getInternalCache() {
+    private static IChunkCache getInternalCache() {
         if (internalCache == null) {
-            internalCache = new ChunkCache();
+            internalCache = Orebfuscator.nms.createChunkCache();
         }
         return internalCache;
     }

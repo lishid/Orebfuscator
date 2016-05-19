@@ -16,12 +16,13 @@
 
 package com.lishid.orebfuscator.cache;
 
-import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.internal.NBT;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+
+import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.nms.INBT;
 
 public class ObfuscatedCachedChunk {
     File path;
@@ -32,9 +33,9 @@ public class ObfuscatedCachedChunk {
     public long hash = 0L;
     private boolean loaded = false;
 
-    private static final ThreadLocal<NBT> nbtAccessor = new ThreadLocal<NBT>() {
-        protected NBT initialValue() {
-            return new NBT();
+    private static final ThreadLocal<INBT> nbtAccessor = new ThreadLocal<INBT>() {
+        protected INBT initialValue() {
+            return Orebfuscator.nms.createNBT();
         }
     };
 
@@ -70,7 +71,7 @@ public class ObfuscatedCachedChunk {
         try {
             DataInputStream stream = ObfuscatedDataCache.getInputStream(path, x, z);
             if (stream != null) {
-                NBT nbt = nbtAccessor.get();
+                INBT nbt = nbtAccessor.get();
 
                 nbt.Read(stream);
 
@@ -97,7 +98,7 @@ public class ObfuscatedCachedChunk {
 
     public void write(long hash, byte[] data, int[] proximityList) {
         try {
-            NBT nbt = nbtAccessor.get();
+            INBT nbt = nbtAccessor.get();
             nbt.reset();
 
             // Set status indicator

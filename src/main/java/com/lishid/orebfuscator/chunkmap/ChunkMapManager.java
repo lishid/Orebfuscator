@@ -8,6 +8,8 @@ package com.lishid.orebfuscator.chunkmap;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.lishid.orebfuscator.types.BlockState;
+
 public class ChunkMapManager {
     private static final ThreadLocal<ChunkMapBuffer> _buffer = new ThreadLocal<ChunkMapBuffer>() {
     	@Override

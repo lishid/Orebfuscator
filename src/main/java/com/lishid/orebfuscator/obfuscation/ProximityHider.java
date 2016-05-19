@@ -26,11 +26,11 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-import com.lishid.orebfuscator.chunkmap.BlockState;
-import com.lishid.orebfuscator.internal.BlockCoord;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
+import com.lishid.orebfuscator.types.BlockCoord;
+import com.lishid.orebfuscator.types.BlockState;
 
 public class ProximityHider extends Thread implements Runnable {
     private static final Map<Player, ProximityHiderPlayer> proximityHiderTracker = new WeakHashMap<Player, ProximityHiderPlayer>();
@@ -168,16 +168,16 @@ public class ProximityHider extends Thread implements Runnable {
 		                        if (OrebfuscatorConfig.proximityHiderDeobfuscate() || playerLocation.distanceSquared(blockLocation) < distanceSquared) {
 		                            removedBlocks.add(b);
 		                            
-		                            BlockState blockState = MinecraftInternals.getBlockState(localPlayerInfo.getWorld(), b.x, b.y, b.z);
+		                            BlockState blockState = Orebfuscator.nms.getBlockState(localPlayerInfo.getWorld(), b.x, b.y, b.z);
 		
 		                            if (blockState != null) {
-		                                p.sendBlockChange(blockLocation, blockState.id, (byte)blockState.meta);
+		                            	DeprecatedMethods.sendBlockChange(p, blockLocation, blockState);
 		                                final BlockCoord block = b;
 		                                final Player player = p;
 		                                Orebfuscator.instance.runTask(new Runnable() {
 		                                    @Override
 		                                    public void run() {
-		                                        MinecraftInternals.updateBlockTileEntity(block, player);
+		                                    	Orebfuscator.nms.updateBlockTileEntity(block, player);
 		                                    }
 		                                });
 		                            }

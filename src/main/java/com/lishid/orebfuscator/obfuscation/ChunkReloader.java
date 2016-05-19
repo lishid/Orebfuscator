@@ -1,3 +1,8 @@
+/**
+ * @author Aleksey Terzi
+ *
+ */
+
 package com.lishid.orebfuscator.obfuscation;
 
 import java.io.File;
@@ -7,17 +12,13 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.minecraft.server.v1_9_R2.PlayerChunk;
-import net.minecraft.server.v1_9_R2.PlayerChunkMap;
-import net.minecraft.server.v1_9_R2.WorldServer;
-
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
-import com.lishid.orebfuscator.internal.ChunkCoord;
+import com.lishid.orebfuscator.nms.IChunkManager;
+import com.lishid.orebfuscator.types.ChunkCoord;
 
 public class ChunkReloader extends Thread implements Runnable {
     private static final Map<World, HashSet<ChunkCoord>> loadedChunks = new WeakHashMap<World, HashSet<ChunkCoord>>();
@@ -123,22 +124,18 @@ public class ChunkReloader extends Thread implements Runnable {
     }
     
     private static void reloadChunks(
-    		final World world,
+    		World world,
     		HashSet<ChunkCoord> chunksForReloadForWorld,
     		ArrayList<ChunkCoord> reloadedChunks
     		)
     {
-    	WorldServer worldServer = ((CraftWorld)world).getHandle();
-    	PlayerChunkMap chunkMap = worldServer.getPlayerChunkMap();
-    	File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());    	
+    	File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());
+    	final IChunkManager chunkManager = Orebfuscator.nms.getChunkManager(world);
     	final ArrayList<ChunkCoord> scheduledChunksForReload = new ArrayList<ChunkCoord>();
     	
     	for(ChunkCoord chunk : chunksForReloadForWorld) {
-    		if(!chunkMap.isChunkInUse(chunk.x, chunk.z)) continue;
+    		if(!chunkManager.canResendChunk(chunk.x, chunk.z)) continue;
     		
-    		PlayerChunk playerChunk = chunkMap.getChunk(chunk.x, chunk.z);
-    		if(playerChunk == null || playerChunk.chunk == null || !playerChunk.chunk.isReady()) continue;
-
     		reloadedChunks.add(chunk);
     		
     		if(OrebfuscatorConfig.UseCache) {
@@ -156,9 +153,9 @@ public class ChunkReloader extends Thread implements Runnable {
             public void run() {
         		//Reload chunk for players
     			for(ChunkCoord chunk : scheduledChunksForReload) {
-    				world.refreshChunk(chunk.x, chunk.z);
+    				chunkManager.resendChunk(chunk.x, chunk.z);
 
-        			//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " to reload for players");/*debug*/
+        			//Orebfuscator.log("Force chunk x = " + chunkCoord.x + ", z = " + chunkCoord.z + " to reload for players");/*debug*/
     			}
             }
         });
@@ -173,7 +170,6 @@ public class ChunkReloader extends Thread implements Runnable {
     }
 
     public static void addLoadedChunk(World world, int chunkX, int chunkZ) {
-    	/*
         restart();
         
         synchronized (loadedChunks) {
@@ -185,11 +181,9 @@ public class ChunkReloader extends Thread implements Runnable {
         	
         	chunks.add(new ChunkCoord(chunkX, chunkZ));
         }
-        */
     }
 
     public static void addUnloadedChunk(World world, int chunkX, int chunkZ) {
-    	/*
         restart();
         
         synchronized (unloadedChunks) {
@@ -201,6 +195,5 @@ public class ChunkReloader extends Thread implements Runnable {
         	
         	chunks.add(new ChunkCoord(chunkX, chunkZ));
         }
-        */
     }
 }

@@ -22,21 +22,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.minecraft.server.v1_9_R2.BlockPosition;
-
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_9_R2.CraftChunk;
 
+import com.lishid.orebfuscator.DeprecatedMethods;
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
-import com.lishid.orebfuscator.internal.BlockInfo;
-import com.lishid.orebfuscator.internal.ChunkCoord;
-import com.lishid.orebfuscator.internal.MinecraftInternals;
+import com.lishid.orebfuscator.nms.IBlockInfo;
+import com.lishid.orebfuscator.types.ChunkCoord;
 
 public class BlockUpdate {
     public static boolean needsUpdate(Block block) {
-        return !OrebfuscatorConfig.isBlockTransparent(block.getTypeId());
+        return !OrebfuscatorConfig.isBlockTransparent(DeprecatedMethods.getTypeId(block));
     }
 
     public static void Update(Block block) {
@@ -53,29 +51,23 @@ public class BlockUpdate {
         }
 
         World world = blocks.get(0).getWorld();
-        HashSet<BlockInfo> updateBlocks = new HashSet<BlockInfo>();
+        HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
     	HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>(); 
         
         for (Block block : blocks) {
             if (needsUpdate(block)) {
-            	BlockInfo blockInfo = new BlockInfo();
-            	blockInfo.x = block.getX();
-            	blockInfo.y = block.getY();
-            	blockInfo.z = block.getZ();
-            	
-            	BlockPosition blockPosition = new BlockPosition(blockInfo.x, blockInfo.y, blockInfo.z);            	
-            	blockInfo.blockData = ((CraftChunk)block.getChunk()).getHandle().getBlockData(blockPosition);
+            	IBlockInfo blockInfo = Orebfuscator.nms.getBlockInfo(world, block.getX(), block.getY(), block.getZ());
 
             	GetAjacentBlocks(updateBlocks, world, blockInfo, OrebfuscatorConfig.UpdateRadius);
             	
-                if((blockInfo.x & 0xf) == 0) {
-                	invalidChunks.add(new ChunkCoord((blockInfo.x >> 4) - 1, blockInfo.z >> 4)); 
-                } else if(((blockInfo.x + 1) & 0xf) == 0) {
-                	invalidChunks.add(new ChunkCoord((blockInfo.x >> 4) + 1, blockInfo.z >> 4));
-    	        } else if(((blockInfo.z) & 0xf) == 0) {
-    	        	invalidChunks.add(new ChunkCoord(blockInfo.x >> 4, (blockInfo.z >> 4) - 1));
-    		    } else if(((blockInfo.z + 1) & 0xf) == 0) {
-    		    	invalidChunks.add(new ChunkCoord(blockInfo.x >> 4, (blockInfo.z >> 4) + 1));
+                if((blockInfo.getX() & 0xf) == 0) {
+                	invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4)); 
+                } else if(((blockInfo.getX() + 1) & 0xf) == 0) {
+                	invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) + 1, blockInfo.getZ() >> 4));
+    	        } else if(((blockInfo.getZ()) & 0xf) == 0) {
+    	        	invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) - 1));
+    		    } else if(((blockInfo.getZ() + 1) & 0xf) == 0) {
+    		    	invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) + 1));
     		    }
             }
         }
@@ -85,9 +77,9 @@ public class BlockUpdate {
         invalidateCachedChunks(world, invalidChunks);
     }
 
-    private static void sendUpdates(World world, Set<BlockInfo> blocks) {
-        for (BlockInfo blockInfo : blocks) {
-            MinecraftInternals.notifyBlockChange(world, blockInfo);
+    private static void sendUpdates(World world, Set<IBlockInfo> blocks) {
+        for (IBlockInfo blockInfo : blocks) {
+            Orebfuscator.nms.notifyBlockChange(world, blockInfo);
         }
     }
     
@@ -104,7 +96,7 @@ public class BlockUpdate {
         }
     }
 
-    private static void GetAjacentBlocks(HashSet<BlockInfo> allBlocks, World world, BlockInfo blockInfo, int countdown) {
+    private static void GetAjacentBlocks(HashSet<IBlockInfo> allBlocks, World world, IBlockInfo blockInfo, int countdown) {
         if (blockInfo == null) return;
         
         int blockId = blockInfo.getTypeId();
@@ -117,12 +109,12 @@ public class BlockUpdate {
 
         if (countdown > 0) {
             countdown--;
-            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x + 1, blockInfo.y, blockInfo.z), countdown);
-            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x - 1, blockInfo.y, blockInfo.z), countdown);
-            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y + 1, blockInfo.z), countdown);
-            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y - 1, blockInfo.z), countdown);
-            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y, blockInfo.z + 1), countdown);
-            GetAjacentBlocks(allBlocks, world, MinecraftInternals.getBlockInfo(world, blockInfo.x, blockInfo.y, blockInfo.z - 1), countdown);
+            GetAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()), countdown);
+            GetAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1), countdown);
+            GetAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1), countdown);
         }
     }
 }

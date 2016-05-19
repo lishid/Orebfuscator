@@ -1,20 +1,10 @@
-/*
- * Copyright (C) 2011-2014 lishid.  All rights reserved.
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation,  version 3.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+/**
+ * @author lishid
+ * @author Aleksey Terzi
+ *
  */
 
-package com.lishid.orebfuscator.internal;
+package com.lishid.orebfuscator.nms.nms194;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -25,11 +15,25 @@ import net.minecraft.server.v1_9_R2.RegionFile;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
-//Volatile
+import com.lishid.orebfuscator.nms.IChunkCache;
 
-public class ChunkCache {
+public class ChunkCache implements IChunkCache {
     private static final HashMap<File, RegionFile> cachedRegionFiles = new HashMap<File, RegionFile>();
 
+    public DataInputStream getInputStream(File folder, int x, int z) {
+        RegionFile regionFile = getRegionFile(folder, x, z);
+        return regionFile.a(x & 0x1F, z & 0x1F);
+    }
+
+    public DataOutputStream getOutputStream(File folder, int x, int z) {
+        RegionFile regionFile = getRegionFile(folder, x, z);
+        return regionFile.b(x & 0x1F, z & 0x1F);
+    }
+    
+    public void closeCacheFiles() {
+    	closeCacheFilesInternal();
+    }
+    
     private synchronized RegionFile getRegionFile(File folder, int x, int z) {
         File path = new File(folder, "region");
         File file = new File(path, "r." + (x >> 5) + "." + (z >> 5) + ".mcr");
@@ -63,17 +67,7 @@ public class ChunkCache {
         return null;
     }
 
-    public DataInputStream getInputStream(File folder, int x, int z) {
-        RegionFile regionFile = getRegionFile(folder, x, z);
-        return regionFile.a(x & 0x1F, z & 0x1F);
-    }
-
-    public DataOutputStream getOutputStream(File folder, int x, int z) {
-        RegionFile regionFile = getRegionFile(folder, x, z);
-        return regionFile.b(x & 0x1F, z & 0x1F);
-    }
-
-    public synchronized void closeCacheFiles() {
+    private synchronized void closeCacheFilesInternal() {
         for (RegionFile regionFile : cachedRegionFiles.values()) {
             try {
                 if (regionFile != null)
