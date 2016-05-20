@@ -2,12 +2,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.lishid</groupId>
-  <artifactId>orebfuscator</artifactId>
-  <version>4.0.12.2-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <groupId>com.lishid.parent</groupId>
+  <artifactId>orebfuscator-parent</artifactId>
+  <version>parent</version>
+  <packaging>pom</packaging>
 
-  <name>Orebfuscator4</name>
+  <name>Orebfuscator4 Parent</name>
   <url>http://dev.bukkit.org/server-mods/orebfuscator/</url>
 
   <properties>
@@ -21,69 +21,17 @@
     </repository>
   </repositories>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.spigotmc</groupId>
-      <artifactId>spigot</artifactId>
-      <version>1.9.4-R0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.comphenix.protocol</groupId>
-      <artifactId>ProtocolLib-API</artifactId>
-      <version>4.0-SNAPSHOT</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-      <exclusions>
-      	<exclusion>
-      		<artifactId>cglib-nodep</artifactId>
-      		<groupId>cglib</groupId>
-      	</exclusion>
-      	<exclusion>
-      		<artifactId>BukkitExecutors</artifactId>
-      		<groupId>com.comphenix.executors</groupId>
-      	</exclusion>
-      </exclusions>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <defaultGoal>clean install</defaultGoal>
-    <sourceDirectory>src/main/java</sourceDirectory>
-    <testSourceDirectory>src/test/java</testSourceDirectory>
-    <resources>
-      <resource>
-        <directory>.</directory>
-        <filtering>false</filtering>
-        <includes>
-          <include>LICENSE</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>**/*</include>
-        </includes>
-      </resource>
-    </resources>
-
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <modules>
+  	<module>Plugin</module>
+  	<module>v1_9_R1</module>
+  	<module>v1_9_R2</module>
+  	<module>API</module>
+  </modules>
 
   <scm>
     <connection>scm:git:git://github.com/lishid/Orebfuscator.git</connection>
     <developerConnection>scm:git:git@github.com:lishid/Orebfuscator.git</developerConnection>
     <url>https://github.com/lishid/Orebfuscator</url>
   </scm>
+
 </project>
