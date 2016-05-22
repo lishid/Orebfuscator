@@ -38,7 +38,6 @@ public class OrebfuscatorConfig {
     // Constant/persistent data
     private static final int CONFIG_VERSION = 12;
     private static Random random = new Random();
-    private static int AvailableProcessors = Runtime.getRuntime().availableProcessors();
 
     // Main engine config
     public static boolean Enabled = true;
@@ -47,8 +46,6 @@ public class OrebfuscatorConfig {
     public static int InitialRadius = 1;
     public static int UpdateRadius = 2;
     public static int OrebfuscatorPriority = 1;
-    public static int CompressionLevel = 1;
-    public static int ProcessingThreads = AvailableProcessors - 1;
 
     // Darkness
     public static boolean DarknessHideBlocks = false;
@@ -285,11 +282,6 @@ public class OrebfuscatorConfig {
         InitialRadius = data;
     }
 
-    public static void setProcessingThreads(int data) {
-        setData("Integers.ProcessingThreads", data);
-        ProcessingThreads = data;
-    }
-
     public static void setProximityHiderDistance(int data) {
         setData("Integers.ProximityHiderDistance", data);
         ProximityHiderDistance = data;
@@ -432,7 +424,6 @@ public class OrebfuscatorConfig {
         }
 
         UpdateRadius = clamp(getInt("Integers.UpdateRadius", UpdateRadius), 1, 5);
-        ProcessingThreads = clamp(getInt("Integers.ProcessingThreads", ProcessingThreads), 1, AvailableProcessors);
         MaxLoadedCacheFiles = clamp(getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles), 16, 128);
         ProximityHiderDistance = clamp(getInt("Integers.ProximityHiderDistance", ProximityHiderDistance), 2, 64);
 
@@ -440,7 +431,6 @@ public class OrebfuscatorConfig {
         ProximityHiderEnd = clamp(getInt("Integers.ProximityHiderEnd", ProximityHiderEnd), 0, 255);
         AirGeneratorMaxChance = clamp(getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance), 40, 100);
         OrebfuscatorPriority = clamp(getInt("Integers.OrebfuscatorPriority", OrebfuscatorPriority), Thread.MIN_PRIORITY, Thread.MAX_PRIORITY);
-        CompressionLevel = clamp(getInt("Integers.CompressionLevel", CompressionLevel), 1, 9);
         UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
         UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
         UseYLocationProximity = getBoolean("Booleans.UseYLocationProximity", UseYLocationProximity);
