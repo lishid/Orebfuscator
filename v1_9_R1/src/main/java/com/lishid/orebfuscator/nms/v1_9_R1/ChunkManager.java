@@ -5,11 +5,16 @@
 
 package com.lishid.orebfuscator.nms.v1_9_R1;
 
+import java.util.HashSet;
+
 import net.minecraft.server.v1_9_R1.BlockPosition;
 import net.minecraft.server.v1_9_R1.Blocks;
+import net.minecraft.server.v1_9_R1.EntityPlayer;
 import net.minecraft.server.v1_9_R1.PlayerChunk;
 import net.minecraft.server.v1_9_R1.PlayerChunkMap;
 import net.minecraft.server.v1_9_R1.WorldServer;
+
+import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.nms.IChunkManager;
 
@@ -28,7 +33,7 @@ public class ChunkManager implements IChunkManager {
 		return playerChunk != null && playerChunk.chunk != null && playerChunk.chunk.isReady();
 	}
 	
-	public void resendChunk(int chunkX, int chunkZ) {
+	public void resendChunk(int chunkX, int chunkZ, HashSet<Player> affectedPlayers) {
 		if(!this.chunkMap.isChunkInUse(chunkX, chunkZ)) return;
 		
 		PlayerChunk playerChunk = this.chunkMap.b(chunkX, chunkZ);
@@ -46,5 +51,9 @@ public class ChunkManager implements IChunkManager {
 			world.notify(new BlockPosition(px + idx / height, idx % height * 16, pz), Blocks.AIR.getBlockData(), Blocks.STONE.getBlockData(), 3);
 		}
 		world.notify(new BlockPosition(px + 15, height * 16 - 1, pz + 15), Blocks.AIR.getBlockData(), Blocks.STONE.getBlockData(), 3);
+		
+		for(EntityPlayer player : playerChunk.c) {
+			affectedPlayers.add(player.getBukkitEntity());
+		}
 	}
 }

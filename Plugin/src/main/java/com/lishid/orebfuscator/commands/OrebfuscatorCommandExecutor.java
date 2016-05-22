@@ -18,7 +18,6 @@ package com.lishid.orebfuscator.commands;
 
 import java.io.IOException;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

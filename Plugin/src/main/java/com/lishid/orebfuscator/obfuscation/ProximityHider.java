@@ -18,6 +18,7 @@ package com.lishid.orebfuscator.obfuscation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,6 +36,7 @@ import com.lishid.orebfuscator.types.BlockState;
 public class ProximityHider extends Thread implements Runnable {
     private static final Map<Player, ProximityHiderPlayer> proximityHiderTracker = new WeakHashMap<Player, ProximityHiderPlayer>();
     private static final Map<Player, Location> playersToCheck = new HashMap<Player, Location>();
+    private static final HashSet<Player> playersToReload = new HashSet<Player>();
 
     private static ProximityHider thread = new ProximityHider();
 
@@ -233,17 +235,27 @@ public class ProximityHider extends Thread implements Runnable {
             	playerInfo.removeChunk(chunkX, chunkZ);
             }
         }
+        
+        boolean isPlayerToReload;
+        
+        synchronized (playersToReload) {
+      		isPlayerToReload = playersToReload.remove(player);
+        }
+        
+        if(isPlayerToReload) {
+        	addPlayerToCheck(player, null);
+        }
     }
 
     public static void clearPlayer(Player player) {
-        synchronized (ProximityHider.proximityHiderTracker) {
-            ProximityHider.proximityHiderTracker.remove(player);
+        synchronized (proximityHiderTracker) {
+            proximityHiderTracker.remove(player);
         }
     }
 
     public static void clearBlocksForOldWorld(Player player) {
-        synchronized (ProximityHider.proximityHiderTracker) {
-    		ProximityHiderPlayer playerInfo = ProximityHider.proximityHiderTracker.get(player);
+        synchronized (proximityHiderTracker) {
+    		ProximityHiderPlayer playerInfo = proximityHiderTracker.get(player);
 
     		if(playerInfo != null) {
         		World world = player.getWorld();
@@ -257,10 +269,18 @@ public class ProximityHider extends Thread implements Runnable {
     }
 
     public static void addPlayerToCheck(Player player, Location location) {
-        synchronized (ProximityHider.playersToCheck) {
-            if (!ProximityHider.playersToCheck.containsKey(player)) {
-                ProximityHider.playersToCheck.put(player, location);
+        synchronized (playersToCheck) {
+            if (!playersToCheck.containsKey(player)) {
+                playersToCheck.put(player, location);
             }
+        }
+    }
+
+    public static void addPlayersToReload(HashSet<Player> players) {
+    	if (!OrebfuscatorConfig.UseProximityHider) return;
+    	
+    	synchronized (playersToReload) {
+        	playersToReload.addAll(players);
         }
     }
 }

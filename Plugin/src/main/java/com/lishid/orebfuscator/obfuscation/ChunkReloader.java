@@ -13,6 +13,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.OrebfuscatorConfig;
@@ -151,11 +152,15 @@ public class ChunkReloader extends Thread implements Runnable {
         Orebfuscator.instance.runTask(new Runnable() {
             public void run() {
         		//Reload chunk for players
+            	HashSet<Player> affectedPlayers = new HashSet<Player>();
+            	
     			for(ChunkCoord chunk : scheduledChunksForReload) {
-    				chunkManager.resendChunk(chunk.x, chunk.z);
+    				chunkManager.resendChunk(chunk.x, chunk.z, affectedPlayers);
 
         			//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " to reload for players");/*debug*/
     			}
+    			
+    			ProximityHider.addPlayersToReload(affectedPlayers);
             }
         });
     }
