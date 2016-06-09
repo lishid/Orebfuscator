@@ -81,13 +81,21 @@ public class Orebfuscator extends JavaPlugin {
     
     private static INmsManager createNmsManager() {
     	String version = Bukkit.getBukkitVersion();
+
+        System.out.println(version);
+
     	int separator = version.indexOf("-");
     	String[] parts = version.substring(0, separator).split("\\.");
     	
     	int majorBuild = Integer.parseInt(parts[0]);
     	int majorRevision = Integer.parseInt(parts[1]);
-    	int minorBuild = Integer.parseInt(parts[2]);
-    	
+        int minorBuild = 0;
+        if(parts.length > 2) {
+    	    minorBuild = Integer.parseInt(parts[2]);
+        }
+    
+        if(majorRevision == 10) return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
+	
     	if(majorBuild != 1 || majorRevision != 9) return null;
     	
     	return minorBuild <= 2
