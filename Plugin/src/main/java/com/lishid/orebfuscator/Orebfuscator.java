@@ -93,14 +93,18 @@ public class Orebfuscator extends JavaPlugin {
         if(parts.length > 2) {
     	    minorBuild = Integer.parseInt(parts[2]);
         }
-    
-        if(majorRevision == 10) return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
-	
-    	if(majorBuild != 1 || majorRevision != 9) return null;
-    	
-    	return minorBuild <= 2
-    			? new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager()
-    			: new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager();
+        
+        if(majorBuild != 1) return null;
+         
+        if(majorRevision == 10) {
+            return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
+        }
+        else if(majorRevision == 9) {
+            return minorBuild <= 2
+                        ? new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager()
+                        : new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager();
+        }
+        else return null;
     }
 
     @Override
