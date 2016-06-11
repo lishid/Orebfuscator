@@ -81,7 +81,7 @@ public class Orebfuscator extends JavaPlugin {
     
     private static INmsManager createNmsManager() {
 
-        String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().replace(".",  ",").split(",")[3];
+        String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
         
         if(serverVersion.equals("v1_10_R1")) {
             return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
