@@ -80,19 +80,19 @@ public class Orebfuscator extends JavaPlugin {
     }
     
     private static INmsManager createNmsManager() {
-    	String version = Bukkit.getBukkitVersion();
-    	int separator = version.indexOf("-");
-    	String[] parts = version.substring(0, separator).split("\\.");
-    	
-    	int majorBuild = Integer.parseInt(parts[0]);
-    	int majorRevision = Integer.parseInt(parts[1]);
-    	int minorBuild = Integer.parseInt(parts[2]);
-    	
-    	if(majorBuild != 1 || majorRevision != 9) return null;
-    	
-    	return minorBuild <= 2
-    			? new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager()
-    			: new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager();
+
+        String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+        
+        if(serverVersion.equals("v1_10_R1")) {
+            return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
+        }
+        else if(serverVersion.equals("v1_9_R2")) {
+            return new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager();
+        }
+        else if(serverVersion.equals("v1_9_R1")) {
+            return new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager();
+        }
+        else return null;
     }
 
     @Override
