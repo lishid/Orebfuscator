@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.types.BlockState;
 
+@SuppressWarnings("deprecation")
 public class DeprecatedMethods {
     public static boolean applyPhysics(Block block) {
         // See net.minecraft.server.v1_4_5.BlockSand.canFall(World world, int i, int j, int k)
