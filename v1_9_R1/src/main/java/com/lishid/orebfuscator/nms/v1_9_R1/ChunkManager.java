@@ -9,6 +9,7 @@ import java.util.HashSet;
 
 import net.minecraft.server.v1_9_R1.BlockPosition;
 import net.minecraft.server.v1_9_R1.Blocks;
+import net.minecraft.server.v1_9_R1.ChunkProviderServer;
 import net.minecraft.server.v1_9_R1.EntityPlayer;
 import net.minecraft.server.v1_9_R1.PlayerChunk;
 import net.minecraft.server.v1_9_R1.PlayerChunkMap;
@@ -20,13 +21,15 @@ import com.lishid.orebfuscator.nms.IChunkManager;
 
 public class ChunkManager implements IChunkManager {
 	private PlayerChunkMap chunkMap;
+	private ChunkProviderServer chunkProvider;
 	
 	public ChunkManager(PlayerChunkMap chunkMap) {
 		this.chunkMap = chunkMap;
+		this.chunkProvider = this.chunkMap.getWorld().getChunkProviderServer(); 
 	}
 	
 	public boolean canResendChunk(int chunkX, int chunkZ) {
-		if(!this.chunkMap.isChunkInUse(chunkX, chunkZ)) return false;
+		if(!this.chunkProvider.isChunkLoaded(chunkX, chunkZ) || !this.chunkMap.isChunkInUse(chunkX, chunkZ)) return false;
 		
 		PlayerChunk playerChunk = this.chunkMap.b(chunkX, chunkZ);
 		

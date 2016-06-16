@@ -7,6 +7,7 @@ package com.lishid.orebfuscator.nms.v1_9_R2;
 
 import java.util.HashSet;
 
+import net.minecraft.server.v1_9_R2.ChunkProviderServer;
 import net.minecraft.server.v1_9_R2.EntityPlayer;
 import net.minecraft.server.v1_9_R2.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_9_R2.PacketPlayOutUnloadChunk;
@@ -19,13 +20,15 @@ import com.lishid.orebfuscator.nms.IChunkManager;
 
 public class ChunkManager implements IChunkManager {
 	private PlayerChunkMap chunkMap;
+	private ChunkProviderServer chunkProvider;
 	
 	public ChunkManager(PlayerChunkMap chunkMap) {
 		this.chunkMap = chunkMap;
+		this.chunkProvider = this.chunkMap.getWorld().getChunkProviderServer();
 	}
 	
 	public boolean canResendChunk(int chunkX, int chunkZ) {
-		if(!this.chunkMap.isChunkInUse(chunkX, chunkZ)) return false;
+		if(!this.chunkProvider.isLoaded(chunkX, chunkZ) || !this.chunkMap.isChunkInUse(chunkX, chunkZ)) return false;
 		
 		PlayerChunk playerChunk = this.chunkMap.getChunk(chunkX, chunkZ);
 		
