@@ -211,4 +211,9 @@
 210:false //minecraft:repeating_command_block
 211:false //minecraft:chain_command_block
 212:true //minecraft:frosted_ice
+213:false //minecraft:magma_block
+214:false //minecraft:nether_wart_block
+215:false //minecraft:red_nether_brick
+216:false //minecraft:bone_block
+217:true //minecraft:structure_void
 255:false //minecraft:structure_block

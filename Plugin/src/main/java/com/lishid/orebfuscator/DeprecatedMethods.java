@@ -1,3 +1,8 @@
+/**
+ * @author Aleksey Terzi
+ *
+ */
+
 package com.lishid.orebfuscator;
 
 import org.bukkit.Location;
