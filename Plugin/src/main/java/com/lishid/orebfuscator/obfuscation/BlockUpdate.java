@@ -88,7 +88,7 @@ public class BlockUpdate {
         World world = locations.get(0).getWorld();
         HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
     	HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
-    	int updateRadius = OrebfuscatorConfig.UpdateRadius;
+    	int updateRadius = 1;
         
         for (Location location : locations) {
         	IBlockInfo blockInfo = Orebfuscator.nms.getBlockInfo(world, location.getBlockX(), location.getBlockY(), location.getBlockZ());
