@@ -80,7 +80,7 @@ public class BlockUpdate {
     }
     
     //This method is used in CastleGates plugin
-    public static void updateByLocations(List<Location> locations) {
+    public static void updateByLocations(List<Location> locations, int updateRadius) {
         if (locations.isEmpty()) {
             return;
         }
@@ -88,7 +88,6 @@ public class BlockUpdate {
         World world = locations.get(0).getWorld();
         HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
     	HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
-    	int updateRadius = 1;
         
         for (Location location : locations) {
         	IBlockInfo blockInfo = Orebfuscator.nms.getBlockInfo(world, location.getBlockX(), location.getBlockY(), location.getBlockZ());
