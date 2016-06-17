@@ -30,6 +30,6 @@ public class OrebfuscatorEntityListener implements Listener {
             return;
         }
 
-        BlockUpdate.Update(event.blockList());
+        BlockUpdate.update(event.blockList());
     }
 }

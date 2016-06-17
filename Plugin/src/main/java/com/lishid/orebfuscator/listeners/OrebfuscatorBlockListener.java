@@ -39,7 +39,7 @@ public class OrebfuscatorBlockListener implements Listener {
             return;
         }
 
-        BlockUpdate.Update(event.getBlock());
+        BlockUpdate.update(event.getBlock());
         BlockHitManager.breakBlock(event.getPlayer(), event.getBlock());
     }
 
@@ -57,7 +57,7 @@ public class OrebfuscatorBlockListener implements Listener {
             return;
         }
 
-        BlockUpdate.Update(event.getBlock());
+        BlockUpdate.update(event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -74,7 +74,7 @@ public class OrebfuscatorBlockListener implements Listener {
             return;
         }
 
-        BlockUpdate.Update(event.getBlock());
+        BlockUpdate.update(event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -83,7 +83,7 @@ public class OrebfuscatorBlockListener implements Listener {
             return;
         }
 
-        BlockUpdate.Update(event.getBlocks());
+        BlockUpdate.update(event.getBlocks());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -92,6 +92,6 @@ public class OrebfuscatorBlockListener implements Listener {
             return;
         }
 
-        BlockUpdate.Update(event.getBlock());
+        BlockUpdate.update(event.getBlock());
     }
 }
