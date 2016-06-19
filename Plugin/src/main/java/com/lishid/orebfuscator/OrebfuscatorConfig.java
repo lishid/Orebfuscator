@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -35,6 +36,16 @@ import org.bukkit.entity.Player;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorConfig {
+	private static class MaterialResult {
+		public int id;
+		public String name;
+		
+		public MaterialResult(int id, String name) {
+			this.id = id;
+			this.name = name;
+		}
+	}
+	
     // Constant/persistent data
     private static final int CONFIG_VERSION = 12;
     private static Random random = new Random();
@@ -133,7 +144,7 @@ public class OrebfuscatorConfig {
     	
     	System.arraycopy(transparentBlocks, 0, TransparentBlocks, 0, TransparentBlocks.length);
     	
-    	List<Integer> customTransparentBlocks = getIntList("Lists.TransparentBlocks", Arrays.asList(new Integer[]{ }));
+    	List<Integer> customTransparentBlocks = getMaterialIdsByPath("Lists.TransparentBlocks", new Integer[]{ });
     	
     	for(int blockId : customTransparentBlocks) {
     		if(blockId >= 0 && blockId <= 255) {
@@ -141,7 +152,7 @@ public class OrebfuscatorConfig {
     		}
     	}
     	
-    	List<Integer> customNonTransparentBlocks = getIntList("Lists.NonTransparentBlocks", Arrays.asList(new Integer[]{ }));
+    	List<Integer> customNonTransparentBlocks = getMaterialIdsByPath("Lists.NonTransparentBlocks", new Integer[]{ });
 
     	for(int blockId : customNonTransparentBlocks) {
     		if(blockId >= 0 && blockId <= 255) {
@@ -359,18 +370,6 @@ public class OrebfuscatorConfig {
         return getConfig().getInt(path, defaultData);
     }
 
-    private static List<Integer> getIntList(String path, List<Integer> defaultData) {
-        if (getConfig().get(path) == null)
-            setData(path, defaultData);
-        return getConfig().getIntegerList(path);
-    }
-
-    private static Integer[] getIntList2(String path, List<Integer> defaultData) {
-        if (getConfig().get(path) == null)
-            setData(path, defaultData);
-        return getConfig().getIntegerList(path).toArray(new Integer[1]);
-    }
-
     private static List<String> getStringList(String path, List<String> defaultData) {
         if (getConfig().get(path) == null)
             setData(path, defaultData);
@@ -427,7 +426,7 @@ public class OrebfuscatorConfig {
         MaxLoadedCacheFiles = clamp(getInt("Integers.MaxLoadedCacheFiles", MaxLoadedCacheFiles), 16, 128);
         ProximityHiderDistance = clamp(getInt("Integers.ProximityHiderDistance", ProximityHiderDistance), 2, 64);
 
-        ProximityHiderID = getInt("Integers.ProximityHiderID", ProximityHiderID);
+        ProximityHiderID = getMaterialIdByPath("Integers.ProximityHiderID", ProximityHiderID);
         ProximityHiderEnd = clamp(getInt("Integers.ProximityHiderEnd", ProximityHiderEnd), 0, 255);
         AirGeneratorMaxChance = clamp(getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance), 40, 100);
         OrebfuscatorPriority = clamp(getInt("Integers.OrebfuscatorPriority", OrebfuscatorPriority), Thread.MIN_PRIORITY, Thread.MAX_PRIORITY);
@@ -446,10 +445,10 @@ public class OrebfuscatorConfig {
         generateTransparentBlocks();
 
         // Read block lists
-        setBlockValues(ObfuscateBlocks, getIntList("Lists.ObfuscateBlocks", Arrays.asList(new Integer[]{14, 15, 16, 21, 54, 56, 73, 74, 129, 130})), false);
-        setBlockValues(NetherObfuscateBlocks, getIntList("Lists.NetherObfuscateBlocks", Arrays.asList(new Integer[]{87, 153})), false);
-        setBlockValues(DarknessBlocks, getIntList("Lists.DarknessBlocks", Arrays.asList(new Integer[]{52, 54})));
-        setBlockValues(ProximityHiderBlocks, getIntList("Lists.ProximityHiderBlocks", Arrays.asList(new Integer[]{23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146})));
+        setBlockValues(ObfuscateBlocks, getMaterialIdsByPath("Lists.ObfuscateBlocks", new Integer[]{14, 15, 16, 21, 54, 56, 73, 74, 129, 130}), false);
+        setBlockValues(NetherObfuscateBlocks, getMaterialIdsByPath("Lists.NetherObfuscateBlocks", new Integer[]{87, 153}), false);
+        setBlockValues(DarknessBlocks, getMaterialIdsByPath("Lists.DarknessBlocks", new Integer[]{52, 54}));
+        setBlockValues(ProximityHiderBlocks, getMaterialIdsByPath("Lists.ProximityHiderBlocks", new Integer[]{23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146}));
 
         // Disable worlds
         DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
@@ -458,8 +457,8 @@ public class OrebfuscatorConfig {
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
 
-        RandomBlocks = getIntList2("Lists.RandomBlocks", Arrays.asList(RandomBlocks));
-        NetherRandomBlocks = getIntList2("Lists.NetherRandomBlocks", Arrays.asList(NetherRandomBlocks));
+        RandomBlocks = getMaterialIdsByPath("Lists.RandomBlocks", RandomBlocks).toArray(new Integer[0]);
+        NetherRandomBlocks = getMaterialIdsByPath("Lists.NetherRandomBlocks", NetherRandomBlocks).toArray(new Integer[0]);
 
         // Validate RandomBlocks
         for (int i = 0; i < RandomBlocks.length; i++) {
@@ -482,6 +481,96 @@ public class OrebfuscatorConfig {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+    }
+    
+    private static int getMaterialIdByPath(String path, int defaultMaterialId) {
+    	String materialName = getConfig().get(path) != null ? getConfig().getString(path): Integer.toString(defaultMaterialId);
+    	MaterialResult material = getMaterial(materialName, defaultMaterialId);
+    	
+    	setData(path, material.name);
+		
+		return material.id;
+    }
+    
+    private static List<Integer> getMaterialIdsByPath(String path, Integer[] defaultMaterials) {
+    	List<String> list;
+    	
+    	if(getConfig().get(path) != null) {
+    		list = getConfig().getStringList(path);
+    	} else {
+    		list = new ArrayList<String>();
+    		
+    		for(int materialId : defaultMaterials) {
+    			list.add(DeprecatedMethods.getMaterial(materialId).name());
+    		}
+    	}
+    	
+    	List<Integer> result = new ArrayList<Integer>();
+    	
+    	for(int i = 0; i < list.size(); i++) {
+    		MaterialResult material = getMaterial(list.get(i), null);
+    		
+    		if(material != null) {
+    			list.set(i, material.name);
+    			result.add(material.id);
+    		}
+    	}
+    	
+    	setData(path, list);
+    	
+    	return result;
+    }
+    
+    private static MaterialResult getMaterial(String materialName, Integer defaultMaterialId) {
+    	Integer materialId;
+    	String defaultMaterialName = defaultMaterialId != null ? DeprecatedMethods.getMaterial(defaultMaterialId).name(): null;
+    	
+		try {
+    		if(Character.isDigit(materialName.charAt(0))) {
+    			materialId = Integer.parseInt(materialName);
+    			
+    			Material obj = DeprecatedMethods.getMaterial(materialId);
+    			
+    			if(obj != null) {
+    				materialName = obj.name();
+    			} else {
+    				if(defaultMaterialId != null) {
+	    				Orebfuscator.log("Material with ID = " + materialId + " is not found. Will be used default material: " + defaultMaterialName);
+	    				materialId = defaultMaterialId;
+	    				materialName = defaultMaterialName;
+    				} else {
+    					Orebfuscator.log("Material with ID = " + materialId + " is not found. Skipped.");
+    					materialId = null;
+    				}
+    			}
+    		} else {
+    			Material obj = Material.getMaterial(materialName.toUpperCase());
+    			
+    			if(obj != null) {
+    				materialId = DeprecatedMethods.getMaterialId(obj);
+    			} else {
+    				if(defaultMaterialId != null) {
+	    				Orebfuscator.log("Material " + materialName + " is not found. Will be used default material: " + defaultMaterialName);
+	    				materialId = defaultMaterialId;
+	    				materialName = defaultMaterialName;
+    				} else {
+    					Orebfuscator.log("Material " + materialName + " is not found. Skipped.");
+    					materialId = null;
+    				}
+    			}
+    		}
+		} catch (Exception e) {
+			if(defaultMaterialId != null) {
+				Orebfuscator.log("Invalid material ID or name: " + materialName + ".  Will be used default material: " + defaultMaterialName);
+				materialId = defaultMaterialId;
+				materialName = defaultMaterialName;
+			} else {
+				Orebfuscator.log("Invalid material ID or name: " + materialName + ". Skipped.");
+				materialId = null;
+			}
+		}
+		
+		return materialId != null ? new MaterialResult(materialId, materialName): null;
     }
     
     private static void createPaletteBlocks() {

@@ -14,6 +14,14 @@ import com.lishid.orebfuscator.types.BlockState;
 
 @SuppressWarnings("deprecation")
 public class DeprecatedMethods {
+	public static Material getMaterial(int materialId) {
+		return Material.getMaterial(materialId);
+	}
+	
+	public static int getMaterialId(Material material) {
+		return material.getId();
+	}
+	
     public static boolean applyPhysics(Block block) {
         // See net.minecraft.server.v1_4_5.BlockSand.canFall(World world, int i, int j, int k)
 
