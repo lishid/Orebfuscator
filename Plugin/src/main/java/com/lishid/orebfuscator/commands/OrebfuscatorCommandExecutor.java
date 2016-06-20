@@ -153,9 +153,20 @@ public class OrebfuscatorCommandExecutor {
                     Orebfuscator.message(sender, "Login Notification " + (data ? "enabled" : "disabled") + ".");
                 }
                 else if (args[1].equalsIgnoreCase("world") && args.length > 2) {
-                    OrebfuscatorConfig.setDisabledWorlds(args[2], !data);
+                    OrebfuscatorConfig.setWorldEnabled(args[2], data);
                     Orebfuscator.message(sender, "World \"" + args[2] + "\" obfuscation " + (data ? "enabled" : "disabled") + ".");
                 }
+            }
+        }
+        
+        else if (args[0].equalsIgnoreCase("use") && args.length > 1) {
+            if (args[1].equalsIgnoreCase("blacklist")) {
+                OrebfuscatorConfig.setUseWorldsAsBlacklist(true);
+                Orebfuscator.message(sender, "Use worlds as blacklist.");
+            }
+            else if (args[1].equalsIgnoreCase("whitelist")) {
+                OrebfuscatorConfig.setUseWorldsAsBlacklist(false);
+                Orebfuscator.message(sender, "Use worlds as whitelist.");
             }
         }
 
@@ -179,8 +190,9 @@ public class OrebfuscatorCommandExecutor {
             Orebfuscator.message(sender, "Initial Obfuscation Radius: " + OrebfuscatorConfig.InitialRadius);
             Orebfuscator.message(sender, "Update Radius: " + OrebfuscatorConfig.UpdateRadius);
 
-            String disabledWorlds = OrebfuscatorConfig.getDisabledWorlds();
-            Orebfuscator.message(sender, "Disabled worlds: " + (disabledWorlds.equals("") ? "None" : disabledWorlds));
+            String worlds = OrebfuscatorConfig.getWorlds();
+            Orebfuscator.message(sender, "Worlds: " + (worlds.equals("") ? "None" : worlds));
+            Orebfuscator.message(sender, "Use worlds as: " + (OrebfuscatorConfig.UseWorldsAsBlacklist ? "Blacklist" : "Whitelist"));
         }
 
         else if (args[0].equalsIgnoreCase("clearcache")) {

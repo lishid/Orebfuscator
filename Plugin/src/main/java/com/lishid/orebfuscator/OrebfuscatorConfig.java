@@ -57,6 +57,7 @@ public class OrebfuscatorConfig {
     public static int InitialRadius = 1;
     public static int UpdateRadius = 2;
     public static int OrebfuscatorPriority = 1;
+    public static boolean UseWorldsAsBlacklist = true;
 
     // Darkness
     public static boolean DarknessHideBlocks = false;
@@ -97,7 +98,7 @@ public class OrebfuscatorConfig {
     private static Integer[] RandomBlocks = new Integer[]{1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129};
     private static Integer[] NetherRandomBlocks = new Integer[]{13, 87, 88, 112, 153};
     private static Integer[] RandomBlocks2 = RandomBlocks;
-    private static List<String> DisabledWorlds = new ArrayList<String>();
+    private static List<String> Worlds = new ArrayList<String>();
 
     // Palette
     public static int[] NetherPaletteBlocks;
@@ -238,16 +239,17 @@ public class OrebfuscatorConfig {
     }
 
     public static boolean isWorldDisabled(String name) {
-        for (String world : DisabledWorlds) {
-            if (world.equalsIgnoreCase(name))
-                return true;
+        for (String world : Worlds) {
+            if (world.equalsIgnoreCase(name)) {
+                return UseWorldsAsBlacklist;
+            }
         }
-        return false;
+        return !UseWorldsAsBlacklist;
     }
 
-    public static String getDisabledWorlds() {
+    public static String getWorlds() {
         String retval = "";
-        for (String world : DisabledWorlds) {
+        for (String world : Worlds) {
             retval += world + ", ";
         }
         return retval.length() > 1 ? retval.substring(0, retval.length() - 2) : retval;
@@ -343,13 +345,18 @@ public class OrebfuscatorConfig {
         Enabled = data;
     }
 
-    public static void setDisabledWorlds(String name, boolean data) {
-        if (!data) {
-            DisabledWorlds.remove(name);
+    public static void setUseWorldsAsBlacklist(boolean data) {
+        setData("Booleans.UseWorldsAsBlacklist", data);
+        UseWorldsAsBlacklist = data;
+    }
+
+    public static void setWorldEnabled(String name, boolean enabled) {
+    	if (enabled && !UseWorldsAsBlacklist || !enabled && UseWorldsAsBlacklist) {
+            Worlds.add(name);
         } else {
-            DisabledWorlds.add(name);
+            Worlds.remove(name);
         }
-        setData("Lists.DisabledWorlds", DisabledWorlds);
+        setData("Lists.Worlds", Worlds);
     }
 
     private static boolean getBoolean(String path, boolean defaultData) {
@@ -440,6 +447,7 @@ public class OrebfuscatorConfig {
         UseCache = getBoolean("Booleans.UseCache", UseCache);
         LoginNotification = getBoolean("Booleans.LoginNotification", LoginNotification);
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
+        UseWorldsAsBlacklist = getBoolean("Booleans.UseWorldsAsBlacklist", UseWorldsAsBlacklist);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
 
         generateTransparentBlocks();
@@ -450,9 +458,15 @@ public class OrebfuscatorConfig {
         setBlockValues(DarknessBlocks, getMaterialIdsByPath("Lists.DarknessBlocks", new Integer[]{52, 54}));
         setBlockValues(ProximityHiderBlocks, getMaterialIdsByPath("Lists.ProximityHiderBlocks", new Integer[]{23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146}));
 
-        // Disable worlds
-        DisabledWorlds = getStringList("Lists.DisabledWorlds", DisabledWorlds);
+        //Support old DisabledWorlds value
+        if(getConfig().get("Lists.DisabledWorlds") != null) {
+        	Worlds = getConfig().getStringList("Lists.DisabledWorlds");
+        	getConfig().set("Lists.DisabledWorlds", null);
+        }
 
+        // List of worlds (either disabled or enabled depending on WorldsAsBlacklist value).
+        Worlds = getStringList("Lists.Worlds", Worlds);
+        
         // Read the cache location
         CacheLocation = getString("Strings.CacheLocation", CacheLocation);
         CacheFolder = new File(CacheLocation);
