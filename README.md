@@ -5,7 +5,7 @@ The definitive Anti X-Ray plugin for CraftBukkit
 ###Changelog:
 - Updated to support 1.10 (Thanks Asgorioth)
 - Updated to support 1.9.4
-- Updated to support 1.9-1.9.2
+- Updated to support 1.9-1.9.2 (https://www.devotedmc.com)
 
 ###Requirements:
 - Java 1.6 / 1.7 / 1.8
