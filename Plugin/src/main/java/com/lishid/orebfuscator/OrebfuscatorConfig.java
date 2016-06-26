@@ -56,7 +56,6 @@ public class OrebfuscatorConfig {
     public static int EngineMode = 2;
     public static int InitialRadius = 1;
     public static int UpdateRadius = 2;
-    public static int OrebfuscatorPriority = 1;
     public static boolean UseWorldsAsBlacklist = true;
 
     // Darkness
@@ -436,7 +435,6 @@ public class OrebfuscatorConfig {
         ProximityHiderID = getMaterialIdByPath("Integers.ProximityHiderID", ProximityHiderID);
         ProximityHiderEnd = clamp(getInt("Integers.ProximityHiderEnd", ProximityHiderEnd), 0, 255);
         AirGeneratorMaxChance = clamp(getInt("Integers.AirGeneratorMaxChance", AirGeneratorMaxChance), 40, 100);
-        OrebfuscatorPriority = clamp(getInt("Integers.OrebfuscatorPriority", OrebfuscatorPriority), Thread.MIN_PRIORITY, Thread.MAX_PRIORITY);
         UseProximityHider = getBoolean("Booleans.UseProximityHider", UseProximityHider);
         UseSpecialBlockForProximityHider = getBoolean("Booleans.UseSpecialBlockForProximityHider", UseSpecialBlockForProximityHider);
         UseYLocationProximity = getBoolean("Booleans.UseYLocationProximity", UseYLocationProximity);
