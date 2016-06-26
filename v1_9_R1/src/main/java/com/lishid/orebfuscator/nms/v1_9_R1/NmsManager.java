@@ -53,7 +53,7 @@ public class NmsManager implements INmsManager {
 	
     public void updateBlockTileEntity(BlockCoord blockCoord, Player player) {
         CraftWorld world = (CraftWorld)player.getWorld();
-        TileEntity tileEntity = world.getTileEntityAt(blockCoord.x, blockCoord.y, blockCoord.y);
+        TileEntity tileEntity = world.getTileEntityAt(blockCoord.x, blockCoord.y, blockCoord.z);
         
         if (tileEntity == null) {
             return;

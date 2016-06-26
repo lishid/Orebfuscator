@@ -111,6 +111,8 @@ public class BlockUpdate {
     }
 
     private static void sendUpdates(World world, Set<IBlockInfo> blocks) {
+        //Orebfuscator.log("Notify block change for " + blocks.size() + " blocks");/*debug*/
+
         for (IBlockInfo blockInfo : blocks) {
             Orebfuscator.nms.notifyBlockChange(world, blockInfo);
         }
