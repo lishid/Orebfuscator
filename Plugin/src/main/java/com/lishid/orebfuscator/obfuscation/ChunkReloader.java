@@ -24,6 +24,7 @@ import com.lishid.orebfuscator.types.ChunkCoord;
 public class ChunkReloader extends Thread implements Runnable {
     private static final Map<World, HashSet<ChunkCoord>> loadedChunks = new WeakHashMap<World, HashSet<ChunkCoord>>();
     private static final Map<World, HashSet<ChunkCoord>> unloadedChunks = new WeakHashMap<World, HashSet<ChunkCoord>>();
+    private static final Map<World, HashSet<ChunkCoord>> chunksForReload = new WeakHashMap<World, HashSet<ChunkCoord>>();
 
     private static ChunkReloader thread = new ChunkReloader();
 
@@ -46,11 +47,10 @@ public class ChunkReloader extends Thread implements Runnable {
     }
 
     public void run() {
-        HashSet<ChunkCoord> loadedChunksForProcess = new HashSet<ChunkCoord>();
-    	HashSet<ChunkCoord> unloadedChunksForProcess = new HashSet<ChunkCoord>();
-        Map<World, HashSet<ChunkCoord>> chunksForReload = new WeakHashMap<World, HashSet<ChunkCoord>>();
+        HashSet<ChunkCoord> localLoadedChunks = new HashSet<ChunkCoord>();
+    	HashSet<ChunkCoord> localUnloadedChunks = new HashSet<ChunkCoord>();
+        Map<World, HashSet<ChunkCoord>> localChunksForReload = new WeakHashMap<World, HashSet<ChunkCoord>>();
         ArrayList<World> localWorldsToCheck = new ArrayList<World>();
-        ArrayList<ChunkCoord> reloadedChunks = new ArrayList<ChunkCoord>();
 
         while (!this.isInterrupted() && !kill.get()) {
             try {
@@ -66,54 +66,62 @@ public class ChunkReloader extends Thread implements Runnable {
                 }
                 
                 for(World world : localWorldsToCheck) {
-                	HashSet<ChunkCoord> chunksForReloadForWorld = chunksForReload.get(world); 
-                	if(chunksForReloadForWorld == null) {
-                		chunksForReload.put(world, chunksForReloadForWorld = new HashSet<ChunkCoord>());
+                	HashSet<ChunkCoord> localChunksForReloadForWorld = localChunksForReload.get(world);
+                	
+                	if(localChunksForReloadForWorld == null) {
+                		localChunksForReload.put(world, localChunksForReloadForWorld = new HashSet<ChunkCoord>());
+                	}
+                	
+                	synchronized (chunksForReload) {
+                		HashSet<ChunkCoord> chunksForReloadForWorld = chunksForReload.get(world);
+                		
+                		if(chunksForReloadForWorld != null && !chunksForReloadForWorld.isEmpty()) {
+                			localChunksForReloadForWorld.addAll(chunksForReloadForWorld);
+                			chunksForReloadForWorld.clear();
+                		}
                 	}
 
                 	synchronized (unloadedChunks) {
                     	HashSet<ChunkCoord> unloadedChunksForWorld = unloadedChunks.get(world);
                     	
                     	if(unloadedChunksForWorld != null && !unloadedChunksForWorld.isEmpty()) {
-	                    	unloadedChunksForProcess.addAll(unloadedChunksForWorld);
+	                    	localUnloadedChunks.addAll(unloadedChunksForWorld);
 	                    	unloadedChunksForWorld.clear();
                     	}
                     }
                     
-                	for(ChunkCoord unloadedChunk : unloadedChunksForProcess) {
-                		chunksForReloadForWorld.remove(unloadedChunk);
+                	for(ChunkCoord unloadedChunk : localUnloadedChunks) {
+                		localChunksForReloadForWorld.remove(unloadedChunk);
                 	}
                 	
-                    unloadedChunksForProcess.clear();
+                    localUnloadedChunks.clear();
                     
                     synchronized (loadedChunks) {
                     	HashSet<ChunkCoord> loadedChunksForWorld = loadedChunks.get(world); 
                     	
                     	if(loadedChunksForWorld != null && !loadedChunksForWorld.isEmpty()) {
-                    		loadedChunksForProcess.addAll(loadedChunksForWorld);
+                    		localLoadedChunks.addAll(loadedChunksForWorld);
 	                    	loadedChunksForWorld.clear();
                     	}
                     }
                 	
-                    for(ChunkCoord loadedChunk : loadedChunksForProcess) {
+                    for(ChunkCoord loadedChunk : localLoadedChunks) {
                     	ChunkCoord chunk1 = new ChunkCoord(loadedChunk.x - 1, loadedChunk.z);
                     	ChunkCoord chunk2 = new ChunkCoord(loadedChunk.x + 1, loadedChunk.z);
                     	ChunkCoord chunk3 = new ChunkCoord(loadedChunk.x, loadedChunk.z - 1);
                     	ChunkCoord chunk4 = new ChunkCoord(loadedChunk.x, loadedChunk.z + 1);
                     	
-                    	chunksForReloadForWorld.add(chunk1);
-                    	chunksForReloadForWorld.add(chunk2);
-                    	chunksForReloadForWorld.add(chunk3);
-                    	chunksForReloadForWorld.add(chunk4);
+                    	localChunksForReloadForWorld.add(chunk1);
+                    	localChunksForReloadForWorld.add(chunk2);
+                    	localChunksForReloadForWorld.add(chunk3);
+                    	localChunksForReloadForWorld.add(chunk4);
                     }
                     
-                    loadedChunksForProcess.clear();
+                    localLoadedChunks.clear();
                     
-                    if(!chunksForReloadForWorld.isEmpty()) {
-                    	reloadChunks(world, chunksForReloadForWorld, reloadedChunks);                    	
-                    	
-               			chunksForReloadForWorld.removeAll(reloadedChunks);
-               			reloadedChunks.clear();
+                    if(!localChunksForReloadForWorld.isEmpty()) {
+                    	scheduleReloadChunks(world, localChunksForReloadForWorld);                    	
+               			localChunksForReloadForWorld.clear();
                     }
                 }
                 
@@ -124,21 +132,12 @@ public class ChunkReloader extends Thread implements Runnable {
         }
     }
     
-    private static void reloadChunks(
-    		World world,
-    		HashSet<ChunkCoord> chunksForReloadForWorld,
-    		ArrayList<ChunkCoord> reloadedChunks
-    		)
+    private static void scheduleReloadChunks(final World world, HashSet<ChunkCoord> chunksForReloadForWorld)
     {
     	File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());
-    	final IChunkManager chunkManager = Orebfuscator.nms.getChunkManager(world);
     	final ArrayList<ChunkCoord> scheduledChunksForReload = new ArrayList<ChunkCoord>();
     	
     	for(ChunkCoord chunk : chunksForReloadForWorld) {
-    		if(!chunkManager.canResendChunk(chunk.x, chunk.z)) continue;
-    		
-    		reloadedChunks.add(chunk);
-    		
     		if(OrebfuscatorConfig.UseCache) {
 	    		ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunk.x, chunk.z);
 	    		if(cache.getHash() != 0) continue;
@@ -151,18 +150,44 @@ public class ChunkReloader extends Thread implements Runnable {
     	
         Orebfuscator.instance.runTask(new Runnable() {
             public void run() {
-        		//Reload chunk for players
-            	HashSet<Player> affectedPlayers = new HashSet<Player>();
-            	
-    			for(ChunkCoord chunk : scheduledChunksForReload) {
-    				chunkManager.resendChunk(chunk.x, chunk.z, affectedPlayers);
-
-        			//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " to reload for players");/*debug*/
-    			}
-    			
-    			ProximityHider.addPlayersToReload(affectedPlayers);
+            	runReloadChunks(world, scheduledChunksForReload);
             }
         });
+    }
+    
+    private static void runReloadChunks(World world, ArrayList<ChunkCoord> scheduledChunksForReload) {
+    	IChunkManager chunkManager = Orebfuscator.nms.getChunkManager(world);
+    	
+		//Reload chunk for players
+    	HashSet<Player> affectedPlayers = new HashSet<Player>();
+    	ArrayList<ChunkCoord> notReloadedChunks = new ArrayList<ChunkCoord>(); 
+    	
+		for(ChunkCoord chunk : scheduledChunksForReload) {
+			if(!world.isChunkLoaded(chunk.x, chunk.z)) continue;
+			
+			if(!chunkManager.resendChunk(chunk.x, chunk.z, affectedPlayers)) {
+				notReloadedChunks.add(chunk);
+				//Orebfuscator.log("Is not possible to reload chunk x = " + chunk.x + ", z = " + chunk.z + ", add for later reload");/*debug*/
+			} else {
+				//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " to reload for players");/*debug*/
+			}
+		}
+		
+		if(notReloadedChunks.size() > 0) {
+	    	synchronized (chunksForReload) {
+	    		HashSet<ChunkCoord> chunksForReloadForWorld = chunksForReload.get(world);
+	    		
+	    		if(chunksForReloadForWorld == null) {
+	    			chunksForReload.put(world, chunksForReloadForWorld = new HashSet<ChunkCoord>());
+	    		}
+	    		
+	    		chunksForReloadForWorld.addAll(notReloadedChunks);
+	    	}
+		}
+		
+		if(affectedPlayers.size() > 0) {
+			ProximityHider.addPlayersToReload(affectedPlayers);
+		}
     }
     
     private static void restart() {
