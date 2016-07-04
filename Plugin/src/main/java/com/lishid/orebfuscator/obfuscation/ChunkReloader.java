@@ -132,48 +132,33 @@ public class ChunkReloader extends Thread implements Runnable {
         }
     }
     
-    private static void scheduleReloadChunks(final World world, HashSet<ChunkCoord> chunksForReloadForWorld)
-    {
+    private static void scheduleReloadChunks(final World world, HashSet<ChunkCoord> chunksForReloadForWorld) {
     	File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());
-    	final ArrayList<ChunkCoord> scheduledChunksForReload = new ArrayList<ChunkCoord>();
+    	final IChunkManager chunkManager = Orebfuscator.nms.getChunkManager(world);    	
     	
-    	for(ChunkCoord chunk : chunksForReloadForWorld) {
+    	for(final ChunkCoord chunk : chunksForReloadForWorld) {
     		if(OrebfuscatorConfig.UseCache) {
 	    		ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunk.x, chunk.z);
 	    		if(cache.getHash() != 0) continue;
     		}
     		
-    		scheduledChunksForReload.add(chunk);
-    		
    			//Orebfuscator.log("Add chunk x = " + chunk.x + ", z = " + chunk.z + " to schedule for reload for players");/*debug*/
+    		
+    		Orebfuscator.instance.runTask(new Runnable() {
+                public void run() {
+                	runReloadChunk(world, chunkManager, chunk);
+                }
+            });
     	}
-    	
-        Orebfuscator.instance.runTask(new Runnable() {
-            public void run() {
-            	runReloadChunks(world, scheduledChunksForReload);
-            }
-        });
     }
     
-    private static void runReloadChunks(World world, ArrayList<ChunkCoord> scheduledChunksForReload) {
-    	IChunkManager chunkManager = Orebfuscator.nms.getChunkManager(world);
-    	
+    private static void runReloadChunk(World world, IChunkManager chunkManager, ChunkCoord chunk) {
 		//Reload chunk for players
     	HashSet<Player> affectedPlayers = new HashSet<Player>();
-    	ArrayList<ChunkCoord> notReloadedChunks = new ArrayList<ChunkCoord>(); 
     	
-		for(ChunkCoord chunk : scheduledChunksForReload) {
-			if(!world.isChunkLoaded(chunk.x, chunk.z)) continue;
-			
-			if(!chunkManager.resendChunk(chunk.x, chunk.z, affectedPlayers)) {
-				notReloadedChunks.add(chunk);
-				//Orebfuscator.log("Is not possible to reload chunk x = " + chunk.x + ", z = " + chunk.z + ", add for later reload");/*debug*/
-			} else {
-				//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " to reload for players");/*debug*/
-			}
-		}
+		if(!world.isChunkLoaded(chunk.x, chunk.z)) return;
 		
-		if(notReloadedChunks.size() > 0) {
+		if(!chunkManager.resendChunk(chunk.x, chunk.z, affectedPlayers)) {
 	    	synchronized (chunksForReload) {
 	    		HashSet<ChunkCoord> chunksForReloadForWorld = chunksForReload.get(world);
 	    		
@@ -181,8 +166,12 @@ public class ChunkReloader extends Thread implements Runnable {
 	    			chunksForReload.put(world, chunksForReloadForWorld = new HashSet<ChunkCoord>());
 	    		}
 	    		
-	    		chunksForReloadForWorld.addAll(notReloadedChunks);
+	    		chunksForReloadForWorld.add(chunk);
 	    	}
+
+	    	//Orebfuscator.log("Is not possible to reload chunk x = " + chunk.x + ", z = " + chunk.z + ", add for later reload");/*debug*/
+		} else {
+			//Orebfuscator.log("Force chunk x = " + chunk.x + ", z = " + chunk.z + " to reload for players");/*debug*/
 		}
 		
 		if(affectedPlayers.size() > 0) {
