@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.hook;
 
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 
@@ -27,6 +26,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
@@ -78,4 +78,33 @@ public class ProtocolLibHook {
             }
         });
     }
+    
+    /*
+    private static boolean _isSaved;
+    private void saveTestData(ChunkData chunkData) {
+    	if(_isSaved) return;
+    	
+		_isSaved = true;
+
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream("D:\\Temp\\chunk.dat");
+			fos.write(chunkData.chunkX & 0xff);
+			fos.write((chunkData.chunkX >> 8) & 0xff);
+			fos.write(chunkData.chunkZ & 0xff);
+			fos.write((chunkData.chunkZ >> 8) & 0xff);
+			fos.write(chunkData.primaryBitMask & 0xff);
+			fos.write((chunkData.primaryBitMask >> 8) & 0xff);
+			fos.write(chunkData.data.length & 0xff);
+			fos.write((chunkData.data.length >> 8) & 0xff);
+			fos.write((chunkData.data.length >> 16) & 0xff);
+			fos.write(chunkData.data);
+			fos.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	*/
 }
