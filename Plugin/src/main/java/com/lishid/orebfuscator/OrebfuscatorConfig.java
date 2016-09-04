@@ -32,6 +32,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
@@ -57,6 +58,8 @@ public class OrebfuscatorConfig {
     public static int InitialRadius = 1;
     public static int UpdateRadius = 2;
     public static boolean UseWorldsAsBlacklist = true;
+    public static boolean NoObfuscationForMetadata = true;
+    public static String NoObfuscationForMetadataTagName = "NPC";
 
     // Darkness
     public static boolean DarknessHideBlocks = false;
@@ -447,6 +450,8 @@ public class OrebfuscatorConfig {
         AntiTexturePackAndFreecam = getBoolean("Booleans.AntiTexturePackAndFreecam", AntiTexturePackAndFreecam);
         UseWorldsAsBlacklist = getBoolean("Booleans.UseWorldsAsBlacklist", UseWorldsAsBlacklist);
         Enabled = getBoolean("Booleans.Enabled", Enabled);
+        NoObfuscationForMetadata = getBoolean("Booleans.NoObfuscationForMetadata", NoObfuscationForMetadata);
+        NoObfuscationForMetadataTagName = getString("Strings.NoObfuscationForMetadataTagName", NoObfuscationForMetadataTagName);
 
         generateTransparentBlocks();
 
@@ -641,7 +646,7 @@ public class OrebfuscatorConfig {
     }
 
     public static boolean obfuscateForPlayer(Player player) {
-        return !(playerBypassOp(player) || playerBypassPerms(player));
+        return !(playerBypassOp(player) || playerBypassPerms(player) || playerBypassMetadata(player));
     }
 
     public static boolean playerBypassOp(Player player) {
@@ -661,6 +666,19 @@ public class OrebfuscatorConfig {
             ret = OrebfuscatorConfig.NoObfuscationForPermission && player.hasPermission("Orebfuscator.deobfuscate");
         } catch (Exception e) {
             Orebfuscator.log("Error while obtaining permissions for player" + player.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    public static boolean playerBypassMetadata(Player player) {
+        boolean ret = false;
+        try {
+            ret = OrebfuscatorConfig.NoObfuscationForMetadata
+            		&& player.hasMetadata(OrebfuscatorConfig.NoObfuscationForMetadataTagName)
+            		&& player.getMetadata(OrebfuscatorConfig.NoObfuscationForMetadataTagName).get(0).asBoolean();
+        } catch (Exception e) {
+            Orebfuscator.log("Error while obtaining metadata for player" + player.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
         return ret;
