@@ -32,7 +32,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.metadata.FixedMetadataValue;
 
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
