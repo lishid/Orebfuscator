@@ -126,97 +126,99 @@ public class Calculations {
                     	
                     	ChunkMapManager.blockDataToState(blockData, blockState);
 
-                        if (blockState.id >= 256) {
-                            continue;
-                        }
-
-						int x = startX | offsetX;
-						int y = manager.getY();
-						int z = startZ | offsetZ;
-
-                        // Initialize data
-                        obfuscate = false;
-                        specialObfuscate = false;
-
-                        // Check if the block should be obfuscated for the default engine modes
-                        if (OrebfuscatorConfig.isObfuscated(blockState.id, environment)) {
-                            if (initialRadius == 0) {
-                                // Do not interfere with PH
-                                if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
-                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
-                                        obfuscate = true;
-                                    }
-                                } else {
-                                    // Obfuscate all blocks
-                                    obfuscate = true;
-                                }
-                            } else {
-                                // Check if any nearby blocks are transparent
-                                if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
-                                    obfuscate = true;
-                                }
-                            }
-                        }
-
-                        // Check if the block should be obfuscated because of proximity check
-                        if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
-                            if (OrebfuscatorConfig.isProximityHiderOn(y, blockState.id)) {
-                            	BlockCoord block = new BlockCoord(x, y, z);
-                                if (block != null) {
-                                    proximityBlocks.add(block);
-                                }
-                                
-                                obfuscate = true;
-                                if (OrebfuscatorConfig.UseSpecialBlockForProximityHider) {
-                                    specialObfuscate = true;
-                                }
-                            }
-                        }
-
-                        // Check if the block is obfuscated
-                        if (obfuscate) {
-                            if (specialObfuscate) {
-                                // Proximity hider
-                                blockState.id = OrebfuscatorConfig.ProximityHiderID;
-                            } else {
-                                randomIncrement2 = OrebfuscatorConfig.random(incrementMax);
-
-                                if (engineMode == 1) {
-                                    // Engine mode 1, replace with stone
-                                	blockState.id = (environment == Environment.NETHER ? 87 : 1);
-                                } else if (engineMode == 2) {
-                                    // Ending mode 2, replace with random block
-                                    if (randomBlocksLength > 1) {
-                                        randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
-                                    }
-                                    
-                                    blockState.id = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate, environment);
-                                    randomAlternate = !randomAlternate;
-                                }
-                                // Anti texturepack and freecam
-                                if (OrebfuscatorConfig.AntiTexturePackAndFreecam) {
-                                // Add random air blocks
-                                    if (randomIncrement2 == 0) {
-                                        randomCave = 1 + OrebfuscatorConfig.random(3);
-                                    }
-
-                                    if (randomCave > 0) {
-                                    	blockState.id = 0;
-                                        randomCave--;
-                                    }
-                                }
-                            }
-
-                            blockState.meta = 0;
-                        }
-
-                        // Check if the block should be obfuscated because of the darkness
-                        if (!obfuscate && OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(blockState.id)) {
-                            if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
-                                // Hide block, setting it to air
-                            	blockState.id = 0;
-                            	blockState.meta = 0;
-                            }
+                        if (blockState.id < 256) {
+							int x = startX | offsetX;
+							int y = manager.getY();
+							int z = startZ | offsetZ;
+	
+	                        // Initialize data
+	                        obfuscate = false;
+	                        specialObfuscate = false;
+	
+	                        // Check if the block should be obfuscated for the default engine modes
+	                        if (OrebfuscatorConfig.isObfuscated(blockState.id, environment)) {
+	                            if (initialRadius == 0) {
+	                                // Do not interfere with PH
+	                                if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
+	                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
+	                                        obfuscate = true;
+	                                    }
+	                                } else {
+	                                    // Obfuscate all blocks
+	                                    obfuscate = true;
+	                                }
+	                            } else {
+	                                // Check if any nearby blocks are transparent
+	                                if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
+	                                    obfuscate = true;
+	                                }
+	                            }
+	                        }
+	
+	                        // Check if the block should be obfuscated because of proximity check
+	                        if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
+	                            if (OrebfuscatorConfig.isProximityHiderOn(y, blockState.id)) {
+	                            	BlockCoord block = new BlockCoord(x, y, z);
+	                                if (block != null) {
+	                                    proximityBlocks.add(block);
+	                                }
+	                                
+	                                obfuscate = true;
+	                                if (OrebfuscatorConfig.UseSpecialBlockForProximityHider) {
+	                                    specialObfuscate = true;
+	                                }
+	                            }
+	                        }
+	
+	                        // Check if the block is obfuscated
+	                        if (obfuscate) {
+	                            if (specialObfuscate) {
+	                                // Proximity hider
+	                                blockState.id = OrebfuscatorConfig.ProximityHiderID;
+	                            } else {
+	                                randomIncrement2 = OrebfuscatorConfig.random(incrementMax);
+	
+	                                if (engineMode == 1) {
+	                                    // Engine mode 1, replace with stone
+	                                	blockState.id = (environment == Environment.NETHER ? 87 : 1);
+	                                } else if (engineMode == 2) {
+	                                    // Ending mode 2, replace with random block
+	                                    if (randomBlocksLength > 1) {
+	                                        randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
+	                                    }
+	                                    
+	                                    blockState.id = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate, environment);
+	                                    randomAlternate = !randomAlternate;
+	                                }
+	                                // Anti texturepack and freecam
+	                                if (OrebfuscatorConfig.AntiTexturePackAndFreecam) {
+	                                // Add random air blocks
+	                                    if (randomIncrement2 == 0) {
+	                                        randomCave = 1 + OrebfuscatorConfig.random(3);
+	                                    }
+	
+	                                    if (randomCave > 0) {
+	                                    	blockState.id = 0;
+	                                        randomCave--;
+	                                    }
+	                                }
+	                            }
+	
+	                            blockState.meta = 0;
+	                        }
+	
+	                        // Check if the block should be obfuscated because of the darkness
+	                        if (!obfuscate && OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(blockState.id)) {
+	                            if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
+	                                // Hide block, setting it to air
+	                            	blockState.id = 0;
+	                            	blockState.meta = 0;
+	                            }
+	                        }
+	                        
+	                        blockData = ChunkMapManager.blockStateToData(blockState);
+                        } else {
+                        	blockData = 0;
                         }
                         
 						if(offsetY == 0 && offsetZ == 0 && offsetX == 0) {
@@ -226,8 +228,6 @@ public class Calculations {
 							manager.initOutputSection();
 						}
 						
-                        blockData = ChunkMapManager.blockStateToData(blockState);
-
                         manager.writeOutputBlock(blockData);
                     }
                 }
