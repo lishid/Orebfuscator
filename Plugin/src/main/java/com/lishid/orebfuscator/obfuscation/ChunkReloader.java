@@ -61,6 +61,10 @@ public class ChunkReloader extends Thread implements Runnable {
                     Thread.sleep(timeWait);
                 }
                 
+                if (!OrebfuscatorConfig.UseChunkReloader) {
+                    return;
+                }
+                
                 synchronized (loadedChunks) {
                 	localWorldsToCheck.addAll(loadedChunks.keySet());
                 }

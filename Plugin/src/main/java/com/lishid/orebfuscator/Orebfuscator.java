@@ -51,7 +51,8 @@ public class Orebfuscator extends JavaPlugin {
     	return this.isProtocolLibFound;
     }
 
-    @Override
+    //\\@SuppressWarnings("deprecation")
+	@Override
     public void onEnable() {
         // Get plugin manager
         PluginManager pm = getServer().getPluginManager();
@@ -76,6 +77,9 @@ public class Orebfuscator extends JavaPlugin {
         pm.registerEvents(new OrebfuscatorChunkListener(), this);
 
         (new ProtocolLibHook()).register(this);
+        
+        // Run CacheCleaner
+        //\\getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CacheCleaner(), 0, OrebfuscatorConfig.CacheCleanRate);        
     }
     
     private static INmsManager createNmsManager() {

@@ -68,6 +68,7 @@ public class OrebfuscatorConfig {
     public static int MaxLoadedCacheFiles = 64;
     public static String CacheLocation = "orebfuscator_cache";
     public static File CacheFolder = new File(Bukkit.getServer().getWorldContainer(), CacheLocation);
+    public static int DeleteCacheFilesAfterDays = 0;
 
     // ProximityHider
     public static int ProximityHiderRate = 500;
@@ -107,6 +108,11 @@ public class OrebfuscatorConfig {
     
     // ChunkReloader
     public static int ChunkReloaderRate = 500;
+    public static boolean UseChunkReloader = true;
+
+    // CacheCleaner
+    //\\public static long CacheCleanRate = 60 * 60 * 20;//once per hour
+    public static long CacheCleanRate = 60 * 20;
 
     public static File getCacheFolder() {
         // Try to make the folder
@@ -451,6 +457,8 @@ public class OrebfuscatorConfig {
         Enabled = getBoolean("Booleans.Enabled", Enabled);
         NoObfuscationForMetadata = getBoolean("Booleans.NoObfuscationForMetadata", NoObfuscationForMetadata);
         NoObfuscationForMetadataTagName = getString("Strings.NoObfuscationForMetadataTagName", NoObfuscationForMetadataTagName);
+        DeleteCacheFilesAfterDays = getInt("Integers.DeleteCacheFilesAfterDays", DeleteCacheFilesAfterDays);
+        UseChunkReloader = getBoolean("Booleans.UseChunkReloader", UseChunkReloader);
 
         generateTransparentBlocks();
 
