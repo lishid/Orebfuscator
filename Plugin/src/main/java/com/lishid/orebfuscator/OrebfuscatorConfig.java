@@ -108,11 +108,10 @@ public class OrebfuscatorConfig {
     
     // ChunkReloader
     public static int ChunkReloaderRate = 500;
-    public static boolean UseChunkReloader = true;
+    public static boolean UseChunkReloader = false;
 
     // CacheCleaner
-    //\\public static long CacheCleanRate = 60 * 60 * 20;//once per hour
-    public static long CacheCleanRate = 60 * 20;
+    public static long CacheCleanRate = 60 * 60 * 20;//once per hour
 
     public static File getCacheFolder() {
         // Try to make the folder
@@ -458,7 +457,7 @@ public class OrebfuscatorConfig {
         NoObfuscationForMetadata = getBoolean("Booleans.NoObfuscationForMetadata", NoObfuscationForMetadata);
         NoObfuscationForMetadataTagName = getString("Strings.NoObfuscationForMetadataTagName", NoObfuscationForMetadataTagName);
         DeleteCacheFilesAfterDays = getInt("Integers.DeleteCacheFilesAfterDays", DeleteCacheFilesAfterDays);
-        UseChunkReloader = getBoolean("Booleans.UseChunkReloader", UseChunkReloader);
+        //UseChunkReloader = getBoolean("Booleans.UseChunkReloader", UseChunkReloader);
 
         generateTransparentBlocks();
 

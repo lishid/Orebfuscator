@@ -12,13 +12,13 @@ public class CacheCleaner implements Runnable {
     public void run() {
     	if(!OrebfuscatorConfig.Enabled || OrebfuscatorConfig.DeleteCacheFilesAfterDays <= 0) return;
     	
-        Orebfuscator.log("Started checking old cache files to delete...");
+        int count = 0;
         
         for(World world : Bukkit.getWorlds()) {
 	        File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());
-	        ObfuscatedDataCache.deleteFiles(cacheFolder, OrebfuscatorConfig.DeleteCacheFilesAfterDays);
+	        count += ObfuscatedDataCache.deleteFiles(cacheFolder, OrebfuscatorConfig.DeleteCacheFilesAfterDays);
         }
         
-        Orebfuscator.log("Compleetd checking old cache files to delete...");
+        Orebfuscator.log("Cache cleaner completed, deleted files: " + count);
     }
 }

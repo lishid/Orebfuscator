@@ -193,7 +193,8 @@ public class ChunkReloader extends Thread implements Runnable {
 
     public static void addLoadedChunk(World world, int chunkX, int chunkZ) {
         if (!OrebfuscatorConfig.Enabled // Plugin enabled
-        		|| OrebfuscatorConfig.isWorldDisabled(world.getName())) // World not enabled
+        		|| OrebfuscatorConfig.isWorldDisabled(world.getName()) // World not enabled
+        		|| !OrebfuscatorConfig.UseChunkReloader)
         {
             return;
         }
@@ -213,7 +214,8 @@ public class ChunkReloader extends Thread implements Runnable {
 
     public static void addUnloadedChunk(World world, int chunkX, int chunkZ) {
         if (!OrebfuscatorConfig.Enabled // Plugin enabled
-        		|| OrebfuscatorConfig.isWorldDisabled(world.getName())) // World not enabled
+        		|| OrebfuscatorConfig.isWorldDisabled(world.getName()) // World not enabled
+        		|| !OrebfuscatorConfig.UseChunkReloader)
         {
             return;
         }

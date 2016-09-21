@@ -80,11 +80,13 @@ public class ObfuscatedDataCache {
         return getInternalCache().getOutputStream(folder, x, z);
     }
     
-    public static void deleteFiles(File folder, int deleteAfterDays) {
+    public static int deleteFiles(File folder, int deleteAfterDays) {
+    	int count = 0;
+    	
     	try {
 	    	File regionFolder = new File(folder, "data/region");
 	    	
-	    	if(!regionFolder.exists()) return;
+	    	if(!regionFolder.exists()) return count;
 	    	
 	    	long deleteAfterDaysMs = (long)deleteAfterDays * 24L * 60L * 60L * 1000L;
 	    	
@@ -93,11 +95,13 @@ public class ObfuscatedDataCache {
 	    		
 	    		if (diff > deleteAfterDaysMs) {
 	    		    file.delete();
-	    		    Orebfuscator.log("File " + file.getName() + " is deleted.");
+	    		    count++;
 	    		}
 	    	}
     	} catch(Exception ex) {
     		ex.printStackTrace();
     	}
+    	
+    	return count;
     }
 }

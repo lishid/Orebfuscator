@@ -24,6 +24,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.lishid.orebfuscator.cache.CacheCleaner;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
@@ -51,7 +52,7 @@ public class Orebfuscator extends JavaPlugin {
     	return this.isProtocolLibFound;
     }
 
-    //\\@SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation")
 	@Override
     public void onEnable() {
         // Get plugin manager
@@ -79,7 +80,7 @@ public class Orebfuscator extends JavaPlugin {
         (new ProtocolLibHook()).register(this);
         
         // Run CacheCleaner
-        //\\getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CacheCleaner(), 0, OrebfuscatorConfig.CacheCleanRate);        
+        getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CacheCleaner(), 0, OrebfuscatorConfig.CacheCleanRate);        
     }
     
     private static INmsManager createNmsManager() {
