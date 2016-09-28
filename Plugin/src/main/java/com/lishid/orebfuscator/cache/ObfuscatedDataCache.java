@@ -20,6 +20,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Objects;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -77,5 +78,30 @@ public class ObfuscatedDataCache {
 
     public static DataOutputStream getOutputStream(File folder, int x, int z) {
         return getInternalCache().getOutputStream(folder, x, z);
+    }
+    
+    public static int deleteFiles(File folder, int deleteAfterDays) {
+    	int count = 0;
+    	
+    	try {
+	    	File regionFolder = new File(folder, "data/region");
+	    	
+	    	if(!regionFolder.exists()) return count;
+	    	
+	    	long deleteAfterDaysMs = (long)deleteAfterDays * 24L * 60L * 60L * 1000L;
+	    	
+	    	for(File file : regionFolder.listFiles()) {
+	    		long diff = new Date().getTime() - file.lastModified();
+	    		
+	    		if (diff > deleteAfterDaysMs) {
+	    		    file.delete();
+	    		    count++;
+	    		}
+	    	}
+    	} catch(Exception ex) {
+    		ex.printStackTrace();
+    	}
+    	
+    	return count;
     }
 }
