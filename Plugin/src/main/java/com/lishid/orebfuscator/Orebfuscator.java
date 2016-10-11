@@ -16,6 +16,7 @@
 
 package com.lishid.orebfuscator;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -27,6 +28,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.lishid.orebfuscator.cache.CacheCleaner;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
+import com.lishid.orebfuscator.config.ConfigManager12;
+import com.lishid.orebfuscator.config.OrebfuscatorConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
@@ -44,6 +47,8 @@ public class Orebfuscator extends JavaPlugin {
 
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
+    public static OrebfuscatorConfig config;
+    public static ConfigManager12 configManager;
     
     public static INmsManager nms;
     
@@ -62,7 +67,7 @@ public class Orebfuscator extends JavaPlugin {
         nms = createNmsManager();
         
         // Load configurations
-        OrebfuscatorConfig.load();
+        loadOrebfuscatorConfig();
         
         this.isProtocolLibFound = pm.getPlugin("ProtocolLib") != null;
 
@@ -80,9 +85,34 @@ public class Orebfuscator extends JavaPlugin {
         (new ProtocolLibHook()).register(this);
         
         // Run CacheCleaner
-        getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CacheCleaner(), 0, OrebfuscatorConfig.CacheCleanRate);        
+        getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CacheCleaner(), 0, config.getCacheCleanRate());        
     }
     
+    public void loadOrebfuscatorConfig() {
+    	if(config == null) {
+    		config = new OrebfuscatorConfig();
+    		configManager = new ConfigManager12(this, logger, config);
+    	}
+    	
+    	configManager.load();
+    	
+        ObfuscatedDataCache.resetCacheFolder();
+
+        nms.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
+        
+        //Make sure cache is cleared if config was changed since last start
+        try {
+			ObfuscatedDataCache.checkCacheAndConfigSynchronized();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public void reloadOrebfuscatorConfig() {
+    	reloadConfig();
+    	loadOrebfuscatorConfig();
+    }
+
     private static INmsManager createNmsManager() {
 
         String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];

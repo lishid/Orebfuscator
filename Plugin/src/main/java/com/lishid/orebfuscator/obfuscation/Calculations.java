@@ -19,29 +19,35 @@ package com.lishid.orebfuscator.obfuscation;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.bukkit.World;
-import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
+import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
+import com.lishid.orebfuscator.config.ProximityHiderConfig;
+import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.types.BlockCoord;
 import com.lishid.orebfuscator.types.BlockState;
 
 public class Calculations {
+	private static Random random = new Random();
 
     public static byte[] obfuscateOrUseCache(ChunkData chunkData, Player player) throws IOException {
     	if(chunkData.primaryBitMask == 0) return null;
     	
-        if (!OrebfuscatorConfig.Enabled // Plugin enabled
-        		|| OrebfuscatorConfig.isWorldDisabled(player.getWorld().getName()) // World not enabled
-                || !OrebfuscatorConfig.obfuscateForPlayer(player)) // Should the player have obfuscation?
-        {
+        if (!Orebfuscator.config.isEnabled()  || !Orebfuscator.config.obfuscateForPlayer(player)) {
             return null; 
+        }
+        
+        WorldConfig worldConfig = Orebfuscator.config.getWorld(player.getWorld());
+        
+        if(!worldConfig.isEnabled()) {
+        	return null;
         }
         
         byte[] output;
@@ -88,8 +94,9 @@ public class Calculations {
     }
     
     private static byte[] obfuscate(ChunkData chunkData, Player player, ArrayList<BlockCoord> proximityBlocks) throws IOException {
-    	Environment environment = player.getWorld().getEnvironment();
-    	int initialRadius = OrebfuscatorConfig.InitialRadius;
+    	WorldConfig worldConfig = Orebfuscator.config.getWorld(player.getWorld());
+    	ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
+    	int initialRadius = Orebfuscator.config.getInitialRadius();
 
         // Track of pseudo-randomly assigned randomBlock
         int randomIncrement = 0;
@@ -99,11 +106,11 @@ public class Calculations {
         boolean obfuscate = false;
         boolean specialObfuscate = false;
 
-        int engineMode = OrebfuscatorConfig.EngineMode;
-        int maxChance = OrebfuscatorConfig.AirGeneratorMaxChance;
+        int engineMode = Orebfuscator.config.getEngineMode();
+        int maxChance = worldConfig.getAirGeneratorMaxChance();
         int incrementMax = maxChance;
 
-        int randomBlocksLength = OrebfuscatorConfig.getRandomBlocks(false, environment).length;
+        int randomBlocksLength = worldConfig.getRandomBlocks().length;
         boolean randomAlternate = false;
 
 		int startX = chunkData.chunkX << 4;
@@ -115,11 +122,11 @@ public class Calculations {
 		manager.init();
 		
 		for(int i = 0; i < manager.getSectionCount(); i++) {
-            OrebfuscatorConfig.shuffleRandomBlocks();
+            worldConfig.shuffleRandomBlocks();
 
             for(int offsetY = 0; offsetY < 16; offsetY++) {
             	for(int offsetZ = 0; offsetZ < 16; offsetZ++) {
-                    incrementMax = (maxChance + OrebfuscatorConfig.random(maxChance)) / 2;
+                    incrementMax = (maxChance + random(maxChance)) / 2;
                     
                     for(int offsetX = 0; offsetX < 16; offsetX++) {
                     	int blockData = manager.readNextBlock();
@@ -136,10 +143,10 @@ public class Calculations {
 	                        specialObfuscate = false;
 	
 	                        // Check if the block should be obfuscated for the default engine modes
-	                        if (OrebfuscatorConfig.isObfuscated(blockState.id, environment)) {
+	                        if (worldConfig.isObfuscated(blockState.id)) {
 	                            if (initialRadius == 0) {
 	                                // Do not interfere with PH
-	                                if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
+	                                if (proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.id)) {
 	                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
 	                                        obfuscate = true;
 	                                    }
@@ -156,45 +163,43 @@ public class Calculations {
 	                        }
 	
 	                        // Check if the block should be obfuscated because of proximity check
-	                        if (!obfuscate && OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, blockState.id)) {
-	                            if (OrebfuscatorConfig.isProximityHiderOn(y, blockState.id)) {
-	                            	BlockCoord block = new BlockCoord(x, y, z);
-	                                if (block != null) {
-	                                    proximityBlocks.add(block);
-	                                }
-	                                
-	                                obfuscate = true;
-	                                if (OrebfuscatorConfig.UseSpecialBlockForProximityHider) {
-	                                    specialObfuscate = true;
-	                                }
-	                            }
+	                        if (!obfuscate && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.id)) {
+                            	BlockCoord block = new BlockCoord(x, y, z);
+                                if (block != null) {
+                                    proximityBlocks.add(block);
+                                }
+                                
+                                obfuscate = true;
+                                if (proximityHider.isUseSpecialBlock()) {
+                                    specialObfuscate = true;
+                                }
 	                        }
 	
 	                        // Check if the block is obfuscated
 	                        if (obfuscate) {
 	                            if (specialObfuscate) {
 	                                // Proximity hider
-	                                blockState.id = OrebfuscatorConfig.ProximityHiderID;
+	                                blockState.id = proximityHider.getSpecialBlockID();
 	                            } else {
-	                                randomIncrement2 = OrebfuscatorConfig.random(incrementMax);
-	
 	                                if (engineMode == 1) {
 	                                    // Engine mode 1, replace with stone
-	                                	blockState.id = (environment == Environment.NETHER ? 87 : 1);
+	                                	blockState.id = worldConfig.getMode1BlockId();
 	                                } else if (engineMode == 2) {
 	                                    // Ending mode 2, replace with random block
 	                                    if (randomBlocksLength > 1) {
 	                                        randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
 	                                    }
 	                                    
-	                                    blockState.id = OrebfuscatorConfig.getRandomBlock(randomIncrement, randomAlternate, environment);
+	                                    blockState.id = worldConfig.getRandomBlock(randomIncrement, randomAlternate);
 	                                    randomAlternate = !randomAlternate;
 	                                }
 	                                // Anti texturepack and freecam
-	                                if (OrebfuscatorConfig.AntiTexturePackAndFreecam) {
-	                                // Add random air blocks
-	                                    if (randomIncrement2 == 0) {
-	                                        randomCave = 1 + OrebfuscatorConfig.random(3);
+	                                if (worldConfig.isAntiTexturePackAndFreecam()) {
+	                                	// Add random air blocks
+		                                randomIncrement2 = random(incrementMax);
+
+		                                if (randomIncrement2 == 0) {
+	                                        randomCave = 1 + random(3);
 	                                    }
 	
 	                                    if (randomCave > 0) {
@@ -208,7 +213,7 @@ public class Calculations {
 	                        }
 	
 	                        // Check if the block should be obfuscated because of the darkness
-	                        if (!obfuscate && OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(blockState.id)) {
+	                        if (!obfuscate && worldConfig.isDarknessHideBlocks() && worldConfig.isDarknessObfuscated(blockState.id)) {
 	                            if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
 	                                // Hide block, setting it to air
 	                            	blockState.id = 0;
@@ -224,7 +229,7 @@ public class Calculations {
 						if(offsetY == 0 && offsetZ == 0 && offsetX == 0) {
 							manager.finalizeOutput();							
 							manager.initOutputPalette();
-							addBlocksToPalette(manager, environment);
+							addBlocksToPalette(manager, worldConfig);
 							manager.initOutputSection();
 						}
 						
@@ -245,30 +250,26 @@ public class Calculations {
         return output;
     }
     
-    private static void addBlocksToPalette(ChunkMapManager manager, Environment environment) {
+    private static void addBlocksToPalette(ChunkMapManager manager, WorldConfig worldConfig) {
     	if(!manager.inputHasNonAirBlock()) {
     		return;
     	}
 
-    	int[] list = environment == Environment.NETHER
-    			? OrebfuscatorConfig.NetherPaletteBlocks
-    			: OrebfuscatorConfig.NormalPaletteBlocks;
-    	
-    	for(int id : list) {
+    	for(int id : worldConfig.getPaletteBlocks()) {
     		int blockData = ChunkMapManager.getBlockDataFromId(id);
     		manager.addToOutputPalette(blockData);
     	}
     }
     
     private static ObfuscatedCachedChunk tryUseCache(ChunkData chunkData, Player player) {
-        if (!OrebfuscatorConfig.UseCache) return null;
+        if (!Orebfuscator.config.isUseCache()) return null;
         
         chunkData.useCache = true;
         
         // Hash the chunk
         long hash = CalculationsUtil.Hash(chunkData.data, chunkData.data.length);
         // Get cache folder
-        File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), player.getWorld().getName());
+        File cacheFolder = new File(ObfuscatedDataCache.getCacheFolder(), player.getWorld().getName());
         // Create cache objects
         ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunkData.chunkX, chunkData.chunkZ);
         
@@ -339,7 +340,7 @@ public class Calculations {
 	        	id = ChunkMapManager.getBlockIdFromData(blockData);
 	        }
 	
-	        if (OrebfuscatorConfig.isBlockTransparent(id)) {
+	        if (Orebfuscator.config.isBlockTransparent(id)) {
 	            return true;
 	        }
         }
@@ -386,61 +387,8 @@ public class Calculations {
 
         return false;
     }
-
-    //16 bit char for block data, including 12 bits for block id
-    /*
-    private static final int BLOCKID_MAX = 4096;
-    private static char[] cacheMap = new char[BLOCKID_MAX];
-
-    static {
-        buildCacheMap();
+    
+    private static int random(int max) {
+        return random.nextInt(max);
     }
-
-    public static void buildCacheMap() {
-        for (int i = 0; i < 4096; i++) {
-            cacheMap[i] = (char) i;
-            if (OrebfuscatorConfig.isBlockTransparent((short) i) && !isBlockSpecialObfuscated(64, (char) i)) {
-                cacheMap[i] = 0;
-            }
-        }
-    }
-
-    private static void PrepareBufferForCaching(byte[] data, int bytes) {
-        for (int i = 0; i < bytes / 2; i++) {
-            int blockId = chunkGetBlockId(data, i);
-
-            blockId = cacheMap[blockId % BLOCKID_MAX];
-
-            chunkSetBlockId(data, i, blockId);
-        }
-    }
-
-    private static boolean isBlockSpecialObfuscated(int y, char id) {
-        if (OrebfuscatorConfig.DarknessHideBlocks && OrebfuscatorConfig.isDarknessObfuscated(id)) {
-            return true;
-        }
-        if (OrebfuscatorConfig.UseProximityHider && OrebfuscatorConfig.isProximityObfuscated(y, id)) {
-            return true;
-        }
-        return false;
-    }
-
-    private static void RepaintChunkToBuffer(byte[] data, ChunkInfo info) {
-        byte[] original = info.original;
-        int bytes = info.bytes;
-
-        for (int i = 0; i < bytes / 2; i++) {
-            int newId = chunkGetBlockId(data, i);
-            int originalId = chunkGetBlockId(original, i);
-
-            if (newId == 0 && originalId != 0) {
-                if (OrebfuscatorConfig.isBlockTransparent((short) originalId)) {
-                    if (!isBlockSpecialObfuscated(0, (char) originalId)) {
-                        chunkSetBlockId(data, i, originalId);
-                    }
-                }
-            }
-        }
-    }
-    */
 }

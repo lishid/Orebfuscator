@@ -16,8 +16,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
+import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
+import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.nms.IChunkManager;
 import com.lishid.orebfuscator.types.ChunkCoord;
 
@@ -55,13 +56,13 @@ public class ChunkReloader extends Thread implements Runnable {
         while (!this.isInterrupted() && !kill.get()) {
             try {
                 // Wait until necessary
-                long timeWait = lastExecute + OrebfuscatorConfig.ChunkReloaderRate - System.currentTimeMillis();
+                long timeWait = lastExecute + Orebfuscator.config.getChunkReloaderRate() - System.currentTimeMillis();
                 lastExecute = System.currentTimeMillis();
                 if (timeWait > 0) {
                     Thread.sleep(timeWait);
                 }
                 
-                if (!OrebfuscatorConfig.UseChunkReloader) {
+                if (!Orebfuscator.config.isUseChunkReloader()) {
                     return;
                 }
                 
@@ -137,11 +138,11 @@ public class ChunkReloader extends Thread implements Runnable {
     }
     
     private static void scheduleReloadChunks(final World world, HashSet<ChunkCoord> chunksForReloadForWorld) {
-    	File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());
+    	File cacheFolder = new File(ObfuscatedDataCache.getCacheFolder(), world.getName());
     	final IChunkManager chunkManager = Orebfuscator.nms.getChunkManager(world);    	
     	
     	for(final ChunkCoord chunk : chunksForReloadForWorld) {
-    		if(OrebfuscatorConfig.UseCache) {
+    		if(Orebfuscator.config.isUseCache()) {
 	    		ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunk.x, chunk.z);
 	    		if(cache.getHash() != 0) continue;
     		}
@@ -179,7 +180,11 @@ public class ChunkReloader extends Thread implements Runnable {
 		}
 		
 		if(affectedPlayers.size() > 0) {
-			ProximityHider.addPlayersToReload(affectedPlayers);
+			ProximityHiderConfig proximityHider = Orebfuscator.config.getWorld(world).getProximityHiderConfig();
+			
+			if(proximityHider.isEnabled()) {
+				ProximityHider.addPlayersToReload(affectedPlayers);
+			}
 		}
     }
     
@@ -192,9 +197,10 @@ public class ChunkReloader extends Thread implements Runnable {
     }
 
     public static void addLoadedChunk(World world, int chunkX, int chunkZ) {
-        if (!OrebfuscatorConfig.Enabled // Plugin enabled
-        		|| OrebfuscatorConfig.isWorldDisabled(world.getName()) // World not enabled
-        		|| !OrebfuscatorConfig.UseChunkReloader)
+        if (!Orebfuscator.config.isEnabled() // Plugin enabled
+        		|| !Orebfuscator.config.isUseChunkReloader()
+        		|| !Orebfuscator.config.getWorld(world).isEnabled() // World not enabled
+        		)
         {
             return;
         }
@@ -213,9 +219,10 @@ public class ChunkReloader extends Thread implements Runnable {
     }
 
     public static void addUnloadedChunk(World world, int chunkX, int chunkZ) {
-        if (!OrebfuscatorConfig.Enabled // Plugin enabled
-        		|| OrebfuscatorConfig.isWorldDisabled(world.getName()) // World not enabled
-        		|| !OrebfuscatorConfig.UseChunkReloader)
+        if (!Orebfuscator.config.isEnabled() // Plugin enabled
+        		|| !Orebfuscator.config.isUseChunkReloader()
+        		|| !Orebfuscator.config.getWorld(world).isEnabled() // World not enabled
+        		)
         {
             return;
         }

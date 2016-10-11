@@ -27,7 +27,7 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 
 import com.lishid.orebfuscator.DeprecatedMethods;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 
@@ -41,7 +41,7 @@ public class OrebfuscatorBlockListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
-        if (!OrebfuscatorConfig.UpdateOnDamage) {
+        if (!Orebfuscator.config.isUpdateOnDamage()) {
             return;
         }
 

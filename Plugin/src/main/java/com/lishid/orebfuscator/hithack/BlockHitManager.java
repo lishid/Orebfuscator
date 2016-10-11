@@ -22,7 +22,7 @@ import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.OrebfuscatorConfig;
+import com.lishid.orebfuscator.Orebfuscator;
 
 public class BlockHitManager {
     private static HashMap<Player, PlayerBlockTracking> playersBlockTrackingStatus = new HashMap<Player, PlayerBlockTracking>();
@@ -42,13 +42,13 @@ public class BlockHitManager {
         playerBlockTracking.setBlock(block);
         playerBlockTracking.updateTime();
 
-        int decrement = (int) (time / OrebfuscatorConfig.AntiHitHackDecrementFactor);
+        int decrement = (int) (time / Orebfuscator.config.getAntiHitHackDecrementFactor());
         playerBlockTracking.decrementHackingIndicator(decrement);
 
-        if (playerBlockTracking.getHackingIndicator() == OrebfuscatorConfig.AntiHitHackMaxViolation)
-            playerBlockTracking.incrementHackingIndicator(OrebfuscatorConfig.AntiHitHackMaxViolation);
+        if (playerBlockTracking.getHackingIndicator() == Orebfuscator.config.getAntiHitHackMaxViolation())
+            playerBlockTracking.incrementHackingIndicator(Orebfuscator.config.getAntiHitHackMaxViolation());
 
-        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
+        if (playerBlockTracking.getHackingIndicator() > Orebfuscator.config.getAntiHitHackMaxViolation())
             return false;
 
         return true;
@@ -57,7 +57,7 @@ public class BlockHitManager {
     public static boolean canFakeHit(Player player) {
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
 
-        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
+        if (playerBlockTracking.getHackingIndicator() > Orebfuscator.config.getAntiHitHackMaxViolation())
             return false;
 
         return true;
@@ -67,7 +67,7 @@ public class BlockHitManager {
         PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
         playerBlockTracking.incrementHackingIndicator();
 
-        if (playerBlockTracking.getHackingIndicator() > OrebfuscatorConfig.AntiHitHackMaxViolation)
+        if (playerBlockTracking.getHackingIndicator() > Orebfuscator.config.getAntiHitHackMaxViolation())
             return false;
 
         return true;
