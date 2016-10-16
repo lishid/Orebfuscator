@@ -7,8 +7,6 @@ package com.lishid.orebfuscator.config;
 
 import java.util.Map;
 
-import org.bukkit.World;
-import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -38,7 +36,7 @@ public class OrebfuscatorConfig {
     private WorldConfig normalWorld;
     private WorldConfig endWorld;
     private WorldConfig netherWorld;
-    private Map<World, WorldConfig> worlds;
+    private Map<String, WorldConfig> worlds;
     
     private boolean proximityHiderEnabled;
     
@@ -49,28 +47,6 @@ public class OrebfuscatorConfig {
     private static final boolean useChunkReloader = false;
     private static final long cacheCleanRate = 60 * 60 * 20;//once per hour
     
-    public WorldConfig getWorld(World world) {
-    	if(world == null) {
-    		return null;
-    	}
-    	
-    	WorldConfig cfg = this.worlds.get(world);
-    	
-    	if(cfg != null) {
-    		return cfg;
-    	}
-    	
-    	if(world.getEnvironment() == Environment.THE_END) {
-    		return this.endWorld;
-    	}
-
-    	if(world.getEnvironment() == Environment.NETHER) {
-    		return this.netherWorld;
-    	}
-    	
-    	return this.normalWorld;
-    }
-
     public boolean isUseCache() {
     	return this.useCache;
     }
@@ -223,11 +199,11 @@ public class OrebfuscatorConfig {
     	this.netherWorld = value;
     }
     
-    public Map<World, WorldConfig> getWorlds() {
+    public Map<String, WorldConfig> getWorlds() {
     	return this.worlds;
     }
     
-    public void setWorlds(Map<World, WorldConfig> value) {
+    public void setWorlds(Map<String, WorldConfig> value) {
     	this.worlds = value;
     }
     
@@ -243,7 +219,7 @@ public class OrebfuscatorConfig {
         
         if(!this.proximityHiderEnabled) {
         	for(WorldConfig world : this.worlds.values()) {
-        		if(world.getProximityHiderConfig().isEnabled()) {
+        		if(world.getProximityHiderConfig().isEnabled() != null && world.getProximityHiderConfig().isEnabled()) {
         			this.proximityHiderEnabled = true;
         			break;
         		}

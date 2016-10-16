@@ -53,7 +53,7 @@ public class BlockUpdate {
         }
 
         World world = blocks.get(0).getWorld();
-        WorldConfig worldConfig = Orebfuscator.config.getWorld(world);
+        WorldConfig worldConfig = Orebfuscator.configManager.getWorld(world);
         HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
     	HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
     	int updateRadius = Orebfuscator.config.getUpdateRadius();
@@ -88,7 +88,7 @@ public class BlockUpdate {
         }
 
         World world = locations.get(0).getWorld();
-        WorldConfig worldConfig = Orebfuscator.config.getWorld(world);
+        WorldConfig worldConfig = Orebfuscator.configManager.getWorld(world);
         HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
     	HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
         

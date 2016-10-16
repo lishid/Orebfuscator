@@ -18,7 +18,6 @@ package com.lishid.orebfuscator.commands;
 
 import java.io.IOException;
 
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -86,34 +85,6 @@ public class OrebfuscatorCommandExecutor {
             return true;
         }
 
-        else if (args[0].equalsIgnoreCase("airgen") && args.length > 1) {
-            int airgen = Orebfuscator.config.getDefaultWorld().getAirGeneratorMaxChance();
-            try {
-                airgen = new Integer(args[1]);
-            }
-            catch (NumberFormatException e) {
-                Orebfuscator.message(sender, args[1] + " is not a number!");
-                return true;
-            }
-            Orebfuscator.configManager.setAirGeneratorMaxChance(airgen);
-            Orebfuscator.message(sender, "AirGeneratorMaxChance set to: " + airgen);
-            return true;
-        }
-
-        else if ((args[0].equalsIgnoreCase("proximity") | args[0].equalsIgnoreCase("proximityhider")) && args.length > 1) {
-            int ProximityHiderDistance = Orebfuscator.config.getDefaultWorld().getProximityHiderConfig().getDistance();
-            try {
-                ProximityHiderDistance = new Integer(args[1]);
-            }
-            catch (NumberFormatException e) {
-                Orebfuscator.message(sender, args[1] + " is not a number!");
-                return true;
-            }
-            Orebfuscator.configManager.setProximityHiderDistance(ProximityHiderDistance);
-            Orebfuscator.message(sender, "ProximityHider Distance set to: " + ProximityHiderDistance);
-            return true;
-        }
-
         else if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable")) {
             boolean data = args[0].equalsIgnoreCase("enable");
 
@@ -128,11 +99,7 @@ public class OrebfuscatorCommandExecutor {
             }
 
             else if (args.length > 1) {
-                if (args[1].equalsIgnoreCase("darknesshide")) {
-                    Orebfuscator.configManager.setDarknessHideBlocks(data);
-                    Orebfuscator.message(sender, "Darkness obfuscation " + (data ? "enabled" : "disabled") + ".");
-                }
-                else if (args[1].equalsIgnoreCase("op")) {
+                if (args[1].equalsIgnoreCase("op")) {
                 	Orebfuscator.configManager.setNoObfuscationForOps(data);
                     Orebfuscator.message(sender, "Ops No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
                 }
@@ -144,32 +111,13 @@ public class OrebfuscatorCommandExecutor {
                 	Orebfuscator.configManager.setUseCache(data);
                     Orebfuscator.message(sender, "Cache " + (data ? "enabled" : "disabled") + ".");
                 }
-                else if (args[1].equalsIgnoreCase("axr")) {
-                	Orebfuscator.configManager.setAntiTexturePackAndFreecam(data);
-                    Orebfuscator.message(sender, "AntiTexturePackAndFreecam " + (data ? "enabled" : "disabled") + ".");
-                }
                 else if (args[1].equalsIgnoreCase("notification")) {
                 	Orebfuscator.configManager.setLoginNotification(data);
                     Orebfuscator.message(sender, "Login Notification " + (data ? "enabled" : "disabled") + ".");
                 }
-                else if (args[1].equalsIgnoreCase("world") && args.length > 2) {
-                    Orebfuscator.configManager.setWorldEnabled(args[2], data);
-                    Orebfuscator.message(sender, "World \"" + args[2] + "\" obfuscation " + (data ? "enabled" : "disabled") + ".");
-                }
             }
         }
         
-        else if (args[0].equalsIgnoreCase("use") && args.length > 1) {
-            if (args[1].equalsIgnoreCase("blacklist")) {
-                Orebfuscator.configManager.setUseWorldsAsBlacklist(true);
-                Orebfuscator.message(sender, "Use worlds as blacklist.");
-            }
-            else if (args[1].equalsIgnoreCase("whitelist")) {
-                Orebfuscator.configManager.setUseWorldsAsBlacklist(false);
-                Orebfuscator.message(sender, "Use worlds as whitelist.");
-            }
-        }
-
         else if (args[0].equalsIgnoreCase("reload")) {
             Orebfuscator.instance.reloadOrebfuscatorConfig();
             Orebfuscator.message(sender, "Reload complete.");
@@ -192,12 +140,12 @@ public class OrebfuscatorCommandExecutor {
             
             String worlds = "";
 
-            for(World world : Orebfuscator.config.getWorlds().keySet()) {
+            for(String name : Orebfuscator.config.getWorlds().keySet()) {
             	if(worlds.length() > 0) {
-            		worlds += ", ";
+            		name += ", ";
             	}
             	
-            	worlds += world.getName();
+            	worlds += name;
             }
             
             Orebfuscator.message(sender, "Worlds: " + (worlds.equals("") ? "None" : worlds));

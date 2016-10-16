@@ -44,7 +44,7 @@ public class Calculations {
             return null; 
         }
         
-        WorldConfig worldConfig = Orebfuscator.config.getWorld(player.getWorld());
+        WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
         
         if(!worldConfig.isEnabled()) {
         	return null;
@@ -94,7 +94,7 @@ public class Calculations {
     }
     
     private static byte[] obfuscate(ChunkData chunkData, Player player, ArrayList<BlockCoord> proximityBlocks) throws IOException {
-    	WorldConfig worldConfig = Orebfuscator.config.getWorld(player.getWorld());
+    	WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
     	ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
     	int initialRadius = Orebfuscator.config.getInitialRadius();
 
@@ -102,9 +102,6 @@ public class Calculations {
         int randomIncrement = 0;
         int randomIncrement2 = 0;
         int randomCave = 0;
-        // Track of whether a block should be obfuscated or not
-        boolean obfuscate = false;
-        boolean specialObfuscate = false;
 
         int engineMode = Orebfuscator.config.getEngineMode();
         int maxChance = worldConfig.getAirGeneratorMaxChance();
@@ -139,8 +136,8 @@ public class Calculations {
 							int z = startZ | offsetZ;
 	
 	                        // Initialize data
-	                        obfuscate = false;
-	                        specialObfuscate = false;
+	                        boolean obfuscate = false;
+	                        boolean specialObfuscate = false;
 	
 	                        // Check if the block should be obfuscated for the default engine modes
 	                        if (worldConfig.isObfuscated(blockState.id)) {

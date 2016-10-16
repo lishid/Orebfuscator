@@ -6,7 +6,7 @@
 package com.lishid.orebfuscator.config;
 
 public class MaterialResult {
-	public int id;
+	public Integer id;
 	public String name;
 	
 	public MaterialResult(int id, String name) {

@@ -5,51 +5,137 @@
 
 package com.lishid.orebfuscator.config;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 
 public class WorldConfig {
-    private boolean enabled;
-    private boolean darknessHideBlocks;
-    private boolean antiTexturePackAndFreecam;
-    private int airGeneratorMaxChance;
+    private Boolean enabled;
+    private Boolean darknessHideBlocks;
+    private Boolean antiTexturePackAndFreecam;
+    private Integer airGeneratorMaxChance;
     private boolean[] obfuscateBlocks;
+    private boolean[] obfuscateAndProximityBlocks;
     private boolean[] darknessBlocks;
     private Integer[] randomBlocks;
     private Integer[] randomBlocks2;
-    private int mode1BlockId;
+    private Integer mode1BlockId;
     private int[] paletteBlocks;
     private ProximityHiderConfig proximityHiderConfig;
+    private boolean initialized;
     
-    public boolean isEnabled() {
+    public WorldConfig() {
+    	this.proximityHiderConfig = new ProximityHiderConfig();
+    }
+    
+    public void setDefaults() {
+		this.enabled = true;
+		this.darknessHideBlocks = false;
+		this.antiTexturePackAndFreecam = true;
+		this.airGeneratorMaxChance = 43;
+		this.obfuscateBlocks = new boolean[256];
+		this.obfuscateAndProximityBlocks = new boolean[256];
+		
+		this.darknessBlocks = new boolean[256];
+		this.darknessBlocks[52] = true;
+		this.darknessBlocks[54] = true;
+		
+		this.randomBlocks = new Integer[0];
+		this.randomBlocks2 = this.randomBlocks;
+		
+	    this.mode1BlockId = 1;
+	    this.paletteBlocks = null;
+
+	    this.proximityHiderConfig.setDefaults();
+    }
+    
+    public void init(WorldConfig baseWorld) {
+    	if(this.initialized) {
+    		return;
+    	}
+    	
+    	if(baseWorld != null) {
+	    	if(this.enabled == null) {
+	    		this.enabled = baseWorld.enabled;
+	    	}
+	        
+	    	if(this.darknessHideBlocks == null) {
+	    		this.darknessHideBlocks = baseWorld.darknessHideBlocks;
+	    	}
+	    	
+	    	if(this.antiTexturePackAndFreecam == null) {
+	    		this.antiTexturePackAndFreecam = baseWorld.antiTexturePackAndFreecam;
+	    	}
+	    	
+	    	if(this.airGeneratorMaxChance == null) {
+	    		this.airGeneratorMaxChance = baseWorld.airGeneratorMaxChance;
+	    	}
+	    	
+	    	if(this.obfuscateBlocks == null) {
+	    		this.obfuscateBlocks = baseWorld.obfuscateBlocks != null ? baseWorld.obfuscateBlocks.clone(): null;
+	    	}
+	    	
+	    	if(this.obfuscateAndProximityBlocks == null) {
+	    		this.obfuscateAndProximityBlocks = baseWorld.obfuscateAndProximityBlocks != null ? baseWorld.obfuscateAndProximityBlocks.clone(): null;
+	    	}
+	    	
+	    	if(this.darknessBlocks == null) {
+	    		this.darknessBlocks = baseWorld.darknessBlocks != null ? baseWorld.darknessBlocks.clone(): null;
+	    	}
+	    	
+	    	if(this.randomBlocks == null) {
+		        this.randomBlocks = baseWorld.randomBlocks != null ? baseWorld.randomBlocks.clone(): null;
+		        this.randomBlocks2 = baseWorld.randomBlocks2 != null ? baseWorld.randomBlocks2.clone(): null;
+	    	}
+	    	
+	    	if(this.mode1BlockId == null) {
+	    		this.mode1BlockId = baseWorld.mode1BlockId;
+	    	}
+	    	
+	  		this.proximityHiderConfig.init(baseWorld.proximityHiderConfig);
+    	}
+        
+        setPaletteBlocks();
+        setObfuscateAndProximityBlocks();
+        
+        this.initialized = true;
+    }
+    
+    public boolean isInitialized() {
+    	return this.initialized;
+    }
+    
+    public Boolean isEnabled() {
     	return this.enabled;
     }
     
-    public void setEnabled(boolean value) {
+    public void setEnabled(Boolean value) {
     	this.enabled = value;
     }
     
-    public boolean isDarknessHideBlocks() {
+    public Boolean isDarknessHideBlocks() {
     	return this.darknessHideBlocks;
     }
     
-    public void setDarknessHideBlocks(boolean value) {
+    public void setDarknessHideBlocks(Boolean value) {
     	this.darknessHideBlocks = value;
     }
 
-    public boolean isAntiTexturePackAndFreecam() {
+    public Boolean isAntiTexturePackAndFreecam() {
     	return this.antiTexturePackAndFreecam;
     }
     
-    public void setAntiTexturePackAndFreecam(boolean value) {
+    public void setAntiTexturePackAndFreecam(Boolean value) {
     	this.antiTexturePackAndFreecam = value;
     }
 
-    public int getAirGeneratorMaxChance() {
+    public Integer getAirGeneratorMaxChance() {
     	return this.airGeneratorMaxChance;
     }
     
-    public void setAirGeneratorMaxChance(int value) {
+    public void setAirGeneratorMaxChance(Integer value) {
     	this.airGeneratorMaxChance = value;
     }
     
@@ -61,12 +147,56 @@ public class WorldConfig {
     	this.obfuscateBlocks = values;
     }
     
+    public Integer[] getObfuscateBlockIds() {
+    	if(this.obfuscateBlocks == null) {
+    		return null;
+    	}
+    	
+    	List<Integer> result = new ArrayList<Integer>();
+    	
+    	for(int i = 0; i < this.obfuscateBlocks.length; i++) {
+    		if(this.obfuscateBlocks[i]) {
+    			result.add(i);
+    		}
+    	}
+    	
+    	return result.toArray(new Integer[0]);
+    }
+    
+    private void setObfuscateAndProximityBlocks() {
+    	boolean isProximityHiderEnabled = this.proximityHiderConfig != null && this.proximityHiderConfig.isEnabled();
+    	boolean[] proximityHiderBlocks = isProximityHiderEnabled ? this.proximityHiderConfig.getProximityHiderBlocks(): null;
+    	
+    	for(int i = 0; i < this.obfuscateAndProximityBlocks.length; i++) {
+    		this.obfuscateAndProximityBlocks[i] =
+    				this.obfuscateBlocks[i]
+    				|| isProximityHiderEnabled && proximityHiderBlocks[i]
+    				;
+    	}
+    }
+    
     public boolean[] getDarknessBlocks() {
     	return this.darknessBlocks;
     }
     
     public void setDarknessBlocks(boolean[] values) {
     	this.darknessBlocks = values;
+    }
+
+    public Integer[] getDarknessBlockIds() {
+    	if(this.darknessBlocks == null) {
+    		return null;
+    	}
+    	
+    	List<Integer> result = new ArrayList<Integer>();
+    	
+    	for(int i = 0; i < this.darknessBlocks.length; i++) {
+    		if(this.darknessBlocks[i]) {
+    			result.add(i);
+    		}
+    	}
+    	
+    	return result.toArray(new Integer[0]);
     }
 
     public Integer[] getRandomBlocks() {
@@ -89,20 +219,46 @@ public class WorldConfig {
         }
     }
     
-    public int getMode1BlockId() {
+    public Integer getMode1BlockId() {
     	return this.mode1BlockId;
     }
 
-    public void setMode1BlockId(int value) {
+    public void setMode1BlockId(Integer value) {
     	this.mode1BlockId = value;
     }
 
     public int[] getPaletteBlocks() {
     	return this.paletteBlocks;
     }
-
-    public void setPaletteBlocks(int[] values) {
-    	this.paletteBlocks = values;
+    
+    private void setPaletteBlocks() {
+    	if(this.randomBlocks == null) {
+    		return;
+    	}
+    	
+    	HashSet<Integer> map = new HashSet<Integer>();
+    	
+    	map.add(0);
+    	map.add(this.mode1BlockId);
+    	
+    	if(this.proximityHiderConfig.isUseSpecialBlock()) {
+    		map.add(this.proximityHiderConfig.getSpecialBlockID());
+    	}
+    	
+    	for(Integer id : this.randomBlocks) {
+    		if(id != null) {
+    			map.add(id);
+    		}
+    	}
+    	
+    	int[] paletteBlocks = new int[map.size()];
+    	int index = 0;
+    	
+    	for(Integer id : map) {
+    		paletteBlocks[index++] = id;
+    	}
+    	
+    	this.paletteBlocks = paletteBlocks;
     }
 
     public ProximityHiderConfig getProximityHiderConfig() {
@@ -113,29 +269,13 @@ public class WorldConfig {
     	this.proximityHiderConfig = value;
     }
     
-    public WorldConfig clone() {
-    	WorldConfig cfg = new WorldConfig();
-        cfg.enabled = this.enabled;
-        cfg.darknessHideBlocks = this.darknessHideBlocks;
-        cfg.antiTexturePackAndFreecam = this.antiTexturePackAndFreecam;
-        cfg.airGeneratorMaxChance = this.airGeneratorMaxChance;
-        cfg.obfuscateBlocks = this.obfuscateBlocks;
-        cfg.darknessBlocks = this.darknessBlocks;
-        cfg.randomBlocks = this.randomBlocks;
-        cfg.randomBlocks2 = this.randomBlocks2;
-        cfg.paletteBlocks = this.paletteBlocks;
-        cfg.proximityHiderConfig = this.proximityHiderConfig;
-        
-        return cfg;
-    }
-    
     // Helper methods
     
     public boolean isObfuscated(int id) {
         if (id < 0)
             id += 256;
         
-        return this.obfuscateBlocks[id];
+        return this.obfuscateAndProximityBlocks[id];
     }
 
     public boolean isDarknessObfuscated(int id) {

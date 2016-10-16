@@ -28,7 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.lishid.orebfuscator.cache.CacheCleaner;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
-import com.lishid.orebfuscator.config.ConfigManager12;
+import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.config.OrebfuscatorConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.ProtocolLibHook;
@@ -37,6 +37,7 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorChunkListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.nms.INmsManager;
+import com.lishid.orebfuscator.utils.Globals;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -48,7 +49,7 @@ public class Orebfuscator extends JavaPlugin {
     public static final Logger logger = Logger.getLogger("Minecraft.OFC");
     public static Orebfuscator instance;
     public static OrebfuscatorConfig config;
-    public static ConfigManager12 configManager;
+    public static ConfigManager configManager;
     
     public static INmsManager nms;
     
@@ -81,7 +82,7 @@ public class Orebfuscator extends JavaPlugin {
         pm.registerEvents(new OrebfuscatorEntityListener(), this);
         pm.registerEvents(new OrebfuscatorBlockListener(), this);
         pm.registerEvents(new OrebfuscatorChunkListener(), this);
-
+        
         (new ProtocolLibHook()).register(this);
         
         // Run CacheCleaner
@@ -91,7 +92,7 @@ public class Orebfuscator extends JavaPlugin {
     public void loadOrebfuscatorConfig() {
     	if(config == null) {
     		config = new OrebfuscatorConfig();
-    		configManager = new ConfigManager12(this, logger, config);
+    		configManager = new ConfigManager(this, logger, config);
     	}
     	
     	configManager.load();
@@ -151,14 +152,14 @@ public class Orebfuscator extends JavaPlugin {
      * Log an information
      */
     public static void log(String text) {
-        logger.info("[OFC] " + text);
+        logger.info(Globals.LogPrefix + text);
     }
 
     /**
      * Log an error
      */
     public static void log(Throwable e) {
-        logger.severe("[OFC] " + e.toString());
+        logger.severe(Globals.LogPrefix + e.toString());
         e.printStackTrace();
     }
 
@@ -166,6 +167,6 @@ public class Orebfuscator extends JavaPlugin {
      * Send a message to a player
      */
     public static void message(CommandSender target, String message) {
-        target.sendMessage(ChatColor.AQUA + "[OFC] " + message);
+        target.sendMessage(ChatColor.AQUA + Globals.LogPrefix + message);
     }
 }
