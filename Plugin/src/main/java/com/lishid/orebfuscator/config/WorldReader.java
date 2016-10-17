@@ -205,18 +205,55 @@ public class WorldReader {
 	    Boolean enabled = getBoolean(sectionPath + ".Enabled", cfg.isEnabled(), withSave);
 	    Integer distance = getInt(sectionPath + ".Distance", cfg.getDistance(), 2, 64, withSave);
 	    Integer specialBlockID = this.materialReader.getMaterialIdByPath(sectionPath + ".SpecialBlock", cfg.getSpecialBlockID(), withSave);
-	    Integer endY = getInt(sectionPath + ".EndY", cfg.getEndY(), 0, 255, withSave);
+	    Integer y = getInt(sectionPath + ".Y", cfg.getY(), 0, 255, withSave);
 	    Boolean useSpecialBlock = getBoolean(sectionPath + ".UseSpecialBlock", cfg.isUseSpecialBlock(), withSave);
-	    Boolean useYLocationProximity = getBoolean(sectionPath + ".UseEndY", cfg.isUseYLocationProximity(), withSave);	    
-	    boolean[] proximityHiderBlocks = readBlockMatrix(cfg.getProximityHiderBlocks(), cfg.getProximityHiderBlockIds(), sectionPath + ".ProximityHiderBlocks", withSave);
+	    Boolean useYLocationProximity = getBoolean(sectionPath + ".ObfuscateAboveY", cfg.isObfuscateAboveY(), withSave);
+	    Integer[] proximityHiderBlockIds = this.materialReader.getMaterialIdsByPath(sectionPath + ".ProximityHiderBlocks", cfg.getProximityHiderBlockIds(), withSave);
+	    ProximityHiderConfig.BlockSetting[] proximityHiderBlockSettings = readProximityHiderBlockSettings(sectionPath + ".ProximityHiderBlockSettings", cfg.getProximityHiderBlockSettings());
 	    
 	    cfg.setEnabled(enabled);
 	    cfg.setDistance(distance);
 	    cfg.setSpecialBlockID(specialBlockID);
-	    cfg.setEndY(endY);
+	    cfg.setY(y);
 	    cfg.setUseSpecialBlock(useSpecialBlock);
-	    cfg.setUseYLocationProximity(useYLocationProximity); 
-	    cfg.setProximityHiderBlocks(proximityHiderBlocks);
+	    cfg.setObfuscateAboveY(useYLocationProximity); 
+	    cfg.setProximityHiderBlockIds(proximityHiderBlockIds);
+	    cfg.setProximityHiderBlockSettings(proximityHiderBlockSettings);
+	}
+	
+	private ProximityHiderConfig.BlockSetting[] readProximityHiderBlockSettings(
+			String configKey,
+			ProximityHiderConfig.BlockSetting[] defaultBlocks
+			)
+	{
+    	ConfigurationSection section = getConfig().getConfigurationSection(configKey);
+    	
+    	if(section == null) {
+    		return defaultBlocks;
+    	}
+    	
+    	Set<String> keys = section.getKeys(false);
+    	
+    	List<ProximityHiderConfig.BlockSetting> list = new ArrayList<ProximityHiderConfig.BlockSetting>();
+    	
+    	for(String key : keys) {
+    		Integer blockId = this.materialReader.getMaterialId(key);
+    		
+    		if(blockId == null) {
+    			continue;
+    		}
+    		
+    		String blockPath = configKey + "." + key;
+
+    		ProximityHiderConfig.BlockSetting block = new ProximityHiderConfig.BlockSetting();
+    		block.blockId = blockId;
+    		block.y = getConfig().getInt(blockPath + ".Y", 255);
+    		block.obfuscateAboveY = getConfig().getBoolean(blockPath + ".ObfuscateAboveY", false);
+    		
+    		list.add(block);
+    	}
+    	
+    	return list.toArray(new ProximityHiderConfig.BlockSetting[0]);
 	}
 	
 	private boolean[] readBlockMatrix(boolean[] original, Integer[] defaultBlockIds, String configKey, boolean withSave) {

@@ -113,8 +113,6 @@ public class ProximityHider extends Thread implements Runnable {
                     	proximityHiderTrackerLocal.put(p, localPlayerInfo = new ProximityHiderPlayer(p.getWorld()));
                     }
 
-                    int y = (int) Math.floor(p.getLocation().getY());
-
                     synchronized (proximityHiderTracker) {
                     	ProximityHiderPlayer playerInfo = proximityHiderTracker.get(p);
 
@@ -137,10 +135,6 @@ public class ProximityHider extends Thread implements Runnable {
                     WorldConfig worldConfig = Orebfuscator.configManager.getWorld(p.getWorld());
                     ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
                     
-                    if(proximityHider.skipProximityHiderCheck(y)) {
-                    	continue;
-                    }
-
                     int checkRadius = proximityHider.getDistance() >> 4;
                     
                     if((proximityHider.getDistance() & 0xf) != 0) {
@@ -172,7 +166,7 @@ public class ProximityHider extends Thread implements Runnable {
 		                        
 		                        Location blockLocation = new Location(localPlayerInfo.getWorld(), b.x, b.y, b.z);
 		                        
-		                        if (proximityHider.isUseYLocationProximity() || playerLocation.distanceSquared(blockLocation) < distanceSquared) {
+		                        if (proximityHider.isObfuscateAboveY() || playerLocation.distanceSquared(blockLocation) < distanceSquared) {
 		                            removedBlocks.add(b);
 		                            
 		                            BlockState blockState = Orebfuscator.nms.getBlockState(localPlayerInfo.getWorld(), b.x, b.y, b.z);

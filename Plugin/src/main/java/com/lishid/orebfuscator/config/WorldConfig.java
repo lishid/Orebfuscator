@@ -36,7 +36,6 @@ public class WorldConfig {
 		this.antiTexturePackAndFreecam = true;
 		this.airGeneratorMaxChance = 43;
 		this.obfuscateBlocks = new boolean[256];
-		this.obfuscateAndProximityBlocks = new boolean[256];
 		
 		this.darknessBlocks = new boolean[256];
 		this.darknessBlocks[52] = true;
@@ -77,10 +76,6 @@ public class WorldConfig {
 	    		this.obfuscateBlocks = baseWorld.obfuscateBlocks != null ? baseWorld.obfuscateBlocks.clone(): null;
 	    	}
 	    	
-	    	if(this.obfuscateAndProximityBlocks == null) {
-	    		this.obfuscateAndProximityBlocks = baseWorld.obfuscateAndProximityBlocks != null ? baseWorld.obfuscateAndProximityBlocks.clone(): null;
-	    	}
-	    	
 	    	if(this.darknessBlocks == null) {
 	    		this.darknessBlocks = baseWorld.darknessBlocks != null ? baseWorld.darknessBlocks.clone(): null;
 	    	}
@@ -95,10 +90,10 @@ public class WorldConfig {
 	    	}
 	    	
 	  		this.proximityHiderConfig.init(baseWorld.proximityHiderConfig);
+	        setObfuscateAndProximityBlocks();
     	}
         
         setPaletteBlocks();
-        setObfuscateAndProximityBlocks();
         
         this.initialized = true;
     }
@@ -164,13 +159,15 @@ public class WorldConfig {
     }
     
     private void setObfuscateAndProximityBlocks() {
+    	this.obfuscateAndProximityBlocks = new boolean[256];
+    	
     	boolean isProximityHiderEnabled = this.proximityHiderConfig != null && this.proximityHiderConfig.isEnabled();
-    	boolean[] proximityHiderBlocks = isProximityHiderEnabled ? this.proximityHiderConfig.getProximityHiderBlocks(): null;
+    	int[] proximityHiderBlocks = isProximityHiderEnabled ? this.proximityHiderConfig.getProximityHiderBlockMatrix(): null;
     	
     	for(int i = 0; i < this.obfuscateAndProximityBlocks.length; i++) {
     		this.obfuscateAndProximityBlocks[i] =
     				this.obfuscateBlocks[i]
-    				|| isProximityHiderEnabled && proximityHiderBlocks[i]
+    				|| isProximityHiderEnabled && proximityHiderBlocks[i] != 0
     				;
     	}
     }

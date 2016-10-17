@@ -17,6 +17,16 @@ import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.utils.Globals;
 
 public class MaterialReader {
+	private static class MaterialResult {
+		public Integer id;
+		public String name;
+		
+		public MaterialResult(int id, String name) {
+			this.id = id;
+			this.name = name;
+		}
+	}
+	
     private JavaPlugin plugin;
     private Logger logger;
     
@@ -27,6 +37,10 @@ public class MaterialReader {
     
     private FileConfiguration getConfig() {
     	return this.plugin.getConfig();
+    }
+    
+    public Integer getMaterialId(String materialName) {
+    	return getMaterial(materialName, null).id;
     }
 	
     public Integer getMaterialIdByPath(String path, Integer defaultMaterialId, boolean withSave) {

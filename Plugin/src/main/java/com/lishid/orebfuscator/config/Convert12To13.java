@@ -76,9 +76,9 @@ public class Convert12To13 {
 	    this.config.set("Worlds.Default.ProximityHider.Enabled", oldConfig.get("Booleans.UseProximityHider"));
 	    this.config.set("Worlds.Default.ProximityHider.Distance", oldConfig.get("Integers.ProximityHiderDistance"));
 	    this.config.set("Worlds.Default.ProximityHider.SpecialBlock", oldConfig.get("Integers.ProximityHiderID"));
-	    this.config.set("Worlds.Default.ProximityHider.EndY", oldConfig.get("Integers.ProximityHiderEnd"));
+	    this.config.set("Worlds.Default.ProximityHider.Y", oldConfig.get("Integers.ProximityHiderEnd"));
 	    this.config.set("Worlds.Default.ProximityHider.UseSpecialBlock", oldConfig.get("Booleans.UseSpecialBlockForProximityHider"));
-	    this.config.set("Worlds.Default.ProximityHider.UseEndY", oldConfig.get("Booleans.UseYLocationProximity"));
+	    this.config.set("Worlds.Default.ProximityHider.ObfuscateAboveY", oldConfig.get("Booleans.UseYLocationProximity"));
 	    this.config.set("Worlds.Default.ProximityHider.ProximityHiderBlocks", oldConfig.get("Lists.ProximityHiderBlocks"));
 	    
 	    //Normal and TheEnd Worlds

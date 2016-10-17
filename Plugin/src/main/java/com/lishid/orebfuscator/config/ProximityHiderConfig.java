@@ -5,34 +5,45 @@
 
 package com.lishid.orebfuscator.config;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class ProximityHiderConfig {
+	public static class BlockSetting implements Cloneable {
+		public int blockId;
+		public int y;
+		public boolean obfuscateAboveY;
+		
+		public BlockSetting clone() throws CloneNotSupportedException {
+			BlockSetting clone = new BlockSetting();
+			clone.blockId = this.blockId;
+			clone.y = this.y;
+			clone.obfuscateAboveY = this.obfuscateAboveY;
+			
+			return clone;
+		}
+	}
+	
 	private static final Integer[] defaultProximityHiderBlockIds = new Integer[]{ 23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146 };
 	
     private Boolean enabled;
     private Integer distance;
     private int distanceSquared;
     private Integer specialBlockID;
-    private Integer endY;
+    private Integer y;
     private Boolean useSpecialBlock;
-    private Boolean useYLocationProximity;
-    private boolean[] proximityHiderBlocks;
+    private Boolean obfuscateAboveY;
+    private Integer[] proximityHiderBlockIds;
+    private BlockSetting[] proximityHiderBlockSettings;
+    private int[] proximityHiderBlockMatrix;
     
     public void setDefaults() {
         this.enabled = true;
         this.distance = 8;
         this.distanceSquared = this.distance * this.distance;
         this.specialBlockID = 1;
-        this.endY = 255;
+        this.y = 255;
         this.useSpecialBlock = true;
-        this.useYLocationProximity = false;
-        this.proximityHiderBlocks = new boolean[256];
-        
-        for(Integer id : defaultProximityHiderBlockIds) {
-        	this.proximityHiderBlocks[id] = true;
-        }
+        this.obfuscateAboveY = false;
+        this.proximityHiderBlockIds = defaultProximityHiderBlockIds;
     }
     
     public void init(ProximityHiderConfig baseCfg) {
@@ -49,21 +60,27 @@ public class ProximityHiderConfig {
     		this.specialBlockID = baseCfg.specialBlockID;
     	}
     	
-    	if(this.endY == null) {
-    		this.endY = baseCfg.endY;
+    	if(this.y == null) {
+    		this.y = baseCfg.y;
     	}
     	
         if(this.useSpecialBlock == null) {
         	this.useSpecialBlock = baseCfg.useSpecialBlock;
         }
         
-        if(this.useYLocationProximity == null) {
-        	this.useYLocationProximity = baseCfg.useYLocationProximity;
+        if(this.obfuscateAboveY == null) {
+        	this.obfuscateAboveY = baseCfg.obfuscateAboveY;
         }
         
-        if(this.proximityHiderBlocks == null && baseCfg.proximityHiderBlocks != null) {
-        	this.proximityHiderBlocks = baseCfg.proximityHiderBlocks.clone();
+        if(this.proximityHiderBlockIds == null && baseCfg.proximityHiderBlockIds != null) {
+        	this.proximityHiderBlockIds = baseCfg.proximityHiderBlockIds.clone();
         }
+        
+        if(this.proximityHiderBlockSettings == null && baseCfg.proximityHiderBlockSettings != null) {
+        	this.proximityHiderBlockSettings = baseCfg.proximityHiderBlockSettings.clone();
+        }
+        
+        setProximityHiderBlockMatrix();
     }
     
     public Boolean isEnabled() {
@@ -95,12 +112,12 @@ public class ProximityHiderConfig {
     	this.specialBlockID = value;
     }
     
-    public Integer getEndY() {
-    	return this.endY;
+    public Integer getY() {
+    	return this.y;
     }
     
-    public void setEndY(Integer value) {
-    	this.endY = value;
+    public void setY(Integer value) {
+    	this.y = value;
     }
     
     public Boolean isUseSpecialBlock() {
@@ -111,52 +128,66 @@ public class ProximityHiderConfig {
     	this.useSpecialBlock = value;
     }
     
-    public Boolean isUseYLocationProximity() {
-    	return this.useYLocationProximity;
+    public Boolean isObfuscateAboveY() {
+    	return this.obfuscateAboveY;
     }
     
-    public void setUseYLocationProximity(Boolean value) {
-    	this.useYLocationProximity = value;
+    public void setObfuscateAboveY(Boolean value) {
+    	this.obfuscateAboveY = value;
     }
     
-    public boolean[] getProximityHiderBlocks() {
-    	return this.proximityHiderBlocks;
-    }
-    
-    public void setProximityHiderBlocks(boolean[] values) {
-    	this.proximityHiderBlocks = values;
+    public void setProximityHiderBlockIds(Integer[] value) {
+    	this.proximityHiderBlockIds = value;
     }
     
     public Integer[] getProximityHiderBlockIds() {
-    	if(this.proximityHiderBlocks == null) {
-    		return null;
-    	}
+    	return this.proximityHiderBlockIds;
+    }
+    
+    public BlockSetting[] getProximityHiderBlockSettings() {
+    	return this.proximityHiderBlockSettings;
+    }
+    
+    public void setProximityHiderBlockSettings(BlockSetting[] value) {
+    	this.proximityHiderBlockSettings = value;
+    }
+    
+    public int[] getProximityHiderBlockMatrix() {
+    	return this.proximityHiderBlockMatrix;
+    }
+    
+    private void setProximityHiderBlockMatrix() {
+    	this.proximityHiderBlockMatrix = new int[256];
     	
-    	List<Integer> result = new ArrayList<Integer>();
-    	
-    	for(Integer i = 0; i < this.proximityHiderBlocks.length; i++) {
-    		if(this.proximityHiderBlocks[i]) {
-    			result.add(i);
+    	if(this.proximityHiderBlockIds != null) {
+    		for(int blockId : this.proximityHiderBlockIds) {
+    			this.proximityHiderBlockMatrix[blockId] = this.obfuscateAboveY ? -this.y: this.y;
     		}
     	}
     	
-    	return result.toArray(new Integer[0]);
+    	if(this.proximityHiderBlockSettings != null) {
+    		for(BlockSetting block : this.proximityHiderBlockSettings) {
+    			this.proximityHiderBlockMatrix[block.blockId] = block.obfuscateAboveY ? -block.y: block.y;
+    		}
+    	}
     }
-    
+
     // Help methods
     
-    public Boolean isProximityObfuscated(Integer y, Integer id) {
+    public boolean isProximityObfuscated(int y, int id) {
         if (id < 0)
             id += 256;
-
-        return this.proximityHiderBlocks[id]
-        		&& (
-        				this.useYLocationProximity && y >= this.endY
-        				|| !this.useYLocationProximity && y <= this.endY
-        			);
-    }
-    
-    public Boolean skipProximityHiderCheck(Integer y) {
-        return this.useYLocationProximity && y < this.endY;
+        
+        int proximityY = this.proximityHiderBlockMatrix[id];
+        
+        if(proximityY == 0) {
+        	return false;
+        }
+        
+        if(proximityY > 0) {
+        	return y <= proximityY;
+        }
+        
+        return y >= (proximityY & 0x7FFFFFFF);
     }
 }
