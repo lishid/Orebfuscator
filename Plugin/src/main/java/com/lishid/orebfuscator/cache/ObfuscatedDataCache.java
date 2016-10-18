@@ -23,13 +23,15 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 
+import org.bukkit.Bukkit;
+
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.nms.IChunkCache;
 import com.lishid.orebfuscator.utils.FileHelper;
 
 public class ObfuscatedDataCache {
 	private static final String cacheFileName = "cache_config.yml";
+	private static File cacheFolder;
     private static IChunkCache internalCache;
 
     private static IChunkCache getInternalCache() {
@@ -37,6 +39,26 @@ public class ObfuscatedDataCache {
             internalCache = Orebfuscator.nms.createChunkCache();
         }
         return internalCache;
+    }
+    
+    public static void resetCacheFolder() {
+    	cacheFolder = null;
+    }
+    
+    public static File getCacheFolder() {
+    	if(cacheFolder == null) {
+    		cacheFolder = new File(Bukkit.getServer().getWorldContainer(), Orebfuscator.config.getCacheLocation());
+    	}
+    	
+        // Try to make the folder
+        if (!cacheFolder.exists()) {
+        	cacheFolder.mkdirs();
+        }
+        // Can't make folder? Use default
+        if (!cacheFolder.exists()) {
+        	cacheFolder = new File("orebfuscator_cache");
+        }
+        return cacheFolder;
     }
 
     public static void closeCacheFiles() {
@@ -46,7 +68,7 @@ public class ObfuscatedDataCache {
     public static void checkCacheAndConfigSynchronized() throws IOException {
     	String configContent = Orebfuscator.instance.getConfig().saveToString();
     	
-    	File cacheFolder = OrebfuscatorConfig.getCacheFolder();
+    	File cacheFolder = getCacheFolder();
     	File cacheConfigFile = new File(cacheFolder, cacheFileName);    	
 		String cacheConfigContent = FileHelper.readFile(cacheConfigFile);
 		
@@ -58,7 +80,7 @@ public class ObfuscatedDataCache {
     public static void clearCache() throws IOException {
     	closeCacheFiles();
     	
-    	File cacheFolder = OrebfuscatorConfig.getCacheFolder();
+    	File cacheFolder = getCacheFolder();
     	File cacheConfigFile = new File(cacheFolder, cacheFileName);
     	
 		if(cacheFolder.exists()) {

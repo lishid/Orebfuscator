@@ -21,7 +21,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.nms.INBT;
 
 public class ObfuscatedCachedChunk {
@@ -78,8 +77,6 @@ public class ObfuscatedCachedChunk {
                 // Check if statuses makes sense
                 if (nbt.getInt("X") != x || nbt.getInt("Z") != z)
                     return;
-                if (OrebfuscatorConfig.UseProximityHider != nbt.getBoolean("PH") || OrebfuscatorConfig.InitialRadius != nbt.getInt("IR"))
-                    return;
 
                 // Get Hash
                 hash = nbt.getLong("Hash");
@@ -104,8 +101,6 @@ public class ObfuscatedCachedChunk {
             // Set status indicator
             nbt.setInt("X", x);
             nbt.setInt("Z", z);
-            nbt.setInt("IR", OrebfuscatorConfig.InitialRadius);
-            nbt.setBoolean("PH", OrebfuscatorConfig.UseProximityHider);
 
             // Set hash
             nbt.setLong("Hash", hash);

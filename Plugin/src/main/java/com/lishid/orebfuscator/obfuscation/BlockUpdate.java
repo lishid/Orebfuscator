@@ -28,14 +28,15 @@ import org.bukkit.block.Block;
 
 import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.OrebfuscatorConfig;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
+import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
+import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.nms.IBlockInfo;
 import com.lishid.orebfuscator.types.ChunkCoord;
 
 public class BlockUpdate {
     public static boolean needsUpdate(Block block) {
-        return !OrebfuscatorConfig.isBlockTransparent(DeprecatedMethods.getTypeId(block));
+        return !Orebfuscator.config.isBlockTransparent(DeprecatedMethods.getTypeId(block));
     }
 
     public static void update(Block block) {
@@ -52,15 +53,16 @@ public class BlockUpdate {
         }
 
         World world = blocks.get(0).getWorld();
+        WorldConfig worldConfig = Orebfuscator.configManager.getWorld(world);
         HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
     	HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
-    	int updateRadius = OrebfuscatorConfig.UpdateRadius;
+    	int updateRadius = Orebfuscator.config.getUpdateRadius();
         
         for (Block block : blocks) {
             if (needsUpdate(block)) {
             	IBlockInfo blockInfo = Orebfuscator.nms.getBlockInfo(world, block.getX(), block.getY(), block.getZ());
 
-           		getAjacentBlocks(updateBlocks, world, blockInfo, updateRadius);
+           		getAjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
             	
                 if((blockInfo.getX() & 0xf) == 0) {
                 	invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4)); 
@@ -86,13 +88,14 @@ public class BlockUpdate {
         }
 
         World world = locations.get(0).getWorld();
+        WorldConfig worldConfig = Orebfuscator.configManager.getWorld(world);
         HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
     	HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
         
         for (Location location : locations) {
         	IBlockInfo blockInfo = Orebfuscator.nms.getBlockInfo(world, location.getBlockX(), location.getBlockY(), location.getBlockZ());
 
-       		getAjacentBlocks(updateBlocks, world, blockInfo, updateRadius);
+       		getAjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
         	
             if((blockInfo.getX() & 0xf) == 0) {
             	invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4)); 
@@ -119,9 +122,9 @@ public class BlockUpdate {
     }
     
     private static void invalidateCachedChunks(World world, Set<ChunkCoord> invalidChunks) {
-    	if(invalidChunks.isEmpty() || !OrebfuscatorConfig.UseCache) return;
+    	if(invalidChunks.isEmpty() || !Orebfuscator.config.isUseCache()) return;
     	
-        File cacheFolder = new File(OrebfuscatorConfig.getCacheFolder(), world.getName());
+        File cacheFolder = new File(ObfuscatedDataCache.getCacheFolder(), world.getName());
 
         for(ChunkCoord chunk : invalidChunks) {
             ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunk.x, chunk.z);
@@ -131,25 +134,30 @@ public class BlockUpdate {
         }
     }
 
-    private static void getAjacentBlocks(HashSet<IBlockInfo> allBlocks, World world, IBlockInfo blockInfo, int countdown) {
+    private static void getAjacentBlocks(
+    		HashSet<IBlockInfo> allBlocks,
+    		World world,
+    		WorldConfig worldConfig,
+    		IBlockInfo blockInfo,
+    		int countdown
+    		)
+    {
         if (blockInfo == null) return;
         
         int blockId = blockInfo.getTypeId();
 
-        if ((OrebfuscatorConfig.isObfuscated(blockId, world.getEnvironment())
-                || OrebfuscatorConfig.isDarknessObfuscated(blockId)))
-        {
+        if ((worldConfig.isObfuscated(blockId) || worldConfig.isDarknessObfuscated(blockId))) {
             allBlocks.add(blockInfo);
         }
 
         if (countdown > 0) {
             countdown--;
-            getAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()), countdown);
-            getAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()), countdown);
-            getAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()), countdown);
-            getAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()), countdown);
-            getAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1), countdown);
-            getAjacentBlocks(allBlocks, world, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1), countdown);
+            getAjacentBlocks(allBlocks, world, worldConfig, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()), countdown);
+            getAjacentBlocks(allBlocks, world, worldConfig, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()), countdown);
+            getAjacentBlocks(allBlocks, world, worldConfig, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()), countdown);
+            getAjacentBlocks(allBlocks, world, worldConfig, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()), countdown);
+            getAjacentBlocks(allBlocks, world, worldConfig, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1), countdown);
+            getAjacentBlocks(allBlocks, world, worldConfig, Orebfuscator.nms.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1), countdown);
         }
     }
 }
