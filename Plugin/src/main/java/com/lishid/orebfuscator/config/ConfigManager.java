@@ -76,7 +76,7 @@ public class ConfigManager {
         if (version < CONFIG_VERSION) {
         	if(version <= 12) {
         		new Convert12To13(this.plugin).convert();
-        		logger.info(Globals.LogPrefix + "Warning, InitialRadius is 0. This will cause all exposed blocks to be obfuscated.");
+        		logger.info(Globals.LogPrefix + "Configuration file have been converted to new version.");
         	} else {
         		getConfig().set("ConfigVersion", CONFIG_VERSION);
         	}
