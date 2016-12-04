@@ -18,10 +18,16 @@ package com.lishid.orebfuscator.commands;
 
 import java.io.IOException;
 
+import net.md_5.bungee.api.ChatColor;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
@@ -91,29 +97,35 @@ public class OrebfuscatorCommandExecutor {
             if (args[0].equalsIgnoreCase("enable") && args.length == 1) {
                 Orebfuscator.configManager.setEnabled(true);
                 Orebfuscator.message(sender, "Enabled.");
+                return true;
             }
 
             else if (args[0].equalsIgnoreCase("disable") && args.length == 1) {
                 Orebfuscator.configManager.setEnabled(false);
                 Orebfuscator.message(sender, "Disabled.");
+                return true;
             }
 
             else if (args.length > 1) {
                 if (args[1].equalsIgnoreCase("op")) {
                 	Orebfuscator.configManager.setNoObfuscationForOps(data);
                     Orebfuscator.message(sender, "Ops No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
+                    return true;
                 }
                 else if (args[1].equalsIgnoreCase("perms") || args[1].equalsIgnoreCase("permissions")) {
                 	Orebfuscator.configManager.setNoObfuscationForPermission(data);
                     Orebfuscator.message(sender, "Permissions No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
+                    return true;
                 }
                 else if (args[1].equalsIgnoreCase("cache")) {
                 	Orebfuscator.configManager.setUseCache(data);
                     Orebfuscator.message(sender, "Cache " + (data ? "enabled" : "disabled") + ".");
+                    return true;
                 }
                 else if (args[1].equalsIgnoreCase("notification")) {
                 	Orebfuscator.configManager.setLoginNotification(data);
                     Orebfuscator.message(sender, "Login Notification " + (data ? "enabled" : "disabled") + ".");
+                    return true;
                 }
             }
         }
@@ -121,6 +133,7 @@ public class OrebfuscatorCommandExecutor {
         else if (args[0].equalsIgnoreCase("reload")) {
             Orebfuscator.instance.reloadOrebfuscatorConfig();
             Orebfuscator.message(sender, "Reload complete.");
+            return true;
         }
 
         else if (args[0].equalsIgnoreCase("status")) {
@@ -150,6 +163,8 @@ public class OrebfuscatorCommandExecutor {
             
             Orebfuscator.message(sender, "Worlds: " + (worlds.equals("") ? "None" : worlds));
             Orebfuscator.message(sender, "Use worlds as: " + (Orebfuscator.config.getDefaultWorld().isEnabled() ? "Blacklist" : "Whitelist"));
+            
+            return true;
         }
 
         else if (args[0].equalsIgnoreCase("clearcache")) {
@@ -159,8 +174,50 @@ public class OrebfuscatorCommandExecutor {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+            
+            return true;
         }
         
-        return true;
+        else if (args[0].equalsIgnoreCase("obfuscateblocks")) {
+        	if(args.length == 1) {
+        		Orebfuscator.message(sender, ChatColor.RED + "World is required parameter.");
+        	} else {
+	        	String worldName = args[1];
+	        	World world = Bukkit.getWorld(worldName);
+	        	
+	        	if(world == null) {
+	        		Orebfuscator.message(sender, ChatColor.RED + "Specified world is not found.");
+	        	} else {
+	        		if(args.length > 2) {
+	        			Material material = Material.getMaterial(args[2]);
+	        			
+	        			if(material == null) {
+	        				Orebfuscator.message(sender, ChatColor.RED + "Specified material is not found.");
+	        			} else {	        			
+		        			int materialId = DeprecatedMethods.getMaterialId(material);
+		        			
+		        			if(Orebfuscator.configManager.getWorld(world).isObfuscated(materialId))
+		        				Orebfuscator.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
+		        			else
+		        				Orebfuscator.message(sender, material.name() + ": " + ChatColor.RED + "not obfuscate");
+	        			}
+	        		} else {
+		        		boolean[] blocks = Orebfuscator.configManager.getWorld(world).getObfuscateAndProximityBlocks();
+		        		
+		        		Orebfuscator.message(sender, ChatColor.GREEN + "Obfuscate blocks:");
+		        		
+		        		for(int i = 0; i < blocks.length; i++) {
+		        			if(blocks[i]) {
+		        				Orebfuscator.message(sender, " - " + DeprecatedMethods.getMaterial(i).name());
+		        			}
+		        		}
+	        		}
+	        	}
+        	}
+        	
+        	return true;
+        }
+        
+        return false;
     }
 }
