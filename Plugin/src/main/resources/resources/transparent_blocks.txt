@@ -58,7 +58,7 @@
 57:false //minecraft:diamond_block
 58:false //minecraft:crafting_table
 59:true //minecraft:wheat
-60:false //minecraft:farmland
+60:true //minecraft:farmland
 61:false //minecraft:furnace
 62:false //minecraft:lit_furnace
 63:true //minecraft:standing_sign
