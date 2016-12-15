@@ -15,10 +15,12 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.utils.Globals;
 
 public class WorldReader {
@@ -102,7 +104,7 @@ public class WorldReader {
     				world.setDefaults();
     			}
     			
-    			world = readWorld(worldPath, world, worldType == WorldType.Default);
+    			world = readWorld(worldPath, world, worldType, worldType == WorldType.Default);
     			break;
     		}
     	}
@@ -140,7 +142,7 @@ public class WorldReader {
 			String key = name.toLowerCase();
 			
 			if(!this.worlds.containsKey(key)) {
-				this.worlds.put(key, readWorld(worldPath, null, false));
+				this.worlds.put(key, readWorld(worldPath, null, WorldType.Default, false));
 			}
 		}
     }
@@ -170,7 +172,7 @@ public class WorldReader {
     	return parsedTypes;
     }
 	
-	private WorldConfig readWorld(String worldPath, WorldConfig cfg, boolean withSave) {
+	private WorldConfig readWorld(String worldPath, WorldConfig cfg, WorldType worldType, boolean withSave) {
 		if(cfg == null) {
 			cfg = new WorldConfig();
 		}
@@ -183,6 +185,20 @@ public class WorldReader {
 	    Integer mode1Block = this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", cfg.getMode1BlockId(), withSave);
 		Integer[] randomBlocks = this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", cfg.getRandomBlocks(), withSave);
 		boolean[] obfuscateBlocks = readBlockMatrix(cfg.getObfuscateBlocks(), cfg.getObfuscateBlockIds(), worldPath + ".ObfuscateBlocks", withSave);
+		
+		switch(worldType) {
+		case Normal:
+			obfuscateBlocks[DeprecatedMethods.getMaterialId(Material.STONE)] = true;
+			break;
+		case TheEnd:
+			obfuscateBlocks[DeprecatedMethods.getMaterialId(Material.ENDER_STONE)] = true;
+			break;
+		case Nether:
+			obfuscateBlocks[DeprecatedMethods.getMaterialId(Material.NETHERRACK)] = true;
+			break;
+		default:
+			break;
+		}
 
 		readProximityHider(worldPath, cfg, withSave);
 
@@ -277,7 +293,7 @@ public class WorldReader {
         WorldConfig world = new WorldConfig();
         world.setDefaults();
         
-	    return readWorld(worldPath, world, true);
+	    return readWorld(worldPath, world, WorldType.Default, true);
 	}
 	
 	private WorldConfig createNormalWorld(String worldPath) {
@@ -293,8 +309,6 @@ public class WorldReader {
 		boolean[] obfuscateBlocks = new boolean[256];
 		
 		setBlockValues(obfuscateBlocks, obfuscateBlockIds, false);
-		
-		obfuscateBlocks[1] = true;
 		
 		WorldConfig cfg = new WorldConfig();
 		cfg.setObfuscateBlocks(obfuscateBlocks);
@@ -318,8 +332,6 @@ public class WorldReader {
 		
 		setBlockValues(obfuscateBlocks, obfuscateBlockIds, false);
 		
-		obfuscateBlocks[121] = true;
-		
 		WorldConfig cfg = new WorldConfig();
 		cfg.setRandomBlocks(randomBlocks);
 		cfg.setObfuscateBlocks(obfuscateBlocks);
@@ -341,8 +353,6 @@ public class WorldReader {
 		boolean[] obfuscateBlocks = new boolean[256];
 		
 		setBlockValues(obfuscateBlocks, obfuscateBlockIds, false);
-		
-		obfuscateBlocks[87] = true;
 		
 		WorldConfig cfg = new WorldConfig();
 		cfg.setRandomBlocks(randomBlocks);

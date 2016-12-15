@@ -172,6 +172,10 @@ public class WorldConfig {
     	}
     }
     
+    public boolean[] getObfuscateAndProximityBlocks() {
+    	return this.obfuscateAndProximityBlocks;
+    }
+    
     public boolean[] getDarknessBlocks() {
     	return this.darknessBlocks;
     }

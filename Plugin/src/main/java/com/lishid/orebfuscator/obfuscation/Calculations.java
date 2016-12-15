@@ -158,7 +158,7 @@ public class Calculations {
 	                                }
 	                            }
 	                        }
-	
+	                        
 	                        // Check if the block should be obfuscated because of proximity check
 	                        if (!obfuscate && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.id)) {
                             	BlockCoord block = new BlockCoord(x, y, z);
