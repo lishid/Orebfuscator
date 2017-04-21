@@ -1,4 +1,7 @@
-#Orebfuscator:
+
+![Orebfuscator - Anti X-Ray](https://raw.githubusercontent.com/DevotedMC/Orebfuscator/master/Oreb.png)
+
+**#Orebfuscator**
 
 The definitive Anti X-Ray plugin for CraftBukkit
 
