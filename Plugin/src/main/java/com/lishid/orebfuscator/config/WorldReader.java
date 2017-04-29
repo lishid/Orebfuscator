@@ -181,6 +181,7 @@ public class WorldReader {
 	    Boolean antiTexturePackAndFreecam = getBoolean(worldPath + ".AntiTexturePackAndFreecam", cfg.isAntiTexturePackAndFreecam(), withSave);
 	    Integer airGeneratorMaxChance = getInt(worldPath + ".AirGeneratorMaxChance", cfg.getAirGeneratorMaxChance(), 40, 100, withSave);
 	    Boolean darknessHideBlocks = getBoolean(worldPath + ".DarknessHideBlocks", cfg.isDarknessHideBlocks(), withSave);
+	    Boolean bypassObfuscationForSignsWithText = getBoolean(worldPath + ".BypassObfuscationForSignsWithText", cfg.isBypassObfuscationForSignsWithText(), withSave);
 	    boolean[] darknessBlocks = readBlockMatrix(cfg.getDarknessBlocks(), cfg.getDarknessBlockIds(), worldPath + ".DarknessBlocks", withSave);	    
 	    Integer mode1Block = this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", cfg.getMode1BlockId(), withSave);
 		Integer[] randomBlocks = this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", cfg.getRandomBlocks(), withSave);
@@ -204,6 +205,7 @@ public class WorldReader {
 
 	    cfg.setEnabled(enabled);
 	    cfg.setAntiTexturePackAndFreecam(antiTexturePackAndFreecam);
+	    cfg.setBypassObfuscationForSignsWithText(bypassObfuscationForSignsWithText);
 	    cfg.setAirGeneratorMaxChance(airGeneratorMaxChance);
 	    cfg.setDarknessHideBlocks(darknessHideBlocks);
 	    cfg.setDarknessBlocks(darknessBlocks);

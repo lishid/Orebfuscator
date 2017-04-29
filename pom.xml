@@ -23,6 +23,10 @@
       <id>spigot-repo</id>
       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
      </repository>
+     <repository>
+       <id>techcable-repo</id>
+       <url>https://repo.techcable.net/content/groups/public/</url>
+     </repository>
   </repositories>
 
   <modules>

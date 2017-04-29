@@ -11,6 +11,7 @@ import net.minecraft.server.v1_9_R2.BlockPosition;
 import net.minecraft.server.v1_9_R2.Chunk;
 import net.minecraft.server.v1_9_R2.ChunkProviderServer;
 import net.minecraft.server.v1_9_R2.IBlockData;
+import net.minecraft.server.v1_9_R2.IChatBaseComponent;
 import net.minecraft.server.v1_9_R2.Packet;
 import net.minecraft.server.v1_9_R2.PlayerChunkMap;
 import net.minecraft.server.v1_9_R2.TileEntity;
@@ -19,6 +20,7 @@ import net.minecraft.server.v1_9_R2.WorldServer;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_9_R2.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.nms.IBlockInfo;
@@ -104,6 +106,11 @@ public class NmsManager implements INmsManager {
 		IBlockData blockData = getBlockData(world, x, y, z);
 		
 		return blockData != null ? Block.getId(blockData.getBlock()): -1;
+	}
+	
+	public String getTextFromChatComponent(String json) {
+		IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(json);
+		return CraftChatMessage.fromComponent(component);
 	}
 	
 	private static IBlockData getBlockData(World world, int x, int y, int z) {

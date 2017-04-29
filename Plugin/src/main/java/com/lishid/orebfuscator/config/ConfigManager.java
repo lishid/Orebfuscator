@@ -54,6 +54,7 @@ public class ConfigManager {
     		break;
     	default:
     		baseCfg = this.orebfuscatorConfig.getNormalWorld();
+    		break;
     	}
 
     	WorldConfig cfg = this.orebfuscatorConfig.getWorlds().get(world.getName().toLowerCase());
