@@ -16,7 +16,11 @@
 
 package com.lishid.orebfuscator.hook;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.comphenix.protocol.PacketType;
@@ -27,7 +31,11 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.nbt.NbtCompound;
+import com.comphenix.protocol.wrappers.nbt.NbtFactory;
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
+import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 
@@ -53,6 +61,7 @@ public class ProtocolLibHook {
         		chunkData.primaryBitMask = ints.read(2);
         		chunkData.data = byteArray.read(0);
         		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
+        		chunkData.blockEntities = getBlockEntities(packet, event.getPlayer());
                 
 				try {
 					byte[] newData = Calculations.obfuscateOrUseCache(chunkData, event.getPlayer());
@@ -77,6 +86,24 @@ public class ProtocolLibHook {
                 }
             }
         });
+    }
+    
+    @SuppressWarnings("rawtypes")
+	private static List<NbtCompound> getBlockEntities(PacketContainer packet, Player player) {
+    	WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
+    	
+    	if(!worldConfig.isBypassObfuscationForSignsWithText()) {
+    		return null;
+    	}
+    	
+    	List list = packet.getSpecificModifier(List.class).read(0);
+    	List<NbtCompound> result = new ArrayList<NbtCompound>();
+    	
+    	for(Object tag : list) {
+    		result.add(NbtFactory.fromNMSCompound(tag));
+    	}
+    	
+    	return result;
     }
     
     /*

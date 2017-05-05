@@ -31,4 +31,6 @@ public interface INmsManager {
 	BlockState getBlockState(World world, int x, int y, int z);
 	
 	int getBlockId(World world, int x, int y, int z);
+	
+	String getTextFromChatComponent(String json);
 }

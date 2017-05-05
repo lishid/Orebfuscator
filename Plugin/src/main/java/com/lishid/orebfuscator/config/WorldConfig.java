@@ -15,7 +15,8 @@ public class WorldConfig {
     private Boolean enabled;
     private Boolean darknessHideBlocks;
     private Boolean antiTexturePackAndFreecam;
-    private Integer airGeneratorMaxChance;
+    private Boolean bypassObfuscationForSignsWithText;
+    private Integer airGeneratorMaxChance;    
     private boolean[] obfuscateBlocks;
     private boolean[] obfuscateAndProximityBlocks;
     private boolean[] darknessBlocks;
@@ -34,6 +35,7 @@ public class WorldConfig {
 		this.enabled = true;
 		this.darknessHideBlocks = false;
 		this.antiTexturePackAndFreecam = true;
+		this.bypassObfuscationForSignsWithText = false;
 		this.airGeneratorMaxChance = 43;
 		this.obfuscateBlocks = new boolean[256];
 		
@@ -68,6 +70,10 @@ public class WorldConfig {
 	    		this.antiTexturePackAndFreecam = baseWorld.antiTexturePackAndFreecam;
 	    	}
 	    	
+	    	if(this.bypassObfuscationForSignsWithText == null) {
+	    		this.bypassObfuscationForSignsWithText = baseWorld.bypassObfuscationForSignsWithText;
+	    	}
+
 	    	if(this.airGeneratorMaxChance == null) {
 	    		this.airGeneratorMaxChance = baseWorld.airGeneratorMaxChance;
 	    	}
@@ -124,6 +130,14 @@ public class WorldConfig {
     
     public void setAntiTexturePackAndFreecam(Boolean value) {
     	this.antiTexturePackAndFreecam = value;
+    }
+
+    public Boolean isBypassObfuscationForSignsWithText() {
+    	return this.bypassObfuscationForSignsWithText;
+    }
+    
+    public void setBypassObfuscationForSignsWithText(Boolean value) {
+    	this.bypassObfuscationForSignsWithText = value;
     }
 
     public Integer getAirGeneratorMaxChance() {

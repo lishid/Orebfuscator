@@ -21,9 +21,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.comphenix.protocol.wrappers.nbt.NbtBase;
+import com.comphenix.protocol.wrappers.nbt.NbtCompound;
+import com.comphenix.protocol.wrappers.nbt.NbtType;
+import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
@@ -173,7 +178,7 @@ public class Calculations {
 	                        }
 	
 	                        // Check if the block is obfuscated
-	                        if (obfuscate) {
+	                        if (obfuscate && canObfuscate(chunkData, x, y, z, blockState)) {
 	                            if (specialObfuscate) {
 	                                // Proximity hider
 	                                blockState.id = proximityHider.getSpecialBlockID();
@@ -245,6 +250,60 @@ public class Calculations {
         //Orebfuscator.log("Create new chunk data for x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ);/*debug*/
         
         return output;
+    }
+    
+    private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, BlockState blockState) {
+    	if(chunkData.blockEntities == null
+    			|| (
+    				blockState.id != DeprecatedMethods.getMaterialId(Material.WALL_SIGN)
+    				&& blockState.id != DeprecatedMethods.getMaterialId(Material.SIGN_POST)
+    				)
+    			)
+    	{
+    		return true;
+    	}
+    	
+    	NbtCompound tag = getNbtTag(chunkData, x, y, z);
+    	
+    	return tag == null ||
+    			isSignTextEmpty(tag, "Text1")
+    			&& isSignTextEmpty(tag, "Text2")
+    			&& isSignTextEmpty(tag, "Text3")
+    			&& isSignTextEmpty(tag, "Text4");
+    }
+    
+    private static boolean isSignTextEmpty(NbtCompound compound, String key) {
+    	NbtBase<?> tag = compound.getValue(key);
+    	
+    	if(tag == null || tag.getType() != NbtType.TAG_STRING) {
+    		return true;
+    	}
+    	
+    	String json = (String)tag.getValue();
+    	
+    	if(json == null || json.isEmpty()) {
+    		return true;
+    	}
+    	
+    	String text = Orebfuscator.nms.getTextFromChatComponent(json);
+    	
+    	return text == null || text.isEmpty();
+    }
+    
+    private static NbtCompound getNbtTag(ChunkData chunkData, int x, int y, int z) {
+    	for(NbtCompound tag : chunkData.blockEntities) {
+    		if(tag != null) {
+	    		if(x == tag.getInteger("x")
+	    				&& y == tag.getInteger("y")
+	    				&& z == tag.getInteger("z")
+	    			)
+	    		{
+	    			return tag;
+	    		}
+    		}
+    	}
+    	
+    	return null;
     }
     
     private static void addBlocksToPalette(ChunkMapManager manager, WorldConfig worldConfig) {
