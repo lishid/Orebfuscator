@@ -1,29 +1,29 @@
 
 ![Orebfuscator - Anti X-Ray](https://raw.githubusercontent.com/DevotedMC/Orebfuscator/master/Oreb.png)
 
-**#Orebfuscator**
+# Orebfuscator
 
 The definitive Anti X-Ray plugin for CraftBukkit
 
-###Changelog:
+### Changelog:
 - Updated to support 1.11 - 1.11.2
 - Updated to support 1.10 (Thanks Asgorioth)
 - Updated to support 1.9.4
 - Updated to support 1.9-1.9.2 (https://www.devotedmc.com)
 
-###Requirements:
+### Requirements:
 - Java 1.6 / 1.7 / 1.8
 - Spigot/PaperSpigot and any other fork of CraftBukkit! (1.9 through 1.10)
 - ProtocolLib (4.0 or better)
 
-###License:
+### License:
 
 Significantly reworked by Aleksey_Terzi to support v1.9 Minecraft; these portions as permissible:
 Copyright (C) 2016 by Aleksey_Terzi. All rights reserved.
 
 Released under the same license as original.
 
-####Original Copyright and  License:
+#### Original Copyright and  License:
 
 Copyright (C) 2011-2015 lishid.  All rights reserved.
 
