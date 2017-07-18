@@ -228,6 +228,7 @@ public class WorldReader {
 	    Boolean useYLocationProximity = getBoolean(sectionPath + ".ObfuscateAboveY", cfg.isObfuscateAboveY(), withSave);
 	    Integer[] proximityHiderBlockIds = this.materialReader.getMaterialIdsByPath(sectionPath + ".ProximityHiderBlocks", cfg.getProximityHiderBlockIds(), withSave);
 	    ProximityHiderConfig.BlockSetting[] proximityHiderBlockSettings = readProximityHiderBlockSettings(sectionPath + ".ProximityHiderBlockSettings", cfg.getProximityHiderBlockSettings());
+	    Boolean useFastGazeCheck = getBoolean(sectionPath + ".UseFastGazeCheck", cfg.isUseFastGazeCheck(), withSave);
 	    
 	    cfg.setEnabled(enabled);
 	    cfg.setDistance(distance);
@@ -237,6 +238,7 @@ public class WorldReader {
 	    cfg.setObfuscateAboveY(useYLocationProximity); 
 	    cfg.setProximityHiderBlockIds(proximityHiderBlockIds);
 	    cfg.setProximityHiderBlockSettings(proximityHiderBlockSettings);
+	    cfg.setUseFastGazeCheck(useFastGazeCheck);
 	}
 	
 	private ProximityHiderConfig.BlockSetting[] readProximityHiderBlockSettings(
