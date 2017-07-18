@@ -242,6 +242,9 @@ public class ProximityHider extends Thread implements Runnable {
     }
     
     private boolean fastAABBRayCheck(double bx, double by, double bz, double x, double y, double z, double ex, double ey, double ez, World world) {
+    	boolean dx = ex > x;
+    	boolean dy = ey > y;
+    	boolean dz = ez > z;
     	double fx = Math.abs(ex-x);
     	double fy = Math.abs(ey-y);
     	double fz = Math.abs(ez-z);
@@ -255,9 +258,9 @@ public class ProximityHider extends Thread implements Runnable {
     	fz = fz / s;
     	
     	while (s > 0) {
-    		ex -= fx; // move along vector, we start _at_ the eye and move towards b
-    		ey -= fy;
-    		ez -= fz;
+    		ex = dx ? ex - fx : ex + fx; // move along vector, we start _at_ the eye and move towards b
+    		ey = dy ? ey - fy : ey + fy;
+    		ez = dz ? ez - fz : ez + fz;
     		lx = Math.floor(ex);
     		ly = Math.floor(ey);
     		lz = Math.floor(ez);
