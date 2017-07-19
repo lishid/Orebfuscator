@@ -31,6 +31,7 @@ public class ProximityHiderConfig {
     private Integer y;
     private Boolean useSpecialBlock;
     private Boolean obfuscateAboveY;
+    private Boolean useFastGazeCheck;
     private Integer[] proximityHiderBlockIds;
     private BlockSetting[] proximityHiderBlockSettings;
     private int[] proximityHiderBlockMatrix;
@@ -43,6 +44,7 @@ public class ProximityHiderConfig {
         this.y = 255;
         this.useSpecialBlock = true;
         this.obfuscateAboveY = false;
+        this.useFastGazeCheck = false;
         this.proximityHiderBlockIds = defaultProximityHiderBlockIds;
     }
     
@@ -78,6 +80,10 @@ public class ProximityHiderConfig {
         
         if(this.proximityHiderBlockSettings == null && baseCfg.proximityHiderBlockSettings != null) {
         	this.proximityHiderBlockSettings = baseCfg.proximityHiderBlockSettings.clone();
+        }
+        
+        if (this.useFastGazeCheck == null) {
+        	this.useFastGazeCheck = baseCfg.useFastGazeCheck;
         }
         
         setProximityHiderBlockMatrix();
@@ -170,6 +176,14 @@ public class ProximityHiderConfig {
     			this.proximityHiderBlockMatrix[block.blockId] = block.obfuscateAboveY ? -block.y: block.y;
     		}
     	}
+    }
+    
+    public Boolean isUseFastGazeCheck() {
+    	return this.useFastGazeCheck;
+    }
+    
+    public void setUseFastGazeCheck(Boolean value) {
+    	this.useFastGazeCheck = value;
     }
 
     // Help methods
