@@ -44,7 +44,7 @@ public class ProximityHiderConfig {
         this.y = 255;
         this.useSpecialBlock = true;
         this.obfuscateAboveY = false;
-        this.useFastGazeCheck = false;
+        this.useFastGazeCheck = true;
         this.proximityHiderBlockIds = defaultProximityHiderBlockIds;
     }
     

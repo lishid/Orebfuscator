@@ -7,6 +7,7 @@ package com.lishid.orebfuscator.config;
 
 import java.util.Map;
 
+import com.lishid.orebfuscator.utils.Globals;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -199,10 +200,24 @@ public class OrebfuscatorConfig {
     	this.netherWorld = value;
     }
     
-    public Map<String, WorldConfig> getWorlds() {
-    	return this.worlds;
+    public String getWorldNames() {
+        String worldNames = "";
+
+        for(WorldConfig world : this.worlds.values()) {
+            if(worldNames.length() > 0) {
+                worldNames += ", ";
+            }
+
+            worldNames += world.getName();
+        }
+
+    	return worldNames;
     }
-    
+
+    public WorldConfig getWorld(String name) {
+        return this.worlds.get(name.toLowerCase());
+    }
+
     public void setWorlds(Map<String, WorldConfig> value) {
     	this.worlds = value;
     }

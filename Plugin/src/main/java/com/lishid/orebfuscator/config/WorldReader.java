@@ -5,13 +5,7 @@
 
 package com.lishid.orebfuscator.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,7 +57,7 @@ public class WorldReader {
     	this.endWorld = readWorldByType(keys, WorldType.TheEnd, this.defaultWorld);
     	this.netherWorld = readWorldByType(keys, WorldType.Nether, this.defaultWorld);
     	
-    	this.worlds = new WeakHashMap<String, WorldConfig>();
+    	this.worlds = new HashMap<String, WorldConfig>();
     	
     	for(String key : keys) {
     		readWorldsByName("Worlds." + key);
@@ -105,6 +99,8 @@ public class WorldReader {
     			}
     			
     			world = readWorld(worldPath, world, worldType, worldType == WorldType.Default);
+
+				this.logger.log(Level.INFO, Globals.LogPrefix + "World type '" + worldType + "' has been read.");
     			break;
     		}
     	}
@@ -124,6 +120,8 @@ public class WorldReader {
 	    		world = createNetherWorld(createPath("Worlds", "Nether", getConfig()));
 	    		break;
 	    	}
+
+			this.logger.log(Level.WARNING, Globals.LogPrefix + "World type '" + worldType + "' has been created.");
     	}
     	
     	world.init(baseWorld);
@@ -142,7 +140,12 @@ public class WorldReader {
 			String key = name.toLowerCase();
 			
 			if(!this.worlds.containsKey(key)) {
-				this.worlds.put(key, readWorld(worldPath, null, WorldType.Default, false));
+				WorldConfig world = readWorld(worldPath, null, WorldType.Default, false);
+				world.setName(name);
+
+				this.worlds.put(key, world);
+
+				this.logger.log(Level.INFO, Globals.LogPrefix + "World name '" + name + "' has been read.");
 			}
 		}
     }

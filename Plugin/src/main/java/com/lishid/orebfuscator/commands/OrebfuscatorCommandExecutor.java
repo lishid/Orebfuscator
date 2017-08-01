@@ -18,9 +18,10 @@ package com.lishid.orebfuscator.commands;
 
 import java.io.IOException;
 
-import net.md_5.bungee.api.ChatColor;
+import com.lishid.orebfuscator.config.WorldConfig;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -150,20 +151,13 @@ public class OrebfuscatorCommandExecutor {
 
             Orebfuscator.message(sender, "Initial Obfuscation Radius: " + Orebfuscator.config.getInitialRadius());
             Orebfuscator.message(sender, "Update Radius: " + Orebfuscator.config.getUpdateRadius());
-            
-            String worlds = "";
 
-            for(String name : Orebfuscator.config.getWorlds().keySet()) {
-            	if(worlds.length() > 0) {
-            		name += ", ";
-            	}
-            	
-            	worlds += name;
-            }
-            
-            Orebfuscator.message(sender, "Worlds: " + (worlds.equals("") ? "None" : worlds));
-            Orebfuscator.message(sender, "Use worlds as: " + (Orebfuscator.config.getDefaultWorld().isEnabled() ? "Blacklist" : "Whitelist"));
-            
+            Orebfuscator.message(sender, "World by Default: " + (Orebfuscator.config.getDefaultWorld().isEnabled() ? "Enabled" : "Disabled"));
+
+            String worldNames = Orebfuscator.config.getWorldNames();
+
+            Orebfuscator.message(sender, "Worlds in List: " + (worldNames.equals("") ? "None" : worldNames));
+
             return true;
         }
 
