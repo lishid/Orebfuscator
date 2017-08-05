@@ -42,19 +42,9 @@ import com.lishid.orebfuscator.types.BlockState;
 public class Calculations {
 	private static Random random = new Random();
 
-    public static byte[] obfuscateOrUseCache(ChunkData chunkData, Player player) throws IOException {
+    public static byte[] obfuscateOrUseCache(ChunkData chunkData, Player player, WorldConfig worldConfig) throws IOException {
     	if(chunkData.primaryBitMask == 0) return null;
     	
-        if (!Orebfuscator.config.isEnabled()  || !Orebfuscator.config.obfuscateForPlayer(player)) {
-            return null; 
-        }
-        
-        WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
-        
-        if(!worldConfig.isEnabled()) {
-        	return null;
-        }
-        
         byte[] output;
         
         ObfuscatedCachedChunk cache = tryUseCache(chunkData, player);

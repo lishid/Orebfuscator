@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class WorldConfig {
+	private String name;
     private Boolean enabled;
     private Boolean darknessHideBlocks;
     private Boolean antiTexturePackAndFreecam;
@@ -107,6 +108,14 @@ public class WorldConfig {
     public boolean isInitialized() {
     	return this.initialized;
     }
+
+    public String getName() {
+    	return this.name;
+	}
+
+	public void setName(String value) {
+    	this.name = value;
+	}
     
     public Boolean isEnabled() {
     	return this.enabled;
@@ -218,10 +227,6 @@ public class WorldConfig {
     	return this.randomBlocks;
     }
 
-    public Integer[] getRandomBlocks2() {
-    	return this.randomBlocks2;
-    }
-
     public void setRandomBlocks(Integer[] values) {
     	this.randomBlocks = values;
     	this.randomBlocks2 = values;
@@ -278,10 +283,6 @@ public class WorldConfig {
 
     public ProximityHiderConfig getProximityHiderConfig() {
     	return this.proximityHiderConfig;
-    }
-
-    public void setProximityHiderConfig(ProximityHiderConfig value) {
-    	this.proximityHiderConfig = value;
     }
     
     // Helper methods

@@ -57,7 +57,7 @@ public class ConfigManager {
     		break;
     	}
 
-    	WorldConfig cfg = this.orebfuscatorConfig.getWorlds().get(world.getName().toLowerCase());
+    	WorldConfig cfg = this.orebfuscatorConfig.getWorld(world.getName());
     	
     	if(cfg == null) {
     		return baseCfg;
@@ -130,8 +130,8 @@ public class ConfigManager {
 
         this.orebfuscatorConfig.setProximityHiderEnabled();
         
-        logger.info(Globals.LogPrefix + "Proximity Hider is " + (this.orebfuscatorConfig.isProximityHiderEnabled() ? "Enabled": "Disabled"));
-        
+        this.logger.info(Globals.LogPrefix + "Proximity Hider is " + (this.orebfuscatorConfig.isProximityHiderEnabled() ? "Enabled": "Disabled"));
+
         save();
 	}
 	

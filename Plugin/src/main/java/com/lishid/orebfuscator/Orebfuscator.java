@@ -16,7 +16,7 @@
 
 package com.lishid.orebfuscator;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -69,6 +69,8 @@ public class Orebfuscator extends JavaPlugin {
         
         // Load configurations
         loadOrebfuscatorConfig();
+
+        makeConfigExample();
         
         this.isProtocolLibFound = pm.getPlugin("ProtocolLib") != null;
 
@@ -96,7 +98,7 @@ public class Orebfuscator extends JavaPlugin {
     	}
     	
     	configManager.load();
-    	
+
         ObfuscatedDataCache.resetCacheFolder();
 
         nms.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
@@ -107,6 +109,28 @@ public class Orebfuscator extends JavaPlugin {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+    }
+
+    private void makeConfigExample() {
+        File outputFile = new File(getDataFolder(), "config.example_enabledworlds.yml");
+
+        if(outputFile.exists()) return;
+
+        InputStream configStream = Orebfuscator.class.getResourceAsStream("/resources/config.example_enabledworlds.yml");
+        StringBuilder content = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(configStream));
+                PrintWriter writer = new PrintWriter(outputFile)
+            )
+        {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                writer.println(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     public void reloadOrebfuscatorConfig() {
