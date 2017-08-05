@@ -48,23 +48,35 @@ public class ProtocolLibHook {
         this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
             @Override
             public void onPacketSending(PacketEvent event) {
-            	PacketContainer packet = event.getPacket();
-            	
-            	StructureModifier<Integer> ints = packet.getIntegers();
-                StructureModifier<byte[]> byteArray = packet.getByteArrays();
-                StructureModifier<Boolean> bools = packet.getBooleans();
-                
-                ChunkData chunkData = new ChunkData();
-        		chunkData.chunkX = ints.read(0);
-        		chunkData.chunkZ = ints.read(1);
-        		chunkData.groundUpContinuous = bools.read(0);
-        		chunkData.primaryBitMask = ints.read(2);
-        		chunkData.data = byteArray.read(0);
-        		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
-        		chunkData.blockEntities = getBlockEntities(packet, event.getPlayer());
-                
 				try {
-					byte[] newData = Calculations.obfuscateOrUseCache(chunkData, event.getPlayer());
+					Player player = event.getPlayer();
+
+					if (!Orebfuscator.config.isEnabled()  || !Orebfuscator.config.obfuscateForPlayer(player)) {
+						return;
+					}
+
+					WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
+
+					if(!worldConfig.isEnabled()) {
+						return;
+					}
+
+					PacketContainer packet = event.getPacket();
+
+					StructureModifier<Integer> ints = packet.getIntegers();
+					StructureModifier<byte[]> byteArray = packet.getByteArrays();
+					StructureModifier<Boolean> bools = packet.getBooleans();
+
+					ChunkData chunkData = new ChunkData();
+					chunkData.chunkX = ints.read(0);
+					chunkData.chunkZ = ints.read(1);
+					chunkData.groundUpContinuous = bools.read(0);
+					chunkData.primaryBitMask = ints.read(2);
+					chunkData.data = byteArray.read(0);
+					chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
+					chunkData.blockEntities = getBlockEntities(packet, event.getPlayer());
+                
+					byte[] newData = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
 					
 					if(newData != null) {
 						byteArray.write(0, newData);
