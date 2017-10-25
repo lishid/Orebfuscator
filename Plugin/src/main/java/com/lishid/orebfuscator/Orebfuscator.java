@@ -33,7 +33,6 @@ import com.lishid.orebfuscator.config.OrebfuscatorConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
-import com.lishid.orebfuscator.listeners.OrebfuscatorChunkListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.nms.INmsManager;
@@ -83,8 +82,7 @@ public class Orebfuscator extends JavaPlugin {
         pm.registerEvents(new OrebfuscatorPlayerListener(), this);
         pm.registerEvents(new OrebfuscatorEntityListener(), this);
         pm.registerEvents(new OrebfuscatorBlockListener(), this);
-        pm.registerEvents(new OrebfuscatorChunkListener(), this);
-        
+
         (new ProtocolLibHook()).register(this);
         
         // Run CacheCleaner

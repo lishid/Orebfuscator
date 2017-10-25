@@ -13,7 +13,6 @@ import net.minecraft.server.v1_9_R2.ChunkProviderServer;
 import net.minecraft.server.v1_9_R2.IBlockData;
 import net.minecraft.server.v1_9_R2.IChatBaseComponent;
 import net.minecraft.server.v1_9_R2.Packet;
-import net.minecraft.server.v1_9_R2.PlayerChunkMap;
 import net.minecraft.server.v1_9_R2.TileEntity;
 import net.minecraft.server.v1_9_R2.WorldServer;
 
@@ -25,7 +24,6 @@ import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.nms.IBlockInfo;
 import com.lishid.orebfuscator.nms.IChunkCache;
-import com.lishid.orebfuscator.nms.IChunkManager;
 import com.lishid.orebfuscator.nms.INBT;
 import com.lishid.orebfuscator.nms.INmsManager;
 import com.lishid.orebfuscator.types.BlockCoord;
@@ -45,14 +43,7 @@ public class NmsManager implements INmsManager {
 	public IChunkCache createChunkCache() {
 		return new ChunkCache(this.maxLoadedCacheFiles);
 	}
-	
-	public IChunkManager getChunkManager(World world) {
-    	WorldServer worldServer = ((CraftWorld)world).getHandle();
-    	PlayerChunkMap chunkMap = worldServer.getPlayerChunkMap();
-    	
-    	return new ChunkManager(chunkMap);
-	}
-	
+
     public void updateBlockTileEntity(BlockCoord blockCoord, Player player) {
         CraftWorld world = (CraftWorld)player.getWorld();
         TileEntity tileEntity = world.getTileEntityAt(blockCoord.x, blockCoord.y, blockCoord.z);
@@ -81,7 +72,7 @@ public class NmsManager implements INmsManager {
     }
     
 	public IBlockInfo getBlockInfo(World world, int x, int y, int z) {
-		IBlockData blockData = getBlockData(world, x, y, z);
+		IBlockData blockData = getBlockData(world, x, y, z, false);
 		
 		return blockData != null
 				? new BlockInfo(x, y, z, blockData)
@@ -89,7 +80,7 @@ public class NmsManager implements INmsManager {
 	}
 	
 	public BlockState getBlockState(World world, int x, int y, int z) {
-		IBlockData blockData = getBlockData(world, x, y, z);
+		IBlockData blockData = getBlockData(world, x, y, z, false);
 		
 		if(blockData == null) return null;
 		
@@ -103,8 +94,13 @@ public class NmsManager implements INmsManager {
 	}
 	
 	public int getBlockId(World world, int x, int y, int z) {
-		IBlockData blockData = getBlockData(world, x, y, z);
+		IBlockData blockData = getBlockData(world, x, y, z, false);
 		
+		return blockData != null ? Block.getId(blockData.getBlock()): -1;
+	}
+
+	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
+		IBlockData blockData = getBlockData(world, x, y, z, true);
 		return blockData != null ? Block.getId(blockData.getBlock()): -1;
 	}
 	
@@ -112,18 +108,18 @@ public class NmsManager implements INmsManager {
 		IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(json);
 		return CraftChatMessage.fromComponent(component);
 	}
-	
-	private static IBlockData getBlockData(World world, int x, int y, int z) {
+
+	private static IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
 
 		WorldServer worldServer = ((CraftWorld)world).getHandle();
 		ChunkProviderServer chunkProviderServer = worldServer.getChunkProviderServer();
-		
-		if(!chunkProviderServer.isLoaded(chunkX, chunkZ)) return null;
+
+		if(!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ)) return null;
 		
 		Chunk chunk = chunkProviderServer.getOrLoadChunkAt(chunkX, chunkZ);
-		
-		return chunk.getBlockData(new BlockPosition(x, y, z));
+
+		return chunk != null ? chunk.getBlockData(new BlockPosition(x, y, z)) : null;
 	}
 }

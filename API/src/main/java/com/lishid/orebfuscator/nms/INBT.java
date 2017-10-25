@@ -16,8 +16,6 @@ public interface INBT {
 
     void setLong(String tag, long value);
 
-    void setBoolean(String tag, boolean value);
-
     void setByteArray(String tag, byte[] value);
 
     void setIntArray(String tag, int[] value);
@@ -25,8 +23,6 @@ public interface INBT {
     int getInt(String tag);
 
     long getLong(String tag);
-
-    boolean getBoolean(String tag);
 
     byte[] getByteArray(String tag);
 

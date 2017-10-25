@@ -2,6 +2,7 @@ name: ${project.name}
 main: com.lishid.orebfuscator.Orebfuscator
 version: ${project.version}
 author: lishid
+authors: [Aleksey-Terzi, ProgrammerDan]
 softdepend: [ProtocolLib]
 load: startup
 description: 'The most powerful and efficient Anti Xray plugin compatible with any CraftBukkit fork!'
