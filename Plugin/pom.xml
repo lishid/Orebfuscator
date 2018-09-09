@@ -68,7 +68,7 @@
   </dependencies>
 
   <build>
-    <!-- <directory>../target</directory> -->
+    <directory>../target</directory>
     <sourceDirectory>src/main/java</sourceDirectory>
     <resources>
       <resource>
