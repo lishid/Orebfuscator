@@ -34,11 +34,11 @@ import com.lishid.orebfuscator.nms.INmsManager;
 import com.lishid.orebfuscator.types.BlockCoord;
 import com.lishid.orebfuscator.types.BlockState;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NmsManager implements INmsManager {
 	private int maxLoadedCacheFiles;
-	private HashMap<Integer, BlockState> precalculatedBlockStates = new HashMap<>();
+	private ConcurrentHashMap<Integer, BlockState> precalculatedBlockStates = new ConcurrentHashMap<>();
 	
 	public void setMaxLoadedCacheFiles(int value) {
 		this.maxLoadedCacheFiles = value;
@@ -109,11 +109,7 @@ public class NmsManager implements INmsManager {
 
 	@Override
 	public BlockState getBlockStateFromId(int id) {
-		if (precalculatedBlockStates.containsKey(id)) {
-			return precalculatedBlockStates.get(id);
-		} else {
-			return getBlockStateForIdPopulatingCache(id);
-		}
+		return precalculatedBlockStates.computeIfAbsent(id, i -> getBlockStateForIdPopulatingCache(i) );
 	}
 	
 	@Override
