@@ -365,7 +365,7 @@ public class WorldReader {
 
 	private WorldConfig createNetherWorld(String worldPath) {
 		Material[] randomBlocks = new Material[] { Material.GRAVEL, Material.NETHERRACK, Material.SOUL_SAND,
-				Material.NETHER_BRICK, Material.NETHER_QUARTZ_ORE };
+				Material.NETHER_BRICKS, Material.NETHER_QUARTZ_ORE };
 		//Integer[] randomBlocks = new Integer[]{ 13, 87, 88, 112, 153 };
 		Material[] obfuscateBlockIds = new Material[] { Material.NETHERRACK, Material.NETHER_QUARTZ_ORE };
 		//Integer[] obfuscateBlockIds = new Integer[]{ 87, 153 };
