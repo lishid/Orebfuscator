@@ -1,4 +1,4 @@
-ConfigVersion: 13
+ConfigVersion: 14
 Booleans:
   UseCache: true
   Enabled: true
@@ -29,7 +29,7 @@ Worlds:
     DarknessHideBlocks: false
     BypassObfuscationForSignsWithText: false
     DarknessBlocks:
-    - MOB_SPAWNER
+    - SPAWNER
     - CHEST
     Mode1Block: STONE
     RandomBlocks: []
@@ -43,13 +43,12 @@ Worlds:
       ObfuscateAboveY: false
       ProximityHiderBlocks:
       - DISPENSER
-      - MOB_SPAWNER
+      - SPAWNER
       - CHEST
       - DIAMOND_ORE
-      - WORKBENCH
+      - CRAFTING_TABLE
       - FURNACE
-      - BURNING_FURNACE
-      - ENCHANTMENT_TABLE
+      - ENCHANTING_TABLE
       - EMERALD_ORE
       - ENDER_CHEST
       - ANVIL

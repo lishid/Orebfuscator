@@ -31,11 +31,6 @@
 
   <modules>
     <module>API</module>
-    <module>v1_9_R1</module>
-    <module>v1_9_R2</module>
-    <module>v1_10_R1</module>
-    <module>v1_11_R1</module>
-    <module>v1_12_R1</module>
     <module>v1_13_R1</module>
     <module>v1_13_R2</module>
     <module>Plugin</module>

@@ -125,7 +125,7 @@ public class Calculations {
                     	
                     	ChunkMapManager.blockDataToState(blockData, blockState);
 
-                        if (blockState.id < 256) {
+                        if (isNotAir(blockState.type)) {
 							int x = startX | offsetX;
 							int y = manager.getY();
 							int z = startZ | offsetZ;
@@ -135,10 +135,10 @@ public class Calculations {
 	                        boolean specialObfuscate = false;
 	
 	                        // Check if the block should be obfuscated for the default engine modes
-	                        if (worldConfig.isObfuscated(blockState.id)) {
+	                        if (worldConfig.isObfuscated(blockState.type)) {
 	                            if (initialRadius == 0) {
 	                                // Do not interfere with PH
-	                                if (proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.id)) {
+	                                if (proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.type)) {
 	                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
 	                                        obfuscate = true;
 	                                    }
@@ -155,7 +155,7 @@ public class Calculations {
 	                        }
 	                        
 	                        // Check if the block should be obfuscated because of proximity check
-	                        if (!obfuscate && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.id)) {
+	                        if (!obfuscate && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.type)) {
                             	BlockCoord block = new BlockCoord(x, y, z);
                                 if (block != null) {
                                     proximityBlocks.add(block);
@@ -171,18 +171,19 @@ public class Calculations {
 	                        if (obfuscate && canObfuscate(chunkData, x, y, z, blockState)) {
 	                            if (specialObfuscate) {
 	                                // Proximity hider
-	                                blockState.id = proximityHider.getSpecialBlockID();
+	                            	Orebfuscator.nms.setBlockStateFromMaterial(proximityHider.getSpecialBlockID(), blockState);
 	                            } else {
 	                                if (engineMode == 1) {
 	                                    // Engine mode 1, replace with stone
-	                                	blockState.id = worldConfig.getMode1BlockId();
+	                                	Orebfuscator.nms.setBlockStateFromMaterial(worldConfig.getMode1BlockId(), blockState);
 	                                } else if (engineMode == 2) {
 	                                    // Ending mode 2, replace with random block
 	                                    if (randomBlocksLength > 1) {
 	                                        randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
 	                                    }
 	                                    
-	                                    blockState.id = worldConfig.getRandomBlock(randomIncrement, randomAlternate);
+	                                    Orebfuscator.nms.setBlockStateFromMaterial(
+	                                    			worldConfig.getRandomBlock(randomIncrement, randomAlternate), blockState);
 	                                    randomAlternate = !randomAlternate;
 	                                }
 	                                // Anti texturepack and freecam
@@ -195,28 +196,29 @@ public class Calculations {
 	                                    }
 	
 	                                    if (randomCave > 0) {
-	                                    	blockState.id = 0;
+	                                    	// 1.13 TODO: Cave_air?
+		                                	Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, blockState);
+
 	                                        randomCave--;
 	                                    }
 	                                }
 	                            }
-	
-	                            blockState.meta = 0;
 	                        }
 	
 	                        // Check if the block should be obfuscated because of the darkness
-	                        if (!obfuscate && worldConfig.isDarknessHideBlocks() && worldConfig.isDarknessObfuscated(blockState.id)) {
+	                        if (!obfuscate && worldConfig.isDarknessHideBlocks() && worldConfig.isDarknessObfuscated(blockState.type)) {
 	                            if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
 	                                // Hide block, setting it to air
-	                            	blockState.id = 0;
-	                            	blockState.meta = 0;
+	                            	Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, blockState);
+	                            	// 1.13 TODO: Cave air? void air? regular air? how to decide.
 	                            }
 	                        }
 	                        
-	                        blockData = ChunkMapManager.blockStateToData(blockState);
                         } else {
-                        	blockData = 0;
+                        	Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, blockState);
                         }
+
+                        blockData = ChunkMapManager.blockStateToData(blockState);
                         
 						if(offsetY == 0 && offsetZ == 0 && offsetX == 0) {
 							manager.finalizeOutput();							
@@ -245,8 +247,8 @@ public class Calculations {
     private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, BlockState blockState) {
     	if(chunkData.blockEntities == null
     			|| (
-    				blockState.id != DeprecatedMethods.getMaterialId(Material.WALL_SIGN)
-    				&& blockState.id != DeprecatedMethods.getMaterialId(Material.SIGN_POST)
+    				!Material.WALL_SIGN.equals(blockState.type)
+    				&& !Material.SIGN.equals(blockState.type)
     				)
     			)
     	{
@@ -302,8 +304,9 @@ public class Calculations {
     	}
 
     	for(int id : worldConfig.getPaletteBlocks()) {
-    		int blockData = ChunkMapManager.getBlockDataFromId(id);
-    		manager.addToOutputPalette(blockData);
+    		// for 1.13, the getPaletteBlocks is pre-stuffed with the computed, NMS-specific combinedblockIDs, at startup.
+    		//int blockData = ChunkMapManager.getBlockDataFromId(id);
+    		manager.addToOutputPalette(id); //blockData);
     	}
     }
     
@@ -373,20 +376,25 @@ public class Calculations {
         if(checkCurrentBlock) {
 	    	ChunkData chunkData = manager.getChunkData();
 	        int blockData = manager.get(x, y, z);
+	        BlockState blockState = new BlockState();
 	        int id;
 	
 	        if (blockData < 0) {
 				id = Orebfuscator.nms.loadChunkAndGetBlockId(world, x, y, z);
 	        	
 	            if (id < 0) {
-	                id = 1;// Stone
+	            	Orebfuscator.nms.setBlockStateFromMaterial(Material.STONE, blockState);
+	                id = blockState.id;// Stone
 	                chunkData.useCache = false;
 	            }
 	        } else {
-	        	id = ChunkMapManager.getBlockIdFromData(blockData);
+	        	id = blockData;// ChunkMapManager.getBlockIdFromData(blockData);
 	        }
+	        Orebfuscator.nms.setBlockStateFromID(id, blockState);
+	        
+	        // TODO: Efficiency? Can we cache these converts? 1.13 yikes
 	
-	        if (Orebfuscator.config.isBlockTransparent(id)) {
+	        if (Orebfuscator.config.isBlockTransparent(blockState.type)) {
 	            return true;
 	        }
         }
@@ -436,5 +444,9 @@ public class Calculations {
     
     private static int random(int max) {
         return random.nextInt(max);
+    }
+    
+    private static boolean isNotAir(Material type) {
+    	return !(Material.AIR.equals(type) || Material.CAVE_AIR.equals(type) || Material.VOID_AIR.equals(type));
     }
 }

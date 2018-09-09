@@ -71,9 +71,9 @@ public class OrebfuscatorPlayerListener implements Listener {
         if (event.getItem() != null &&
                 event.getItem().getType() != null &&
                 (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS) &&
-                ((event.getItem().getType() == Material.WOOD_HOE) ||
+                ((event.getItem().getType() == Material.WOODEN_HOE) ||
                         (event.getItem().getType() == Material.IRON_HOE) ||
-                        (event.getItem().getType() == Material.GOLD_HOE) ||
+                        (event.getItem().getType() == Material.GOLDEN_HOE) ||
                         (event.getItem().getType() == Material.DIAMOND_HOE)))
         {
             BlockUpdate.update(event.getClickedBlock());

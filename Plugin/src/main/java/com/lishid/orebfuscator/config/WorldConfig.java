@@ -11,6 +11,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import org.bukkit.Material;
+
+import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.types.BlockState;
+
 public class WorldConfig {
 	private String name;
     private Boolean enabled;
@@ -21,12 +26,18 @@ public class WorldConfig {
     private boolean[] obfuscateBlocks;
     private boolean[] obfuscateAndProximityBlocks;
     private boolean[] darknessBlocks;
-    private Integer[] randomBlocks;
-    private Integer[] randomBlocks2;
-    private Integer mode1BlockId;
-    private int[] paletteBlocks;
+    private Material[] randomBlocks;
+    private Material[] randomBlocks2;
+    private Material mode1BlockId;
+    private int[] paletteBlocks; // 1.13: super crazy "combined" registry super-id magic values. SCARY
     private ProximityHiderConfig proximityHiderConfig;
     private boolean initialized;
+    
+	/**
+	 * Added for 1.13 to allow Integer encoding of Material for the transient lookup arrays.
+	 */
+	private static final Material[] translation = Material.values();
+
     
     public WorldConfig() {
     	this.proximityHiderConfig = new ProximityHiderConfig();
@@ -38,16 +49,19 @@ public class WorldConfig {
 		this.antiTexturePackAndFreecam = true;
 		this.bypassObfuscationForSignsWithText = false;
 		this.airGeneratorMaxChance = 43;
-		this.obfuscateBlocks = new boolean[256];
+		this.obfuscateBlocks = new boolean[translation.length];
 		
-		this.darknessBlocks = new boolean[256];
-		this.darknessBlocks[52] = true;
-		this.darknessBlocks[54] = true;
-		
-		this.randomBlocks = new Integer[0];
+		this.darknessBlocks = new boolean[translation.length];
+		/*this.darknessBlocks[52] = true;
+		this.darknessBlocks[54] = true;*/
+		this.darknessBlocks[Material.SPAWNER.ordinal()] = true;
+		this.darknessBlocks[Material.CHEST.ordinal()] = true;
+		// 1.13 TODO: Are there other dark blocks related to hidden treasures that should by default now be hidden?
+
+		this.randomBlocks = new Material[0];
 		this.randomBlocks2 = this.randomBlocks;
 		
-	    this.mode1BlockId = 1;
+	    this.mode1BlockId = Material.STONE; //1;
 	    this.paletteBlocks = null;
 
 	    this.proximityHiderConfig.setDefaults();
@@ -165,24 +179,24 @@ public class WorldConfig {
     	this.obfuscateBlocks = values;
     }
     
-    public Integer[] getObfuscateBlockIds() {
+    public Material[] getObfuscateBlockIds() {
     	if(this.obfuscateBlocks == null) {
     		return null;
     	}
     	
-    	List<Integer> result = new ArrayList<Integer>();
+    	List<Material> result = new ArrayList<Material>();
     	
     	for(int i = 0; i < this.obfuscateBlocks.length; i++) {
     		if(this.obfuscateBlocks[i]) {
-    			result.add(i);
+    			result.add(translation[i]);
     		}
     	}
     	
-    	return result.toArray(new Integer[0]);
+    	return result.toArray(new Material[0]);
     }
     
     private void setObfuscateAndProximityBlocks() {
-    	this.obfuscateAndProximityBlocks = new boolean[256];
+    	this.obfuscateAndProximityBlocks = new boolean[translation.length];
     	
     	boolean isProximityHiderEnabled = this.proximityHiderConfig != null && this.proximityHiderConfig.isEnabled();
     	int[] proximityHiderBlocks = isProximityHiderEnabled ? this.proximityHiderConfig.getProximityHiderBlockMatrix(): null;
@@ -207,27 +221,27 @@ public class WorldConfig {
     	this.darknessBlocks = values;
     }
 
-    public Integer[] getDarknessBlockIds() {
+    public Material[] getDarknessBlockIds() {
     	if(this.darknessBlocks == null) {
     		return null;
     	}
     	
-    	List<Integer> result = new ArrayList<Integer>();
+    	List<Material> result = new ArrayList<Material>();
     	
     	for(int i = 0; i < this.darknessBlocks.length; i++) {
     		if(this.darknessBlocks[i]) {
-    			result.add(i);
+    			result.add(translation[i]);
     		}
     	}
     	
-    	return result.toArray(new Integer[0]);
+    	return result.toArray(new Material[0]);
     }
 
-    public Integer[] getRandomBlocks() {
+    public Material[] getRandomBlocks() {
     	return this.randomBlocks;
     }
 
-    public void setRandomBlocks(Integer[] values) {
+    public void setRandomBlocks(Material[] values) {
     	this.randomBlocks = values;
     	this.randomBlocks2 = values;
     }
@@ -239,11 +253,11 @@ public class WorldConfig {
         }
     }
     
-    public Integer getMode1BlockId() {
+    public Material getMode1BlockId() {
     	return this.mode1BlockId;
     }
 
-    public void setMode1BlockId(Integer value) {
+    public void setMode1BlockId(Material value) {
     	this.mode1BlockId = value;
     }
 
@@ -257,17 +271,23 @@ public class WorldConfig {
     	}
     	
     	HashSet<Integer> map = new HashSet<Integer>();
+    	BlockState helper = new BlockState();
     	
-    	map.add(0);
-    	map.add(this.mode1BlockId);
+    	Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, helper);
+    	map.add(helper.id);
+    	
+    	Orebfuscator.nms.setBlockStateFromMaterial(this.mode1BlockId, helper);
+    	map.add(helper.id);
     	
     	if(this.proximityHiderConfig.isUseSpecialBlock()) {
-    		map.add(this.proximityHiderConfig.getSpecialBlockID());
+    		Orebfuscator.nms.setBlockStateFromMaterial(this.proximityHiderConfig.getSpecialBlockID(), helper);
+    		map.add(helper.id);
     	}
     	
-    	for(Integer id : this.randomBlocks) {
+    	for(Material id : this.randomBlocks) {
     		if(id != null) {
-    			map.add(id);
+    			Orebfuscator.nms.setBlockStateFromMaterial(id, helper);
+    			map.add(helper.id);
     		}
     	}
     	
@@ -287,21 +307,15 @@ public class WorldConfig {
     
     // Helper methods
     
-    public boolean isObfuscated(int id) {
-        if (id < 0)
-            id += 256;
-        
-        return this.obfuscateAndProximityBlocks[id];
+    public boolean isObfuscated(Material id) {
+        return this.obfuscateAndProximityBlocks[id.ordinal()];
     }
 
-    public boolean isDarknessObfuscated(int id) {
-        if (id < 0)
-            id += 256;
-
-        return this.darknessBlocks[id];
+    public boolean isDarknessObfuscated(Material id) {
+        return this.darknessBlocks[id.ordinal()];
     }
 
-    public int getRandomBlock(int index, boolean alternate) {
-        return (int)(alternate ? this.randomBlocks2[index] : this.randomBlocks[index]);
+    public Material getRandomBlock(int index, boolean alternate) {
+        return (alternate ? this.randomBlocks2[index] : this.randomBlocks[index]);
     }
 }

@@ -16,10 +16,13 @@ import net.minecraft.server.v1_13_R1.Packet;
 import net.minecraft.server.v1_13_R1.TileEntity;
 import net.minecraft.server.v1_13_R1.WorldServer;
 
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_13_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_13_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R1.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_13_R1.block.data.CraftBlockData;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.nms.IBlockInfo;
@@ -76,6 +79,22 @@ public class NmsManager implements INmsManager {
     }
     
 	@Override
+	public void setBlockStateFromID(int id, BlockState blockState) {
+		blockState.id = id;
+		IBlockData block = Block.getByCombinedId(id);
+		CraftBlockData cBlock = CraftBlockData.fromData(block); 
+		blockState.type = cBlock.getMaterial();
+	}
+	
+	@Override
+	public void setBlockStateFromMaterial(Material type, BlockState blockState) {
+		blockState.type = type;
+		CraftBlockData cBlock = CraftBlockData.newData(type, null);
+		IBlockData block = cBlock.getState();
+		blockState.id = Block.getCombinedId(block);
+	}
+	
+	@Override
 	public IBlockInfo getBlockInfo(World world, int x, int y, int z) {
 		IBlockData blockData = getBlockData(world, x, y, z, false);
 		
@@ -93,6 +112,7 @@ public class NmsManager implements INmsManager {
 		//Block block = blockData.getBlock();
 		
 		BlockState blockState = new BlockState();
+		blockState.type = world.getBlockAt(x, y, z).getType();
 		blockState.id = Block.getCombinedId(blockData);
 		//blockState.meta = block.toLegacyData(blockData);
 		
@@ -105,6 +125,13 @@ public class NmsManager implements INmsManager {
 		return blockData != null ? Block.getCombinedId(blockData): -1;
 	}
 
+	@Override
+	public BlockData getBlockDataFromBlockState(BlockState blockState) {
+		IBlockData block = Block.getByCombinedId(blockState.id);
+		CraftBlockData cBlock = CraftBlockData.fromData(block); 		
+		return cBlock;
+	}
+	
 	@Override
 	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
 		IBlockData blockData = getBlockData(world, x, y, z, true);

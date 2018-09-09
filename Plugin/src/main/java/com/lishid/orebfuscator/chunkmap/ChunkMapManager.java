@@ -8,6 +8,9 @@ package com.lishid.orebfuscator.chunkmap;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.bukkit.Material;
+
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.types.BlockState;
 
 public class ChunkMapManager {
@@ -84,25 +87,27 @@ public class ChunkMapManager {
     }
     
     public static void blockDataToState(int blockData, BlockState blockState) {
-    	blockState.id = blockData >>> 4;
-    	blockState.meta = blockData & 0xf;
+    	Orebfuscator.nms.setBlockStateFromID(blockData, blockState);
+    	/*blockState.id = blockData >>> 4;
+    	blockState.meta = blockData & 0xf;*/
     }
     
-    public static int getBlockIdFromData(int blockData) {
+    /*public static int getBlockIdFromData(int blockData) {
     	return blockData >>> 4;
     }
 
     public static int getBlockMetaFromData(int blockData) {
     	return blockData & 0xf;
-    }
+    }*/
 
     public static int blockStateToData(BlockState blockState) {
-    	return (blockState.id << 4) | blockState.meta; 
+    	return blockState.id;
+    	//return (blockState.id << 4) | blockState.meta; 
     }
     
-    public static int getBlockDataFromId(int id) {
+    /*public static int getBlockDataFromId(int id) {
     	return id << 4;
-    }
+    }*/
 
     public boolean initOutputPalette() {
     	if(this.buffer.paletteLength == 0 || this.buffer.paletteLength == 255) {
@@ -190,7 +195,7 @@ public class ChunkMapManager {
     		if(paletteIndex == 255) {
     			BlockState blockState = new BlockState();
     			blockDataToState(blockData, blockState);
-    			throw new IllegalArgumentException("Block " + blockState.id + ":" + blockState.meta + " is absent in output palette.");
+    			throw new IllegalArgumentException("Block " + blockState.type + " is absent in output palette.");
     		}
     		
     		this.buffer.writer.writeBlockBits(paletteIndex);
@@ -229,7 +234,7 @@ public class ChunkMapManager {
     
     private void calcOutputBitsPerBlock() {
     	if(this.buffer.outputPaletteLength == 0) {
-    		this.buffer.outputBitsPerBlock = 13;
+    		this.buffer.outputBitsPerBlock = ChunkMapBuffer.BITS_PER_BLOCK;
     	} else {
     		byte mask = (byte)this.buffer.outputPaletteLength;
     		int index = 0;

@@ -5,10 +5,11 @@
 
 package com.lishid.orebfuscator.config;
 
+import org.bukkit.Material;
 
 public class ProximityHiderConfig {
 	public static class BlockSetting implements Cloneable {
-		public int blockId;
+		public Material blockId;
 		public int y;
 		public boolean obfuscateAboveY;
 		
@@ -22,25 +23,34 @@ public class ProximityHiderConfig {
 		}
 	}
 	
-	private static final Integer[] defaultProximityHiderBlockIds = new Integer[]{ 23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146 };
+	private static final Material[] defaultProximityHiderBlockIds = new Material[] { Material.DISPENSER,
+			Material.SPAWNER, Material.CHEST, Material.HOPPER, Material.CRAFTING_TABLE, Material.FURNACE,
+			Material.ENCHANTING_TABLE, Material.EMERALD_ORE, Material.ENDER_CHEST, Material.ANVIL,
+			Material.CHIPPED_ANVIL, Material.TRAPPED_CHEST, Material.DIAMOND_ORE};
+	//private static final Integer[] defaultProximityHiderBlockIds = new Integer[]{ 23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146 };
 	
     private Boolean enabled;
     private Integer distance;
     private int distanceSquared;
-    private Integer specialBlockID;
+    private Material specialBlockID;
     private Integer y;
     private Boolean useSpecialBlock;
     private Boolean obfuscateAboveY;
     private Boolean useFastGazeCheck;
-    private Integer[] proximityHiderBlockIds;
+    private Material[] proximityHiderBlockIds;
     private BlockSetting[] proximityHiderBlockSettings;
     private int[] proximityHiderBlockMatrix;
+    
+	/**
+	 * Added for 1.13 to allow Integer encoding of Material for the transient blockMatrix.
+	 */
+	private static final Material[] translation = Material.values();
     
     public void setDefaults() {
         this.enabled = true;
         this.distance = 8;
         this.distanceSquared = this.distance * this.distance;
-        this.specialBlockID = 1;
+        this.specialBlockID = Material.STONE; //1;
         this.y = 255;
         this.useSpecialBlock = true;
         this.obfuscateAboveY = false;
@@ -110,11 +120,11 @@ public class ProximityHiderConfig {
     	return this.distanceSquared;
     }
 
-    public Integer getSpecialBlockID() {
+    public Material getSpecialBlockID() {
     	return this.specialBlockID;
     }
     
-    public void setSpecialBlockID(Integer value) {
+    public void setSpecialBlockID(Material value) {
     	this.specialBlockID = value;
     }
     
@@ -142,11 +152,11 @@ public class ProximityHiderConfig {
     	this.obfuscateAboveY = value;
     }
     
-    public void setProximityHiderBlockIds(Integer[] value) {
+    public void setProximityHiderBlockIds(Material[] value) {
     	this.proximityHiderBlockIds = value;
     }
     
-    public Integer[] getProximityHiderBlockIds() {
+    public Material[] getProximityHiderBlockIds() {
     	return this.proximityHiderBlockIds;
     }
     
@@ -163,17 +173,17 @@ public class ProximityHiderConfig {
     }
     
     private void setProximityHiderBlockMatrix() {
-    	this.proximityHiderBlockMatrix = new int[256];
+    	this.proximityHiderBlockMatrix = new int[translation.length];
     	
     	if(this.proximityHiderBlockIds != null) {
-    		for(int blockId : this.proximityHiderBlockIds) {
-    			this.proximityHiderBlockMatrix[blockId] = this.obfuscateAboveY ? -this.y: this.y;
+    		for(Material blockId : this.proximityHiderBlockIds) {
+    			this.proximityHiderBlockMatrix[blockId.ordinal()] = this.obfuscateAboveY ? -this.y: this.y;
     		}
     	}
     	
     	if(this.proximityHiderBlockSettings != null) {
     		for(BlockSetting block : this.proximityHiderBlockSettings) {
-    			this.proximityHiderBlockMatrix[block.blockId] = block.obfuscateAboveY ? -block.y: block.y;
+    			this.proximityHiderBlockMatrix[block.blockId.ordinal()] = block.obfuscateAboveY ? -block.y: block.y;
     		}
     	}
     }
@@ -188,11 +198,8 @@ public class ProximityHiderConfig {
 
     // Help methods
     
-    public boolean isProximityObfuscated(int y, int id) {
-        if (id < 0)
-            id += 256;
-        
-        int proximityY = this.proximityHiderBlockMatrix[id];
+    public boolean isProximityObfuscated(int y, Material id) {
+        int proximityY = this.proximityHiderBlockMatrix[id.ordinal()];
         
         if(proximityY == 0) {
         	return false;

@@ -7,7 +7,7 @@ package com.lishid.orebfuscator.config;
 
 import java.util.Map;
 
-import com.lishid.orebfuscator.utils.Globals;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -258,15 +258,8 @@ public class OrebfuscatorConfig {
     
     // Helper methods
     
-    public boolean isBlockTransparent(int id) {
-        if (id < 0)
-            id += 256;
-
-        if (id >= 256) {
-            return false;
-        }
-
-        return this.transparentBlocks[id];
+    public boolean isBlockTransparent(Material type) {
+        return this.transparentBlocks[type.ordinal()];
     }
     
     public boolean obfuscateForPlayer(Player player) {

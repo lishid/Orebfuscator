@@ -27,7 +27,7 @@
     <dependency>
       <groupId>com.comphenix.protocol</groupId>
       <artifactId>ProtocolLib-API</artifactId>
-      <version>4.0</version>
+      <version>4.2.1</version>
       <scope>provided</scope>
       <optional>true</optional>
       <exclusions>
@@ -51,46 +51,6 @@
     </dependency>
     <dependency>
       <groupId>com.lishid</groupId>
-      <artifactId>orebfuscator-v1_9_R1</artifactId>
-      <version>v1_9_R1</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.lishid</groupId>
-      <artifactId>orebfuscator-v1_9_R2</artifactId>
-      <version>v1_9_R2</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.lishid</groupId>
-      <artifactId>orebfuscator-v1_10_R1</artifactId>
-      <version>v1_10_R1</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.lishid</groupId>
-      <artifactId>orebfuscator-v1_11_R1</artifactId>
-      <version>v1_11_R1</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.lishid</groupId>
-      <artifactId>orebfuscator-v1_12_R1</artifactId>
-      <version>v1_12_R1</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.lishid</groupId>
       <artifactId>orebfuscator-v1_13_R1</artifactId>
       <version>v1_13_R1</version>
       <type>jar</type>
@@ -108,7 +68,7 @@
   </dependencies>
 
   <build>
-    <directory>../target</directory>
+    <!-- <directory>../target</directory> -->
     <sourceDirectory>src/main/java</sourceDirectory>
     <resources>
       <resource>

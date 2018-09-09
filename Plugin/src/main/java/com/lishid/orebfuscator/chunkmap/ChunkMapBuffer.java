@@ -6,11 +6,12 @@
 package com.lishid.orebfuscator.chunkmap;
 
 public class ChunkMapBuffer {
+	public static final int BITS_PER_BLOCK = 14; // as of 1.13, is now 14 instead of 13 (which was hardcoded??)
 	private static final int BITS_PER_BLOCK_SIZE = 1;
 	private static final int PALETTE_LENGTH_SIZE = 5;
 	private static final int DATA_ARRAY_LENGTH_SIZE = 5;
 	private static final int BLOCKS_PER_CHUNK_SECTION = 16 * 16 * 16;
-	private static final int DATA_ARRAY_SIZE = BLOCKS_PER_CHUNK_SECTION * 13 / 8;
+	private static final int DATA_ARRAY_SIZE = BLOCKS_PER_CHUNK_SECTION * BITS_PER_BLOCK / 8;
 	private static final int BLOCK_LIGHT_SIZE = BLOCKS_PER_CHUNK_SECTION / 2;
 	private static final int SKY_LIGHT_SIZE = BLOCKS_PER_CHUNK_SECTION / 2;
 	private static final int COLUMNS_PER_CHUNK = 16;

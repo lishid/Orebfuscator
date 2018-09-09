@@ -5,6 +5,7 @@ author: lishid
 authors: [Aleksey-Terzi, ProgrammerDan]
 softdepend: [ProtocolLib]
 load: startup
+api-version: 1.13
 description: 'The most powerful and efficient Anti Xray plugin compatible with any CraftBukkit fork!'
 commands:
   ofc:

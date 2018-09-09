@@ -33,6 +33,12 @@ import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
 public class OrebfuscatorCommandExecutor {
+	
+	/**
+	 * Added for 1.13 to allow Integer encoding of Material for the transient lookup arrays.
+	 */
+	private static final Material[] translation = Material.values();
+
     public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if ((sender instanceof Player) && !sender.hasPermission("Orebfuscator.admin")) {
@@ -188,9 +194,7 @@ public class OrebfuscatorCommandExecutor {
 	        			if(material == null) {
 	        				Orebfuscator.message(sender, ChatColor.RED + "Specified material is not found.");
 	        			} else {	        			
-		        			int materialId = DeprecatedMethods.getMaterialId(material);
-		        			
-		        			if(Orebfuscator.configManager.getWorld(world).isObfuscated(materialId))
+		        			if(Orebfuscator.configManager.getWorld(world).isObfuscated(material))
 		        				Orebfuscator.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
 		        			else
 		        				Orebfuscator.message(sender, material.name() + ": " + ChatColor.RED + "not obfuscate");
@@ -202,7 +206,7 @@ public class OrebfuscatorCommandExecutor {
 		        		
 		        		for(int i = 0; i < blocks.length; i++) {
 		        			if(blocks[i]) {
-		        				Orebfuscator.message(sender, " - " + DeprecatedMethods.getMaterial(i).name());
+		        				Orebfuscator.message(sender, " - " + translation[i].name());
 		        			}
 		        		}
 	        		}

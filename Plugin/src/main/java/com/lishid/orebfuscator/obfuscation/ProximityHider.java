@@ -265,8 +265,8 @@ public class ProximityHider extends Thread implements Runnable {
     		ly = Math.floor(ey);
     		lz = Math.floor(ez);
     		if (lx == bx && ly == by && lz == bz) return true; // we've reached our starting block, don't test it.
-    		int between = Orebfuscator.nms.getBlockId(world, (int) lx, (int) ly, (int) lz);
-    		if (between > 0 && !Orebfuscator.config.isBlockTransparent(between)) { // -1 is null, 0 is air, above that? check with config.
+    		BlockState blockState = Orebfuscator.nms.getBlockState(world, (int) lx, (int) ly, (int) lz);
+    		if (blockState != null && !Orebfuscator.config.isBlockTransparent(blockState.type)) { // -1 is null, 0 is air, above that? check with config.
     			return false; // fail on first hit, this ray is "blocked"
     		}
     		s--; // we stop 

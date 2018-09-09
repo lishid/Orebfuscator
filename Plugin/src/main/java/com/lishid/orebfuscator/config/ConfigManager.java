@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,7 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.lishid.orebfuscator.utils.Globals;
 
 public class ConfigManager {
-    private static final int CONFIG_VERSION = 13;
+    private static final int CONFIG_VERSION = 14;
 	
     private boolean[] transparentBlocks;
     private boolean[] transparentBlocksMode1;
@@ -30,6 +31,11 @@ public class ConfigManager {
     private Logger logger;
     private OrebfuscatorConfig orebfuscatorConfig;
     private MaterialReader materialReader;
+    
+	/**
+	 * Added for 1.13 to allow Integer encoding of Material for the transient lookup arrays.
+	 */
+	private static final Material[] translation = Material.values();
     
     public ConfigManager(JavaPlugin plugin, Logger logger, OrebfuscatorConfig orebfuscatorConfig) {
     	this.plugin = plugin;
@@ -77,7 +83,14 @@ public class ConfigManager {
         if (version < CONFIG_VERSION) {
         	if(version <= 12) {
         		new Convert12To13(this.plugin).convert();
-        		logger.info(Globals.LogPrefix + "Configuration file have been converted to new version.");
+        		logger.info(Globals.LogPrefix + "Configuration file have been converted to version 13.");
+        	} else {
+        		getConfig().set("ConfigVersion", 13);
+        	}
+        	
+        	if(version <= 13) {
+        		new Convert13To14(this.plugin).convert();
+        		logger.info(Globals.LogPrefix + "Configuration file have been converted to version " + CONFIG_VERSION + ".");
         	} else {
         		getConfig().set("ConfigVersion", CONFIG_VERSION);
         	}
@@ -277,40 +290,36 @@ public class ConfigManager {
     	
     	System.arraycopy(transparentBlocks, 0, this.transparentBlocks, 0, this.transparentBlocks.length);
     	
-    	Integer[] customTransparentBlocks = this.materialReader.getMaterialIdsByPath("Lists.TransparentBlocks", new Integer[0], true);
+    	Material[] customTransparentBlocks = this.materialReader.getMaterialIdsByPath("Lists.TransparentBlocks", new Material[0], true);
     	
     	if(customTransparentBlocks != null) {
-	    	for(int blockId : customTransparentBlocks) {
-	    		if(blockId >= 0 && blockId <= 255) {
-	    			this.transparentBlocks[blockId] = true;
-	    		}
+	    	for(Material blockId : customTransparentBlocks) {
+	    		this.transparentBlocks[blockId.ordinal()] = true;
 	    	}
     	}
     	
-    	Integer[] customNonTransparentBlocks = this.materialReader.getMaterialIdsByPath("Lists.NonTransparentBlocks", new Integer[0], true);
+    	Material[] customNonTransparentBlocks = this.materialReader.getMaterialIdsByPath("Lists.NonTransparentBlocks", new Material[0], true);
 
     	if(customNonTransparentBlocks != null) {
-	    	for(int blockId : customNonTransparentBlocks) {
-	    		if(blockId >= 0 && blockId <= 255) {
-	    			this.transparentBlocks[blockId] = false;
-	    		}
+	    	for(Material blockId : customNonTransparentBlocks) {
+	    		this.transparentBlocks[blockId.ordinal()] = false;
 	    	}
     	}
     }
     
     private void readInitialTransparentBlocks() {
-    	this.transparentBlocks = new boolean[256];
+    	this.transparentBlocks = new boolean[translation.length];
     	Arrays.fill(this.transparentBlocks, false);
     	
 		InputStream mainStream = ConfigManager.class.getResourceAsStream("/resources/transparent_blocks.txt");
 		readTransparentBlocks(this.transparentBlocks, mainStream);
     	
-		this.transparentBlocksMode1 = new boolean[256];
+		this.transparentBlocksMode1 = new boolean[translation.length];
 		System.arraycopy(this.transparentBlocks, 0, this.transparentBlocksMode1, 0, this.transparentBlocksMode1.length);
 		InputStream mode1Stream = ConfigManager.class.getResourceAsStream("/resources/transparent_blocks_mode1.txt");
 		if(mode1Stream != null) readTransparentBlocks(this.transparentBlocksMode1, mode1Stream);
 
-		this.transparentBlocksMode2 = new boolean[256];
+		this.transparentBlocksMode2 = new boolean[translation.length];
 		System.arraycopy(this.transparentBlocks, 0, this.transparentBlocksMode2, 0, this.transparentBlocksMode2.length);
 		InputStream mode2Stream = ConfigManager.class.getResourceAsStream("/resources/transparent_blocks_mode2.txt");
 		if(mode2Stream != null) readTransparentBlocks(this.transparentBlocksMode2, mode2Stream);
@@ -324,10 +333,10 @@ public class ConfigManager {
             while ((line = reader.readLine()) != null) { 
             	int index1 = line.indexOf(":");
             	int index2 = line.indexOf(" ", index1);
-            	int blockId = Integer.parseInt(line.substring(0,  index1));
+            	Material blockId = Material.valueOf(line.substring(0,  index1));
             	boolean isTransparent = line.substring(index1 + 1, index2).equals("true");
             	
-            	transparentBlocks[blockId] = isTransparent;
+            	transparentBlocks[blockId.ordinal()] = isTransparent;
             }
     	} catch (IOException e) {
     		e.printStackTrace();

@@ -12,36 +12,29 @@ import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.types.BlockState;
 
-@SuppressWarnings("deprecation")
 public class DeprecatedMethods {
-	public static Material getMaterial(int materialId) {
-		return Material.getMaterial(materialId);
-	}
-	
-	public static int getMaterialId(Material material) {
-		return material.getId();
-	}
-	
+
     public static boolean applyPhysics(Block block) {
         // See net.minecraft.server.v1_4_5.BlockSand.canFall(World world, int i, int j, int k)
+    	// Updated nominally for 1.13, using isSolid() inversion.
 
-        int blockID = block.getRelative(0, -1, 0).getTypeId();
+        Material blockID = block.getRelative(0, -1, 0).getType();
 
-        int air = Material.AIR.getId();
-        int fire = Material.FIRE.getId();
-        int water = Material.WATER.getId();
-        int water2 = Material.STATIONARY_WATER.getId();
-        int lava = Material.LAVA.getId();
-        int lava2 = Material.STATIONARY_LAVA.getId();
-
-        return (blockID == air || blockID == fire || blockID == water || blockID == water2 || blockID == lava || blockID == lava2);
+        return (Material.AIR.equals(blockID) ||
+        		Material.FIRE.equals(blockID) ||
+        		Material.WATER.equals(blockID) ||
+        		Material.LAVA.equals(blockID) ||
+        		Material.CAVE_AIR.equals(blockID) ||
+        		Material.VOID_AIR.equals(blockID) ||
+        		!blockID.isSolid());
     }
     
-    public static int getTypeId(Block block) {
-    	return block.getTypeId();
+    public static Material getTypeId(Block block) {
+    	return block.getType();
     }
     
     public static void sendBlockChange(Player player, Location blockLocation, BlockState blockState) {
-    	player.sendBlockChange(blockLocation, blockState.id, (byte)blockState.meta);
+    	// 1.13!
+    	player.sendBlockChange(blockLocation, Orebfuscator.nms.getBlockDataFromBlockState(blockState));
     }
 }

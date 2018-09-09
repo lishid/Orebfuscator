@@ -17,16 +17,7 @@ import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.utils.Globals;
 
 public class MaterialReader {
-	private static class MaterialResult {
-		public Integer id;
-		public String name;
 		
-		public MaterialResult(int id, String name) {
-			this.id = id;
-			this.name = name;
-		}
-	}
-	
     private JavaPlugin plugin;
     private Logger logger;
     
@@ -39,28 +30,29 @@ public class MaterialReader {
     	return this.plugin.getConfig();
     }
     
-    public Integer getMaterialId(String materialName) {
-    	return getMaterial(materialName, null).id;
+    public Material getMaterialId(String materialName) {
+    	return getMaterial(materialName, null);
     }
 	
-    public Integer getMaterialIdByPath(String path, Integer defaultMaterialId, boolean withSave) {
+    public Material getMaterialIdByPath(String path, Material defaultMaterialId, boolean withSave) {
     	boolean hasKey = getConfig().get(path) != null;
     	
     	if(!hasKey && defaultMaterialId == null) {
     		return null;
     	}
     	
-    	String materialName = hasKey ? getConfig().getString(path): Integer.toString(defaultMaterialId);
-    	MaterialResult material = getMaterial(materialName, defaultMaterialId);
+    	String materialName = hasKey ? getConfig().getString(path): defaultMaterialId.name();
+    	
+    	Material material = Material.getMaterial(materialName);
     	
     	if(withSave || hasKey) {
-    		getConfig().set(path, material.name);
+    		getConfig().set(path, material.name());
     	}
 		
-		return material.id;
+		return material;
     }
     
-    public Integer[] getMaterialIdsByPath(String path, Integer[] defaultMaterials, boolean withSave) {
+    public Material[] getMaterialIdsByPath(String path, Material[] defaultMaterials, boolean withSave) {
     	List<String> list;
     	
      	if(getConfig().get(path) != null) {
@@ -70,22 +62,22 @@ public class MaterialReader {
     		if(defaultMaterials != null) {
         		list = new ArrayList<String>();
 
-        		for(int materialId : defaultMaterials) {
-	    			list.add(DeprecatedMethods.getMaterial(materialId).name());
+        		for(Material materialId : defaultMaterials) {
+	    			list.add(materialId.name());
 	    		}
     		} else {
     			return null;
     		}
     	}
     	
-    	List<Integer> result = new ArrayList<Integer>();
+    	List<Material> result = new ArrayList<Material>();
     	
     	for(int i = 0; i < list.size(); i++) {
-    		MaterialResult material = getMaterial(list.get(i), null);
+    		Material material = getMaterial(list.get(i), null);
     		
     		if(material != null) {
-    			list.set(i, material.name);
-    			result.add(material.id);
+    			list.set(i, material.name());
+    			result.add(material);
     		}
     	}
     	
@@ -93,37 +85,20 @@ public class MaterialReader {
     		getConfig().set(path, list);
     	}
     	
-    	return result.toArray(new Integer[0]);
+    	return result.toArray(new Material[0]);
     }
     
-    private MaterialResult getMaterial(String materialName, Integer defaultMaterialId) {
-    	Integer materialId;
-    	String defaultMaterialName = defaultMaterialId != null ? DeprecatedMethods.getMaterial(defaultMaterialId).name(): null;
-    	
+    private Material getMaterial(String materialName, Material defaultMaterialId) {
+    	String defaultMaterialName = defaultMaterialId != null ? defaultMaterialId.name(): null;
+    	Material materialId = null;
 		try {
     		if(Character.isDigit(materialName.charAt(0))) {
-    			materialId = Integer.parseInt(materialName);
-    			
-    			Material obj = DeprecatedMethods.getMaterial(materialId);
-    			
-    			if(obj != null) {
-    				materialName = obj.name();
-    			} else {
-    				if(defaultMaterialId != null) {
-	    				this.logger.info(Globals.LogPrefix + "Material with ID = " + materialId + " is not found. Will be used default material: " + defaultMaterialName);
-	    				materialId = defaultMaterialId;
-	    				materialName = defaultMaterialName;
-    				} else {
-    					this.logger.info(Globals.LogPrefix + "Material with ID = " + materialId + " is not found. Skipped.");
-    					materialId = null;
-    				}
-    			}
+    			this.logger.info(Globals.LogPrefix + "Material with Legacy Numeric ID = " + materialId + " is not supported. Skipped.");
+    			materialId = null;
     		} else {
-    			Material obj = Material.getMaterial(materialName.toUpperCase());
+    			materialId = Material.getMaterial(materialName.toUpperCase());
     			
-    			if(obj != null) {
-    				materialId = DeprecatedMethods.getMaterialId(obj);
-    			} else {
+    			if(materialId == null) {
     				if(defaultMaterialId != null) {
 	    				this.logger.info(Globals.LogPrefix + "Material " + materialName + " is not found. Will be used default material: " + defaultMaterialName);
 	    				materialId = defaultMaterialId;
@@ -145,6 +120,6 @@ public class MaterialReader {
 			}
 		}
 		
-		return materialId != null ? new MaterialResult(materialId, materialName): null;
+		return materialId;
     }
 }

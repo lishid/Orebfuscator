@@ -5,7 +5,9 @@
 
 package com.lishid.orebfuscator.nms;
 
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.types.BlockCoord;
@@ -33,4 +35,10 @@ public interface INmsManager {
 	int loadChunkAndGetBlockId(World world, int x, int y, int z);
 	
 	String getTextFromChatComponent(String json);
+
+	void setBlockStateFromID(int id, BlockState blockState);
+	
+	void setBlockStateFromMaterial(Material type, BlockState blockState);
+	
+	BlockData getBlockDataFromBlockState(BlockState blockState);
 }

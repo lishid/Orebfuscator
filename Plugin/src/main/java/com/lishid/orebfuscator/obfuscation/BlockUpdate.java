@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
@@ -32,11 +33,12 @@ import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.nms.IBlockInfo;
+import com.lishid.orebfuscator.types.BlockState;
 import com.lishid.orebfuscator.types.ChunkCoord;
 
 public class BlockUpdate {
     public static boolean needsUpdate(Block block) {
-        return !Orebfuscator.config.isBlockTransparent(DeprecatedMethods.getTypeId(block));
+        return !Orebfuscator.config.isBlockTransparent(block.getType());
     }
 
     public static void update(Block block) {
@@ -144,9 +146,13 @@ public class BlockUpdate {
     {
         if (blockInfo == null) return;
         
-        int blockId = blockInfo.getTypeId();
+        int blockIdC = blockInfo.getTypeId();
+        
+        // 1.13 - bit more work. going from combined ID to Material. TODO: Static precompute of translation?
+        BlockState blockState = new BlockState();
+        Orebfuscator.nms.setBlockStateFromID(blockIdC, blockState);
 
-        if ((worldConfig.isObfuscated(blockId) || worldConfig.isDarknessObfuscated(blockId))) {
+        if ((worldConfig.isObfuscated(blockState.type) || worldConfig.isDarknessObfuscated(blockState.type))) {
             allBlocks.add(blockInfo);
         }
 

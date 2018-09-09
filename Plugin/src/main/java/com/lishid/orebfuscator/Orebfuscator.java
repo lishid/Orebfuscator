@@ -57,7 +57,6 @@ public class Orebfuscator extends JavaPlugin {
     	return this.isProtocolLibFound;
     }
 
-    @SuppressWarnings("deprecation")
 	@Override
     public void onEnable() {
         // Get plugin manager
@@ -86,7 +85,7 @@ public class Orebfuscator extends JavaPlugin {
         (new ProtocolLibHook()).register(this);
         
         // Run CacheCleaner
-        getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CacheCleaner(), 0, config.getCacheCleanRate());        
+        getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0, config.getCacheCleanRate());
     }
     
     public void loadOrebfuscatorConfig() {
@@ -115,7 +114,6 @@ public class Orebfuscator extends JavaPlugin {
         if(outputFile.exists()) return;
 
         InputStream configStream = Orebfuscator.class.getResourceAsStream("/resources/config.example_enabledworlds.yml");
-        StringBuilder content = new StringBuilder();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(configStream));
                 PrintWriter writer = new PrintWriter(outputFile)
@@ -140,20 +138,11 @@ public class Orebfuscator extends JavaPlugin {
 
         String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 
-        if(serverVersion.equals("v1_12_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_12_R1.NmsManager();
+        if(serverVersion.equals("v1_13_R2")) {
+            return new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager();
         }
-        else if(serverVersion.equals("v1_11_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_11_R1.NmsManager();
-        }
-        else if(serverVersion.equals("v1_10_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
-        }
-        else if(serverVersion.equals("v1_9_R2")) {
-            return new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager();
-        }
-        else if(serverVersion.equals("v1_9_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager();
+        if(serverVersion.equals("v1_13_R1")) {
+            return new com.lishid.orebfuscator.nms.v1_13_R1.NmsManager();
         }
         else return null;
     }
