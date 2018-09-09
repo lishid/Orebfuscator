@@ -12,6 +12,7 @@ import net.minecraft.server.v1_13_R1.Chunk;
 import net.minecraft.server.v1_13_R1.ChunkProviderServer;
 import net.minecraft.server.v1_13_R1.IBlockData;
 import net.minecraft.server.v1_13_R1.IChatBaseComponent;
+import net.minecraft.server.v1_13_R1.Item;
 import net.minecraft.server.v1_13_R1.Packet;
 import net.minecraft.server.v1_13_R1.TileEntity;
 import net.minecraft.server.v1_13_R1.WorldServer;
@@ -22,6 +23,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_13_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_13_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R1.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_13_R1.util.CraftMagicNumbers;
 import org.bukkit.craftbukkit.v1_13_R1.block.data.CraftBlockData;
 import org.bukkit.entity.Player;
 
@@ -89,9 +91,13 @@ public class NmsManager implements INmsManager {
 	@Override
 	public void setBlockStateFromMaterial(Material type, BlockState blockState) {
 		blockState.type = type;
-		CraftBlockData cBlock = CraftBlockData.newData(type, null);
-		IBlockData block = cBlock.getState();
-		blockState.id = Block.getCombinedId(block);
+		if (type.isBlock()) {
+			Block block = CraftMagicNumbers.getBlock(type);
+			blockState.id = Block.getCombinedId(block.getBlockData());
+		} else {
+			Item item = CraftMagicNumbers.getItem(type);
+			blockState.id = Item.getId(item);
+		}
 	}
 	
 	@Override

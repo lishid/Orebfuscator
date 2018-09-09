@@ -6,6 +6,7 @@
 
 package com.lishid.orebfuscator.nms.v1_13_R2;
 
+import net.minecraft.server.v1_13_R2.Item;
 import net.minecraft.server.v1_13_R2.Block;
 import net.minecraft.server.v1_13_R2.BlockPosition;
 import net.minecraft.server.v1_13_R2.Chunk;
@@ -19,6 +20,7 @@ import net.minecraft.server.v1_13_R2.WorldServer;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.v1_13_R2.util.CraftMagicNumbers;
 import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_13_R2.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
@@ -89,9 +91,14 @@ public class NmsManager implements INmsManager {
 	@Override
 	public void setBlockStateFromMaterial(Material type, BlockState blockState) {
 		blockState.type = type;
-		CraftBlockData cBlock = CraftBlockData.newData(type, null);
-		IBlockData block = cBlock.getState();
-		blockState.id = Block.getCombinedId(block);
+		if (type.isBlock()) {
+			Block block = CraftMagicNumbers.getBlock(type);
+			blockState.id = Block.getCombinedId(block.getBlockData());
+		} else {
+			Item item = CraftMagicNumbers.getItem(type);
+			blockState.id = Item.getId(item);
+		}
+
 	}
     
 	@Override
