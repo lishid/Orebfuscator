@@ -31,10 +31,6 @@ public class NBT implements INBT {
         nbt.setLong(tag, value);
     }
 
-    public void setBoolean(String tag, boolean value) {
-        nbt.setBoolean(tag, value);
-    }
-
     public void setByteArray(String tag, byte[] value) {
         nbt.setByteArray(tag, value);
     }
@@ -49,10 +45,6 @@ public class NBT implements INBT {
 
     public long getLong(String tag) {
         return nbt.getLong(tag);
-    }
-
-    public boolean getBoolean(String tag) {
-        return nbt.getBoolean(tag);
     }
 
     public byte[] getByteArray(String tag) {

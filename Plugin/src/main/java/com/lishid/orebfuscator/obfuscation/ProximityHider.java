@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.Location;
@@ -35,13 +34,13 @@ import com.lishid.orebfuscator.types.BlockCoord;
 import com.lishid.orebfuscator.types.BlockState;
 
 public class ProximityHider extends Thread implements Runnable {
-    private static final Map<Player, ProximityHiderPlayer> proximityHiderTracker = new WeakHashMap<Player, ProximityHiderPlayer>();
+    private static final Map<Player, ProximityHiderPlayer> proximityHiderTracker = new HashMap<Player, ProximityHiderPlayer>();
     private static final Map<Player, Location> playersToCheck = new HashMap<Player, Location>();
     private static final HashSet<Player> playersToReload = new HashSet<Player>();
 
     private static ProximityHider thread = new ProximityHider();
 
-    private Map<Player, ProximityHiderPlayer> proximityHiderTrackerLocal = new WeakHashMap<Player, ProximityHiderPlayer>();
+    private Map<Player, ProximityHiderPlayer> proximityHiderTrackerLocal = new HashMap<Player, ProximityHiderPlayer>();
     private long lastExecute = System.currentTimeMillis();
     private AtomicBoolean kill = new AtomicBoolean(false);
     private static boolean running = false;
@@ -326,6 +325,14 @@ public class ProximityHider extends Thread implements Runnable {
     public static void clearPlayer(Player player) {
         synchronized (proximityHiderTracker) {
             proximityHiderTracker.remove(player);
+        }
+
+        synchronized (playersToCheck) {
+            playersToCheck.remove(player);
+        }
+
+        synchronized (playersToReload) {
+            playersToReload.remove(player);
         }
     }
 

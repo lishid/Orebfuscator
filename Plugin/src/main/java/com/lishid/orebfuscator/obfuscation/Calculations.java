@@ -376,10 +376,10 @@ public class Calculations {
 	        int id;
 	
 	        if (blockData < 0) {
-	        	id = Orebfuscator.nms.getBlockId(world, x, y, z);
+				id = Orebfuscator.nms.loadChunkAndGetBlockId(world, x, y, z);
 	        	
 	            if (id < 0) {
-	                id = 1;
+	                id = 1;// Stone
 	                chunkData.useCache = false;
 	            }
 	        } else {

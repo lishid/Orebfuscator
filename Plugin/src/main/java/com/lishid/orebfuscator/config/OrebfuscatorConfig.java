@@ -44,8 +44,6 @@ public class OrebfuscatorConfig {
     private static final int antiHitHackDecrementFactor = 1000;
     private static final int antiHitHackMaxViolation = 15;
     private static final int proximityHiderRate = 500;
-    private static final int chunkReloaderRate = 500;
-    private static final boolean useChunkReloader = false;
     private static final long cacheCleanRate = 60 * 60 * 20;//once per hour
     
     public boolean isUseCache() {
@@ -252,14 +250,6 @@ public class OrebfuscatorConfig {
     
     public int getProximityHiderRate() {
     	return proximityHiderRate;
-    }
-    
-    public int getChunkReloaderRate() {
-    	return chunkReloaderRate;
-    }
-    
-    public boolean isUseChunkReloader() {
-    	return useChunkReloader;
     }
     
     public long getCacheCleanRate() {
