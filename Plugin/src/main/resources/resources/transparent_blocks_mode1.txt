@@ -1,1 +1,1 @@
-LAVA:false //minecraft:lava
+LAVA

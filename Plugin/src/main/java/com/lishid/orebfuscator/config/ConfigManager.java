@@ -331,11 +331,8 @@ public class ConfigManager {
     		String line;
     		
             while ((line = reader.readLine()) != null) { 
-            	int index1 = line.indexOf(":");
-            	int index2 = line.indexOf(" ", index1);
-            	Material blockId = Material.valueOf(line.substring(0,  index1));
-            	boolean isTransparent = line.substring(index1 + 1, index2).equals("true");
-            	
+            	Material blockId = Material.valueOf(line);
+            	boolean isTransparent = blockId.isTransparent();
             	transparentBlocks[blockId.ordinal()] = isTransparent;
             }
     	} catch (IOException e) {
