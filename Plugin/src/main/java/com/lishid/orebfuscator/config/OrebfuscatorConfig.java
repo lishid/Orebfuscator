@@ -15,6 +15,7 @@ import com.lishid.orebfuscator.Orebfuscator;
 public class OrebfuscatorConfig {
     // Caching
     private boolean useCache;
+    private boolean precalcBlockStates;
     private int maxLoadedCacheFiles;
     private String cacheLocation;
     private int deleteCacheFilesAfterDays;
@@ -48,6 +49,14 @@ public class OrebfuscatorConfig {
     
     public boolean isUseCache() {
     	return this.useCache;
+    }
+
+    public boolean shouldPrecalcBlockStates() {
+        return this.precalcBlockStates;
+    }
+
+    public void setPrecalcBlockStates(boolean value) {
+        this.precalcBlockStates = value;
     }
     
     public void setUseCache(boolean value) {

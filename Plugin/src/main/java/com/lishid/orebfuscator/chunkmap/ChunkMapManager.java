@@ -86,28 +86,13 @@ public class ChunkMapManager {
     	return this.buffer.paletteLength > 1 || this.buffer.palette[0] != 0;
     }
     
-    public static void blockDataToState(int blockData, BlockState blockState) {
-    	Orebfuscator.nms.setBlockStateFromID(blockData, blockState);
-    	/*blockState.id = blockData >>> 4;
-    	blockState.meta = blockData & 0xf;*/
+    public static BlockState blockDataToState(int blockData) {
+    	return Orebfuscator.nms.getBlockStateFromId(blockData);
     }
-    
-    /*public static int getBlockIdFromData(int blockData) {
-    	return blockData >>> 4;
-    }
-
-    public static int getBlockMetaFromData(int blockData) {
-    	return blockData & 0xf;
-    }*/
 
     public static int blockStateToData(BlockState blockState) {
     	return blockState.id;
-    	//return (blockState.id << 4) | blockState.meta; 
     }
-    
-    /*public static int getBlockDataFromId(int id) {
-    	return id << 4;
-    }*/
 
     public boolean initOutputPalette() {
     	if(this.buffer.paletteLength == 0 || this.buffer.paletteLength == 255) {
@@ -193,8 +178,7 @@ public class ChunkMapManager {
     		long paletteIndex = this.buffer.outputPaletteMap[blockData] & 0xffL;
     		
     		if(paletteIndex == 255) {
-    			BlockState blockState = new BlockState();
-    			blockDataToState(blockData, blockState);
+    			BlockState blockState = blockDataToState(blockData);
     			throw new IllegalArgumentException("Block " + blockState.type + " is absent in output palette.");
     		}
     		

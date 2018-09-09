@@ -15,6 +15,8 @@ import com.lishid.orebfuscator.types.BlockState;
 
 public interface INmsManager {
 	void setMaxLoadedCacheFiles(int value);
+
+	void preCalculateBlockStates();
 	
 	INBT createNBT();
 	
@@ -36,7 +38,7 @@ public interface INmsManager {
 	
 	String getTextFromChatComponent(String json);
 
-	void setBlockStateFromID(int id, BlockState blockState);
+	BlockState getBlockStateFromId(int id);
 	
 	void setBlockStateFromMaterial(Material type, BlockState blockState);
 	

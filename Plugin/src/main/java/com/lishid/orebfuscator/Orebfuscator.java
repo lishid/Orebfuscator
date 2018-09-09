@@ -99,6 +99,9 @@ public class Orebfuscator extends JavaPlugin {
         ObfuscatedDataCache.resetCacheFolder();
 
         nms.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
+        if (config.shouldPrecalcBlockStates()) {
+            nms.preCalculateBlockStates();
+        }
         
         //Make sure cache is cleared if config was changed since last start
         try {

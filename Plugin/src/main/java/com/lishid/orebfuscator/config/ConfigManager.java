@@ -97,6 +97,7 @@ public class ConfigManager {
         }
         
         boolean useCache = getBoolean("Booleans.UseCache", true);
+        boolean precalcStates = getBoolean("Booleans.PrecalculateBlockStates", true);
         int maxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", 64, 16, 128);
         String cacheLocation = getString("Strings.CacheLocation", "orebfuscator_cache");
         int deleteCacheFilesAfterDays = getInt("Integers.DeleteCacheFilesAfterDays", 0);
@@ -124,6 +125,7 @@ public class ConfigManager {
         generateTransparentBlocks(engineMode);
         
         this.orebfuscatorConfig.setUseCache(useCache);
+        this.orebfuscatorConfig.setPrecalcBlockStates(precalcStates);
         this.orebfuscatorConfig.setMaxLoadedCacheFiles(maxLoadedCacheFiles);
         this.orebfuscatorConfig.setCacheLocation(cacheLocation);
         this.orebfuscatorConfig.setDeleteCacheFilesAfterDays(deleteCacheFilesAfterDays);

@@ -52,16 +52,13 @@ public class WorldConfig {
 		this.obfuscateBlocks = new boolean[translation.length];
 		
 		this.darknessBlocks = new boolean[translation.length];
-		/*this.darknessBlocks[52] = true;
-		this.darknessBlocks[54] = true;*/
 		this.darknessBlocks[Material.SPAWNER.ordinal()] = true;
 		this.darknessBlocks[Material.CHEST.ordinal()] = true;
-		// 1.13 TODO: Are there other dark blocks related to hidden treasures that should by default now be hidden?
 
 		this.randomBlocks = new Material[0];
 		this.randomBlocks2 = this.randomBlocks;
 		
-	    this.mode1BlockId = Material.STONE; //1;
+	    this.mode1BlockId = Material.STONE;
 	    this.paletteBlocks = null;
 
 	    this.proximityHiderConfig.setDefaults();

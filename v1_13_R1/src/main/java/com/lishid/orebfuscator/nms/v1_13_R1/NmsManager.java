@@ -34,13 +34,40 @@ import com.lishid.orebfuscator.nms.INmsManager;
 import com.lishid.orebfuscator.types.BlockCoord;
 import com.lishid.orebfuscator.types.BlockState;
 
+import java.util.HashMap;
+
 public class NmsManager implements INmsManager {
 	private int maxLoadedCacheFiles;
+	private HashMap<Integer, BlockState> precalculatedBlockStates = new HashMap<>();
 	
 	public void setMaxLoadedCacheFiles(int value) {
 		this.maxLoadedCacheFiles = value;
 	}
-	
+
+	@Override
+	public void preCalculateBlockStates() {
+		Block.REGISTRY_ID.iterator().forEachRemaining(iBlockData -> {
+			BlockState bs = new BlockState();
+			bs.id = Block.REGISTRY_ID.getId(iBlockData);
+			CraftBlockData cBlock = CraftBlockData.fromData(iBlockData);
+			bs.type = cBlock.getMaterial();
+
+			precalculatedBlockStates.put(bs.id, bs);
+		});
+	}
+
+	public BlockState getBlockStateForIdPopulatingCache(int id) {
+		BlockState bs = new BlockState();
+		bs.id = id;
+
+		IBlockData block = Block.getByCombinedId(id);
+		CraftBlockData cBlock = CraftBlockData.fromData(block);
+		bs.type = cBlock.getMaterial();
+
+		precalculatedBlockStates.put(bs.id, bs);
+		return bs;
+	}
+
 	public INBT createNBT() {
 		return new NBT();
 	}
@@ -81,11 +108,12 @@ public class NmsManager implements INmsManager {
     }
     
 	@Override
-	public void setBlockStateFromID(int id, BlockState blockState) {
-		blockState.id = id;
-		IBlockData block = Block.getByCombinedId(id);
-		CraftBlockData cBlock = CraftBlockData.fromData(block); 
-		blockState.type = cBlock.getMaterial();
+	public BlockState getBlockStateFromId(int id) {
+		if (precalculatedBlockStates.containsKey(id)) {
+			return precalculatedBlockStates.get(id);
+		} else {
+			return getBlockStateForIdPopulatingCache(id);
+		}
 	}
 	
 	@Override

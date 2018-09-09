@@ -147,10 +147,7 @@ public class BlockUpdate {
         if (blockInfo == null) return;
         
         int blockIdC = blockInfo.getTypeId();
-        
-        // 1.13 - bit more work. going from combined ID to Material. TODO: Static precompute of translation?
-        BlockState blockState = new BlockState();
-        Orebfuscator.nms.setBlockStateFromID(blockIdC, blockState);
+        BlockState blockState = Orebfuscator.nms.getBlockStateFromId(blockIdC);
 
         if ((worldConfig.isObfuscated(blockState.type) || worldConfig.isDarknessObfuscated(blockState.type))) {
             allBlocks.add(blockInfo);

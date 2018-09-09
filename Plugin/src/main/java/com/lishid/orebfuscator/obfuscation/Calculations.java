@@ -123,7 +123,7 @@ public class Calculations {
                     for(int offsetX = 0; offsetX < 16; offsetX++) {
                     	int blockData = manager.readNextBlock();
                     	
-                    	ChunkMapManager.blockDataToState(blockData, blockState);
+                    	blockState = ChunkMapManager.blockDataToState(blockData);
 
                         if (isNotAir(blockState.type)) {
 							int x = startX | offsetX;
@@ -388,9 +388,9 @@ public class Calculations {
 	                chunkData.useCache = false;
 	            }
 	        } else {
-	        	id = blockData;// ChunkMapManager.getBlockIdFromData(blockData);
+	        	id = blockData;
 	        }
-	        Orebfuscator.nms.setBlockStateFromID(id, blockState);
+	        blockState = Orebfuscator.nms.getBlockStateFromId(id);
 	        
 	        // TODO: Efficiency? Can we cache these converts? 1.13 yikes
 	
