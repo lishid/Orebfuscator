@@ -105,15 +105,15 @@ public class Calculations {
         int randomBlocksLength = worldConfig.getRandomBlocks().length;
         boolean randomAlternate = false;
 
-		int startX = chunkData.chunkX << 4;
-		int startZ = chunkData.chunkZ << 4;
+        int startX = chunkData.chunkX << 4;
+        int startZ = chunkData.chunkZ << 4;
 
-		BlockState blockState = new BlockState();
+        BlockState blockState = new BlockState();
 
-		ChunkMapManager manager = new ChunkMapManager(chunkData);
-		manager.init();
+        ChunkMapManager manager = new ChunkMapManager(chunkData);
+        manager.init();
 		
-		for(int i = 0; i < manager.getSectionCount(); i++) {
+        for(int i = 0; i < manager.getSectionCount(); i++) {
             worldConfig.shuffleRandomBlocks();
 
             for(int offsetY = 0; offsetY < 16; offsetY++) {
@@ -196,8 +196,13 @@ public class Calculations {
 	                                    }
 	
 	                                    if (randomCave > 0) {
-	                                    	// 1.13 TODO: Cave_air?
-		                                	Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, blockState);
+	                                    	if (y > player.getWorld().getMaxHeight() || y < 0) {
+												Orebfuscator.nms.setBlockStateFromMaterial(Material.VOID_AIR, blockState);
+											} else if (Orebfuscator.nms.getBlockSkyLightLevel(player.getWorld(), x, y, z) == 0) {
+	                                    		Orebfuscator.nms.setBlockStateFromMaterial(Material.CAVE_AIR, blockState);
+											} else {
+												Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, blockState);
+											}
 
 	                                        randomCave--;
 	                                    }
@@ -209,8 +214,13 @@ public class Calculations {
 	                        if (!obfuscate && worldConfig.isDarknessHideBlocks() && worldConfig.isDarknessObfuscated(blockState.type)) {
 	                            if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
 	                                // Hide block, setting it to air
-	                            	Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, blockState);
-	                            	// 1.13 TODO: Cave air? void air? regular air? how to decide.
+									if (y > player.getWorld().getMaxHeight() || y < 0) {
+										Orebfuscator.nms.setBlockStateFromMaterial(Material.VOID_AIR, blockState);
+									} else if (Orebfuscator.nms.getBlockSkyLightLevel(player.getWorld(), x, y, z) == 0) {
+										Orebfuscator.nms.setBlockStateFromMaterial(Material.CAVE_AIR, blockState);
+									} else {
+										Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, blockState);
+									}
 	                            }
 	                        }
 	                        

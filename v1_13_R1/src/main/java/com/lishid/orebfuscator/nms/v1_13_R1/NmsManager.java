@@ -101,6 +101,11 @@ public class NmsManager implements INmsManager {
     	
         ((CraftWorld)world).getHandle().notify(blockPosition, blockData, blockData, 0);
     }
+
+    @Override
+	public byte getBlockSkyLightLevel(World world, int x, int y, int z) {
+		return world.getBlockAt(x, y, z).getLightFromSky();
+	}
     
 	@Override
     public int getBlockLightLevel(World world, int x, int y, int z) {

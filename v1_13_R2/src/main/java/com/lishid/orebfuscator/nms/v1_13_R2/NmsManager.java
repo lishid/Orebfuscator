@@ -108,6 +108,11 @@ public class NmsManager implements INmsManager {
     }
 
 	@Override
+	public byte getBlockSkyLightLevel(World world, int x, int y, int z) {
+		return world.getBlockAt(x, y, z).getLightFromSky();
+	}
+
+	@Override
 	public BlockState getBlockStateFromId(int id) {
 		return precalculatedBlockStates.computeIfAbsent(id, i -> getBlockStateForIdPopulatingCache(i) );
 	}

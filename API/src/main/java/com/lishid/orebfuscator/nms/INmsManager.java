@@ -25,6 +25,8 @@ public interface INmsManager {
     void updateBlockTileEntity(BlockCoord blockCoord, Player player);
 
     void notifyBlockChange(World world, IBlockInfo blockInfo);
+
+    byte getBlockSkyLightLevel(World world, int x, int y, int z);
     
     int getBlockLightLevel(World world, int x, int y, int z);
     
