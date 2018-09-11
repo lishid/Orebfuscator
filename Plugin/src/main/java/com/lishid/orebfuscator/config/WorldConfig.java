@@ -5,11 +5,7 @@
 
 package com.lishid.orebfuscator.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import org.bukkit.Material;
 
@@ -37,6 +33,11 @@ public class WorldConfig {
 	 * Added for 1.13 to allow Integer encoding of Material for the transient lookup arrays.
 	 */
 	private static final Material[] translation = Material.values();
+
+	/**
+	 * Added in 1.13 patchset to allow faster, less determinstic random shuffles.
+	 */
+	private static final Random random = new Random();
 
     
     public WorldConfig() {
@@ -244,10 +245,32 @@ public class WorldConfig {
     }
     
     public void shuffleRandomBlocks() {
-        synchronized (this.randomBlocks) {
-            Collections.shuffle(Arrays.asList(this.randomBlocks));
-            Collections.shuffle(Arrays.asList(this.randomBlocks2));
-        }
+    	// Use a Fisher-Yates shuffle over Collections.shuffle().
+		// Both are O(N) time, however with Collections.shuffle() we have
+		// to copy into a list to shuffle, and Collections.shuffle under the
+		// hood copies to an array shuffles, and then writes back.
+		//
+		// By performing fisher-yates directly we save the Copying back and forth.
+		if (this.randomBlocks.length != 0) {
+			synchronized (this.randomBlocks) {
+				for (int idx = 1; idx < this.randomBlocks.length; ++idx) {
+					int rand = random.nextInt(idx);
+					Material save = this.randomBlocks[idx];
+					this.randomBlocks[idx] = this.randomBlocks[rand];
+					this.randomBlocks[rand] = save;
+				}
+			}
+		}
+		if (this.randomBlocks2.length != 0) {
+			synchronized (this.randomBlocks2) {
+				for (int idx = 1; idx < this.randomBlocks.length; ++idx) {
+					int rand = random.nextInt(idx);
+					Material save = this.randomBlocks[idx];
+					this.randomBlocks[idx] = this.randomBlocks[rand];
+					this.randomBlocks[rand] = save;
+				}
+			}
+		}
     }
     
     public Material getMode1BlockId() {
@@ -268,10 +291,18 @@ public class WorldConfig {
     	}
     	
     	HashSet<Integer> map = new HashSet<Integer>();
+
     	BlockState helper = new BlockState();
-    	
     	Orebfuscator.nms.setBlockStateFromMaterial(Material.AIR, helper);
     	map.add(helper.id);
+
+    	BlockState helperTwo = new BlockState();
+    	Orebfuscator.nms.setBlockStateFromMaterial(Material.CAVE_AIR, helperTwo);
+    	map.add(helperTwo.id);
+
+    	BlockState helperThree = new BlockState();
+    	Orebfuscator.nms.setBlockStateFromMaterial(Material.VOID_AIR, helperThree);
+    	map.add(helperThree.id);
     	
     	Orebfuscator.nms.setBlockStateFromMaterial(this.mode1BlockId, helper);
     	map.add(helper.id);
