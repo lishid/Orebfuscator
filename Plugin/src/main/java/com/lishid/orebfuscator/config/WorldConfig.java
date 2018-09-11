@@ -263,11 +263,11 @@ public class WorldConfig {
 		}
 		if (this.randomBlocks2.length != 0) {
 			synchronized (this.randomBlocks2) {
-				for (int idx = 1; idx < this.randomBlocks.length; ++idx) {
+				for (int idx = 1; idx < this.randomBlocks2.length; ++idx) {
 					int rand = random.nextInt(idx);
-					Material save = this.randomBlocks[idx];
-					this.randomBlocks[idx] = this.randomBlocks[rand];
-					this.randomBlocks[rand] = save;
+					Material save = this.randomBlocks2[idx];
+					this.randomBlocks2[idx] = this.randomBlocks2[rand];
+					this.randomBlocks2[rand] = save;
 				}
 			}
 		}

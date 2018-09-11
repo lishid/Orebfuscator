@@ -28,7 +28,6 @@ import org.bukkit.entity.Player;
 import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtType;
-import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;

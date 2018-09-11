@@ -333,9 +333,14 @@ public class ConfigManager {
     		String line;
     		
             while ((line = reader.readLine()) != null) { 
-            	Material blockId = Material.valueOf(line);
-            	boolean isTransparent = blockId.isTransparent();
-            	transparentBlocks[blockId.ordinal()] = isTransparent;
+            	Material blockId = Material.getMaterial(line);
+            	if (blockId == null) {
+            		logger.info(Globals.LogPrefix + " could not identify " + line);
+            	} else {
+            		// TODO: What to replace isTransparent with? Apparently not well supported.
+	            	boolean isTransparent = blockId.isTransparent();
+	            	transparentBlocks[blockId.ordinal()] = isTransparent;
+            	}
             }
     	} catch (IOException e) {
     		e.printStackTrace();
