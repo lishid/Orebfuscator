@@ -5,14 +5,14 @@
 
 package com.lishid.orebfuscator.config;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Arrays;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.lishid.orebfuscator.DeprecatedMethods;
+import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.utils.MaterialHelper;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -21,11 +21,7 @@ import com.lishid.orebfuscator.utils.Globals;
 
 public class ConfigManager {
     private static final int CONFIG_VERSION = 13;
-	
-    private boolean[] transparentBlocks;
-    private boolean[] transparentBlocksMode1;
-    private boolean[] transparentBlocksMode2;
-    
+
     private JavaPlugin plugin;
     private Logger logger;
     private OrebfuscatorConfig orebfuscatorConfig;
@@ -107,8 +103,7 @@ public class ConfigManager {
         boolean noObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", false);
         boolean noObfuscationForPermission = getBoolean("Booleans.NoObfuscationForPermission", false);
         boolean loginNotification = getBoolean("Booleans.LoginNotification", true);
-
-        generateTransparentBlocks(engineMode);
+        byte[] transparentBlocks = generateTransparentBlocks(engineMode);
         
         this.orebfuscatorConfig.setUseCache(useCache);
         this.orebfuscatorConfig.setMaxLoadedCacheFiles(maxLoadedCacheFiles);
@@ -124,7 +119,7 @@ public class ConfigManager {
         this.orebfuscatorConfig.setNoObfuscationForOps(noObfuscationForOps);
         this.orebfuscatorConfig.setNoObfuscationForPermission(noObfuscationForPermission);
         this.orebfuscatorConfig.setLoginNotification(loginNotification);
-        this.orebfuscatorConfig.setTransparentBlocks(this.transparentBlocks);
+        this.orebfuscatorConfig.setTransparentBlocks(transparentBlocks);
         
         new WorldReader(this.plugin, this.logger, this.orebfuscatorConfig, this.materialReader).load();
 
@@ -266,71 +261,25 @@ public class ConfigManager {
         return getBoolean(path, defaultData, true);
     }
     
-    private void generateTransparentBlocks(int engineMode) {
-    	if(this.transparentBlocks == null) {
-    		readInitialTransparentBlocks();
-    	}
-    	
-    	boolean[] transparentBlocks = engineMode == 1
-    			? this.transparentBlocksMode1
-    			: this.transparentBlocksMode2;
-    	
-    	System.arraycopy(transparentBlocks, 0, this.transparentBlocks, 0, this.transparentBlocks.length);
-    	
-    	Integer[] customTransparentBlocks = this.materialReader.getMaterialIdsByPath("Lists.TransparentBlocks", new Integer[0], true);
-    	
-    	if(customTransparentBlocks != null) {
-	    	for(int blockId : customTransparentBlocks) {
-	    		if(blockId >= 0 && blockId <= 255) {
-	    			this.transparentBlocks[blockId] = true;
-	    		}
-	    	}
-    	}
-    	
-    	Integer[] customNonTransparentBlocks = this.materialReader.getMaterialIdsByPath("Lists.NonTransparentBlocks", new Integer[0], true);
+    private byte[] generateTransparentBlocks(int engineMode) {
+        byte[] transparentBlocks = new byte[NmsInstance.current.getTypeId(MaterialHelper.getMaxId() + 1)];
 
-    	if(customNonTransparentBlocks != null) {
-	    	for(int blockId : customNonTransparentBlocks) {
-	    		if(blockId >= 0 && blockId <= 255) {
-	    			this.transparentBlocks[blockId] = false;
-	    		}
-	    	}
-    	}
-    }
-    
-    private void readInitialTransparentBlocks() {
-    	this.transparentBlocks = new boolean[256];
-    	Arrays.fill(this.transparentBlocks, false);
-    	
-		InputStream mainStream = ConfigManager.class.getResourceAsStream("/resources/transparent_blocks.txt");
-		readTransparentBlocks(this.transparentBlocks, mainStream);
-    	
-		this.transparentBlocksMode1 = new boolean[256];
-		System.arraycopy(this.transparentBlocks, 0, this.transparentBlocksMode1, 0, this.transparentBlocksMode1.length);
-		InputStream mode1Stream = ConfigManager.class.getResourceAsStream("/resources/transparent_blocks_mode1.txt");
-		if(mode1Stream != null) readTransparentBlocks(this.transparentBlocksMode1, mode1Stream);
+        Material[] allMaterials = Material.values();
 
-		this.transparentBlocksMode2 = new boolean[256];
-		System.arraycopy(this.transparentBlocks, 0, this.transparentBlocksMode2, 0, this.transparentBlocksMode2.length);
-		InputStream mode2Stream = ConfigManager.class.getResourceAsStream("/resources/transparent_blocks_mode2.txt");
-		if(mode2Stream != null) readTransparentBlocks(this.transparentBlocksMode2, mode2Stream);
-    }
-    
-    private void readTransparentBlocks(boolean[] transparentBlocks, InputStream stream) {
-    	try {
-    		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-    		String line;
-    		
-            while ((line = reader.readLine()) != null) { 
-            	int index1 = line.indexOf(":");
-            	int index2 = line.indexOf(" ", index1);
-            	int blockId = Integer.parseInt(line.substring(0,  index1));
-            	boolean isTransparent = line.substring(index1 + 1, index2).equals("true");
-            	
-            	transparentBlocks[blockId] = isTransparent;
+        for(Material material : allMaterials) {
+            if(material.isBlock()) {
+                boolean isTransparent = DeprecatedMethods.isTransparent(material);
+
+                if(!isTransparent) {
+                    Set<Integer> ids = NmsInstance.current.getMaterialIds(material);
+
+                    for (int id : ids) {
+                        transparentBlocks[NmsInstance.current.getTypeId(id)] = 1;
+                    }
+                }
             }
-    	} catch (IOException e) {
-    		e.printStackTrace();
-    	}
+        }
+
+        return transparentBlocks;
     }
 }

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 
+import com.lishid.orebfuscator.NmsInstance;
 import org.bukkit.Bukkit;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -36,7 +37,7 @@ public class ObfuscatedDataCache {
 
     private static IChunkCache getInternalCache() {
         if (internalCache == null) {
-            internalCache = Orebfuscator.nms.createChunkCache();
+            internalCache = NmsInstance.current.createChunkCache();
         }
         return internalCache;
     }

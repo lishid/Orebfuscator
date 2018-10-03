@@ -5,8 +5,10 @@
 
 package com.lishid.orebfuscator.config;
 
+import java.util.HashSet;
 import java.util.Map;
 
+import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.utils.Globals;
 import org.bukkit.entity.Player;
 
@@ -31,7 +33,7 @@ public class OrebfuscatorConfig {
     private boolean noObfuscationForPermission;
     private boolean loginNotification;
 
-    private boolean[] transparentBlocks;
+    private byte[] transparentBlocks;
     
     private WorldConfig defaultWorld;
     private WorldConfig normalWorld;
@@ -158,12 +160,8 @@ public class OrebfuscatorConfig {
     	this.loginNotification = value;
     }
 
-    public boolean[] getTransparentBlocks() {
-    	return this.transparentBlocks;
-    }
-    
-    public void setTransparentBlocks(boolean[] value) {
-    	this.transparentBlocks = value;
+    public void setTransparentBlocks(byte[] transparentBlocks) {
+    	this.transparentBlocks = transparentBlocks;
     }
     
     public WorldConfig getDefaultWorld() {
@@ -259,14 +257,8 @@ public class OrebfuscatorConfig {
     // Helper methods
     
     public boolean isBlockTransparent(int id) {
-        if (id < 0)
-            id += 256;
-
-        if (id >= 256) {
-            return false;
-        }
-
-        return this.transparentBlocks[id];
+        int blockTypeId = NmsInstance.current.getTypeId(id);
+        return this.transparentBlocks[blockTypeId] == 0;
     }
     
     public boolean obfuscateForPlayer(Player player) {

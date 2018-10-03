@@ -33,11 +33,13 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
+
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import com.lishid.orebfuscator.types.BlockCoord;
 
 public class ProtocolLibHook {
     private ProtocolManager manager;
@@ -66,6 +68,9 @@ public class ProtocolLibHook {
 					StructureModifier<Integer> ints = packet.getIntegers();
 					StructureModifier<byte[]> byteArray = packet.getByteArrays();
 					StructureModifier<Boolean> bools = packet.getBooleans();
+					StructureModifier<List> list = packet.getSpecificModifier(List.class);
+
+					List nmsTags = list.read(0);
 
 					ChunkData chunkData = new ChunkData();
 					chunkData.chunkX = ints.read(0);
@@ -74,12 +79,17 @@ public class ProtocolLibHook {
 					chunkData.primaryBitMask = ints.read(2);
 					chunkData.data = byteArray.read(0);
 					chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
-					chunkData.blockEntities = getBlockEntities(packet, event.getPlayer());
+					chunkData.blockEntities = getBlockEntities(nmsTags);
                 
-					byte[] newData = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
+					Calculations.Result result = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
 					
-					if(newData != null) {
-						byteArray.write(0, newData);
+					if(result.output != null) {
+						byteArray.write(0, result.output);
+
+						if(nmsTags != null) {
+							removeBlockEntities(nmsTags, chunkData.blockEntities, result.removedEntities);
+							list.write(0, nmsTags);
+						}
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -101,23 +111,42 @@ public class ProtocolLibHook {
     }
     
     @SuppressWarnings("rawtypes")
-	private static List<NbtCompound> getBlockEntities(PacketContainer packet, Player player) {
-    	WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
+	private static List<NbtCompound> getBlockEntities(List nmsTags) {
+    	List<NbtCompound> entities = new ArrayList<>();
+
+    	if(nmsTags != null) {
+			for (Object nmsTag : nmsTags) {
+				entities.add(NbtFactory.fromNMSCompound(nmsTag));
+			}
+		}
     	
-    	if(!worldConfig.isBypassObfuscationForSignsWithText()) {
-    		return null;
-    	}
-    	
-    	List list = packet.getSpecificModifier(List.class).read(0);
-    	List<NbtCompound> result = new ArrayList<NbtCompound>();
-    	
-    	for(Object tag : list) {
-    		result.add(NbtFactory.fromNMSCompound(tag));
-    	}
-    	
-    	return result;
+    	return entities;
     }
-    
+
+	@SuppressWarnings("rawtypes")
+	private static void removeBlockEntities(List nmsTags, List<NbtCompound> tags, List<BlockCoord> removedEntities) {
+		for(int i = nmsTags.size() - 1; i >= 0; i--) {
+			if(removedEntities.size() == 0) {
+				break;
+			}
+
+			NbtCompound tag = tags.get(i);
+			int x = tag.getInteger("x");
+			int y = tag.getInteger("y");
+			int z = tag.getInteger("z");
+
+			for(int k = 0; k < removedEntities.size(); k++) {
+				BlockCoord blockCoord = removedEntities.get(k);
+
+				if(blockCoord.x == x && blockCoord.y == y && blockCoord.z == z) {
+					nmsTags.remove(i);
+					removedEntities.remove(k);
+					break;
+				}
+			}
+		}
+	}
+
     /*
     private static boolean _isSaved;
     private void saveTestData(ChunkData chunkData) {

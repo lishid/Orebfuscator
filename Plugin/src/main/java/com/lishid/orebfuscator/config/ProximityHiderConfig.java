@@ -6,6 +6,11 @@
 package com.lishid.orebfuscator.config;
 
 
+import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.utils.MaterialHelper;
+
+import java.util.HashSet;
+
 public class ProximityHiderConfig {
 	public static class BlockSetting implements Cloneable {
 		public int blockId;
@@ -22,8 +27,6 @@ public class ProximityHiderConfig {
 		}
 	}
 	
-	private static final Integer[] defaultProximityHiderBlockIds = new Integer[]{ 23, 52, 54, 56, 58, 61, 62, 116, 129, 130, 145, 146 };
-	
     private Boolean enabled;
     private Integer distance;
     private int distanceSquared;
@@ -32,20 +35,24 @@ public class ProximityHiderConfig {
     private Boolean useSpecialBlock;
     private Boolean obfuscateAboveY;
     private Boolean useFastGazeCheck;
-    private Integer[] proximityHiderBlockIds;
+    private HashSet<Integer> proximityHiderBlocks;
     private BlockSetting[] proximityHiderBlockSettings;
-    private int[] proximityHiderBlockMatrix;
-    
+    private short[] proximityHiderBlocksAndY;
+
     public void setDefaults() {
         this.enabled = true;
         this.distance = 8;
         this.distanceSquared = this.distance * this.distance;
-        this.specialBlockID = 1;
+        this.specialBlockID = NmsInstance.current.getConfigDefaults().defaultProximityHiderSpecialBlockId;
         this.y = 255;
         this.useSpecialBlock = true;
         this.obfuscateAboveY = false;
         this.useFastGazeCheck = true;
-        this.proximityHiderBlockIds = defaultProximityHiderBlockIds;
+        
+        this.proximityHiderBlocks = new HashSet<>();
+        for(int blockId : NmsInstance.current.getConfigDefaults().defaultProximityHiderBlockIds) {
+            this.proximityHiderBlocks.add(blockId);
+        }
     }
     
     public void init(ProximityHiderConfig baseCfg) {
@@ -74,8 +81,9 @@ public class ProximityHiderConfig {
         	this.obfuscateAboveY = baseCfg.obfuscateAboveY;
         }
         
-        if(this.proximityHiderBlockIds == null && baseCfg.proximityHiderBlockIds != null) {
-        	this.proximityHiderBlockIds = baseCfg.proximityHiderBlockIds.clone();
+        if(this.proximityHiderBlocks == null && baseCfg.proximityHiderBlocks != null) {
+            this.proximityHiderBlocks = new HashSet<>();
+            this.proximityHiderBlocks.addAll(baseCfg.proximityHiderBlocks);
         }
         
         if(this.proximityHiderBlockSettings == null && baseCfg.proximityHiderBlockSettings != null) {
@@ -142,12 +150,18 @@ public class ProximityHiderConfig {
     	this.obfuscateAboveY = value;
     }
     
-    public void setProximityHiderBlockIds(Integer[] value) {
-    	this.proximityHiderBlockIds = value;
+    public void setProximityHiderBlocks(Integer[] blockIds) {
+    	if(blockIds != null) {
+            this.proximityHiderBlocks = new HashSet<>();
+
+            for (Integer id : blockIds) {
+                this.proximityHiderBlocks.add(id);
+            }
+        }
     }
     
-    public Integer[] getProximityHiderBlockIds() {
-    	return this.proximityHiderBlockIds;
+    public HashSet<Integer> getProximityHiderBlocks() {
+    	return this.proximityHiderBlocks;
     }
     
     public BlockSetting[] getProximityHiderBlockSettings() {
@@ -158,22 +172,20 @@ public class ProximityHiderConfig {
     	this.proximityHiderBlockSettings = value;
     }
     
-    public int[] getProximityHiderBlockMatrix() {
-    	return this.proximityHiderBlockMatrix;
-    }
-    
     private void setProximityHiderBlockMatrix() {
-    	this.proximityHiderBlockMatrix = new int[256];
-    	
-    	if(this.proximityHiderBlockIds != null) {
-    		for(int blockId : this.proximityHiderBlockIds) {
-    			this.proximityHiderBlockMatrix[blockId] = this.obfuscateAboveY ? -this.y: this.y;
-    		}
+        this.proximityHiderBlocksAndY = new short[MaterialHelper.getMaxId() + 1];
+
+    	if(this.proximityHiderBlocks == null) {
+            return;
     	}
-    	
+
+        for(int blockId : this.proximityHiderBlocks) {
+            this.proximityHiderBlocksAndY[blockId] = (short)(this.obfuscateAboveY ? -this.y: this.y);
+        }
+
     	if(this.proximityHiderBlockSettings != null) {
     		for(BlockSetting block : this.proximityHiderBlockSettings) {
-    			this.proximityHiderBlockMatrix[block.blockId] = block.obfuscateAboveY ? -block.y: block.y;
+    			this.proximityHiderBlocksAndY[block.blockId] = (short)(block.obfuscateAboveY ? -block.y: block.y);
     		}
     	}
     }
@@ -187,21 +199,14 @@ public class ProximityHiderConfig {
     }
 
     // Help methods
-    
+
     public boolean isProximityObfuscated(int y, int id) {
-        if (id < 0)
-            id += 256;
-        
-        int proximityY = this.proximityHiderBlockMatrix[id];
-        
-        if(proximityY == 0) {
-        	return false;
-        }
-        
+        int proximityY = this.proximityHiderBlocksAndY[id];
+
         if(proximityY > 0) {
-        	return y <= proximityY;
+            return y <= proximityY;
         }
-        
-        return y >= (proximityY & 0x7FFFFFFF);
+
+        return y >= (proximityY & 0xFFF);
     }
 }

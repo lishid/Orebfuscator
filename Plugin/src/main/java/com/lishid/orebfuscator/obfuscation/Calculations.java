@@ -21,6 +21,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import com.lishid.orebfuscator.NmsInstance;
+
+import com.lishid.orebfuscator.utils.Globals;
+import com.lishid.orebfuscator.utils.MaterialHelper;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -28,7 +32,7 @@ import org.bukkit.entity.Player;
 import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtType;
-import com.lishid.orebfuscator.DeprecatedMethods;
+
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
@@ -37,44 +41,43 @@ import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
 import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.types.BlockCoord;
-import com.lishid.orebfuscator.types.BlockState;
 
 public class Calculations {
+	public static class Result {
+		public byte[] output;
+		public ArrayList<BlockCoord> removedEntities;
+	}
+
 	private static Random random = new Random();
 
-    public static byte[] obfuscateOrUseCache(ChunkData chunkData, Player player, WorldConfig worldConfig) throws IOException {
+    public static Result obfuscateOrUseCache(ChunkData chunkData, Player player, WorldConfig worldConfig) throws IOException {
     	if(chunkData.primaryBitMask == 0) return null;
     	
         byte[] output;
+		ArrayList<BlockCoord> removedEntities;
         
         ObfuscatedCachedChunk cache = tryUseCache(chunkData, player);
         
         if(cache != null && cache.data != null) {
         	//Orebfuscator.log("Read from cache");/*debug*/
         	output = cache.data;
+        	removedEntities = getCoordFromArray(cache.removedEntityList);
         } else {
 	        // Blocks kept track for ProximityHider
-	        ArrayList<BlockCoord> proximityBlocks = new ArrayList<BlockCoord>();
+			ArrayList<BlockCoord> proximityBlocks = new ArrayList<>();
+
+	        removedEntities = new ArrayList<>();
 	        
-	        output = obfuscate(chunkData, player, proximityBlocks);
+	        output = obfuscate(worldConfig, chunkData, player, proximityBlocks, removedEntities);
 	
 	        if (cache != null) {
 	            // If cache is still allowed
 	        	if(chunkData.useCache) {
 		            // Save cache
-		            int[] proximityList = new int[proximityBlocks.size() * 3];
-		            int index = 0;
-		            
-		            for (int i = 0; i < proximityBlocks.size(); i++) {
-		            	BlockCoord b = proximityBlocks.get(i);
-		                if (b != null) {
-		                    proximityList[index++] = b.x;
-		                    proximityList[index++] = b.y;
-		                    proximityList[index++] = b.z;
-		                }
-		            }
-		            
-		            cache.write(cache.hash, output, proximityList);
+		            int[] proximityList = getArrayFromCoord(proximityBlocks);
+					int[] removedEntityList = getArrayFromCoord(removedEntities);
+
+		            cache.write(cache.hash, output, proximityList, removedEntityList);
 		            
 		            //Orebfuscator.log("Write to cache");/*debug*/
 	        	}
@@ -85,11 +88,59 @@ public class Calculations {
         
         //Orebfuscator.log("Send chunk x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ + " to player " + player.getName());/*debug*/
 
-        return output;
+		Result result = new Result();
+        result.output = output;
+        result.removedEntities = removedEntities;
+
+        return result;
     }
+
+    private static int[] getArrayFromCoord(ArrayList<BlockCoord> coords) {
+		int[] list = new int[coords.size() * 3];
+		int index = 0;
+
+		for (int i = 0; i < coords.size(); i++) {
+			BlockCoord b = coords.get(i);
+			if (b != null) {
+				list[index++] = b.x;
+				list[index++] = b.y;
+				list[index++] = b.z;
+			}
+		}
+
+		return list;
+	}
+
+	private static ArrayList<BlockCoord> getCoordFromArray(int[] array) {
+		ArrayList<BlockCoord> list = new ArrayList<>();
+
+		// Decrypt chest list
+		if (array != null) {
+			int index = 0;
+
+			while (index < array.length) {
+				int x = array[index++];
+				int y = array[index++];
+				int z = array[index++];
+				BlockCoord b = new BlockCoord(x, y, z);
+
+				if(b != null) {
+					list.add(b);
+				}
+			}
+		}
+
+		return list;
+	}
     
-    private static byte[] obfuscate(ChunkData chunkData, Player player, ArrayList<BlockCoord> proximityBlocks) throws IOException {
-    	WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
+    private static byte[] obfuscate(
+    		WorldConfig worldConfig,
+			ChunkData chunkData,
+			Player player,
+			ArrayList<BlockCoord> proximityBlocks,
+			ArrayList<BlockCoord> removedEntities
+	) throws IOException
+	{
     	ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
     	int initialRadius = Orebfuscator.config.getInitialRadius();
 
@@ -108,11 +159,9 @@ public class Calculations {
 		int startX = chunkData.chunkX << 4;
 		int startZ = chunkData.chunkZ << 4;
 
-		BlockState blockState = new BlockState();
-
 		ChunkMapManager manager = new ChunkMapManager(chunkData);
 		manager.init();
-		
+
 		for(int i = 0; i < manager.getSectionCount(); i++) {
             worldConfig.shuffleRandomBlocks();
 
@@ -122,115 +171,114 @@ public class Calculations {
                     
                     for(int offsetX = 0; offsetX < 16; offsetX++) {
                     	int blockData = manager.readNextBlock();
-                    	
-                    	ChunkMapManager.blockDataToState(blockData, blockState);
+						int x = startX | offsetX;
+						int y = manager.getY();
+						int z = startZ | offsetZ;
 
-                        if (blockState.id < 256) {
-							int x = startX | offsetX;
-							int y = manager.getY();
-							int z = startZ | offsetZ;
-	
-	                        // Initialize data
-	                        boolean obfuscate = false;
-	                        boolean specialObfuscate = false;
-	
-	                        // Check if the block should be obfuscated for the default engine modes
-	                        if (worldConfig.isObfuscated(blockState.id)) {
-	                            if (initialRadius == 0) {
-	                                // Do not interfere with PH
-	                                if (proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.id)) {
-	                                    if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
-	                                        obfuscate = true;
-	                                    }
-	                                } else {
-	                                    // Obfuscate all blocks
-	                                    obfuscate = true;
-	                                }
-	                            } else {
-	                                // Check if any nearby blocks are transparent
-	                                if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
-	                                    obfuscate = true;
-	                                }
-	                            }
-	                        }
-	                        
-	                        // Check if the block should be obfuscated because of proximity check
-	                        if (!obfuscate && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockState.id)) {
-                            	BlockCoord block = new BlockCoord(x, y, z);
-                                if (block != null) {
-                                    proximityBlocks.add(block);
-                                }
-                                
-                                obfuscate = true;
-                                if (proximityHider.isUseSpecialBlock()) {
-                                    specialObfuscate = true;
-                                }
-	                        }
-	
-	                        // Check if the block is obfuscated
-	                        if (obfuscate && canObfuscate(chunkData, x, y, z, blockState)) {
-	                            if (specialObfuscate) {
-	                                // Proximity hider
-	                                blockState.id = proximityHider.getSpecialBlockID();
-	                            } else {
-	                                if (engineMode == 1) {
-	                                    // Engine mode 1, replace with stone
-	                                	blockState.id = worldConfig.getMode1BlockId();
-	                                } else if (engineMode == 2) {
-	                                    // Ending mode 2, replace with random block
-	                                    if (randomBlocksLength > 1) {
-	                                        randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
-	                                    }
-	                                    
-	                                    blockState.id = worldConfig.getRandomBlock(randomIncrement, randomAlternate);
-	                                    randomAlternate = !randomAlternate;
-	                                }
-	                                // Anti texturepack and freecam
-	                                if (worldConfig.isAntiTexturePackAndFreecam()) {
-	                                	// Add random air blocks
-		                                randomIncrement2 = random(incrementMax);
+						// Initialize data
+						int obfuscateBits = worldConfig.getObfuscatedBits(blockData);
+						boolean obfuscateFlag = (obfuscateBits & Globals.MASK_OBFUSCATE) != 0;
+						boolean proximityHiderFlag = (obfuscateBits & Globals.MASK_PROXIMITYHIDER) != 0;
+						boolean darknessBlockFlag = (obfuscateBits & Globals.MASK_DARKNESSBLOCK) != 0;
+						boolean tileEntityFlag = (obfuscateBits & Globals.MASK_TILEENTITY) != 0;
 
-		                                if (randomIncrement2 == 0) {
-	                                        randomCave = 1 + random(3);
-	                                    }
-	
-	                                    if (randomCave > 0) {
-	                                    	blockState.id = 0;
-	                                        randomCave--;
-	                                    }
-	                                }
-	                            }
-	
-	                            blockState.meta = 0;
-	                        }
-	
-	                        // Check if the block should be obfuscated because of the darkness
-	                        if (!obfuscate && worldConfig.isDarknessHideBlocks() && worldConfig.isDarknessObfuscated(blockState.id)) {
-	                            if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
-	                                // Hide block, setting it to air
-	                            	blockState.id = 0;
-	                            	blockState.meta = 0;
-	                            }
-	                        }
-	                        
-	                        blockData = ChunkMapManager.blockStateToData(blockState);
-                        } else {
-                        	blockData = 0;
-                        }
-                        
+						boolean obfuscate = false;
+						boolean specialObfuscate = false;
+
+						// Check if the block should be obfuscated for the default engine modes
+						if (obfuscateFlag) {
+							if (initialRadius == 0) {
+								// Do not interfere with PH
+								if (proximityHiderFlag && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockData)) {
+									if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
+										obfuscate = true;
+									}
+								} else {
+									// Obfuscate all blocks
+									obfuscate = true;
+								}
+							} else {
+								// Check if any nearby blocks are transparent
+								if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
+									obfuscate = true;
+								}
+							}
+						}
+
+						// Check if the block should be obfuscated because of proximity check
+						if (!obfuscate && proximityHiderFlag && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockData)) {
+							BlockCoord block = new BlockCoord(x, y, z);
+							if (block != null) {
+								proximityBlocks.add(block);
+							}
+
+							obfuscate = true;
+							if (proximityHider.isUseSpecialBlock()) {
+								specialObfuscate = true;
+							}
+						}
+
+						// Check if the block is obfuscated
+						if (obfuscate && (!worldConfig.isBypassObfuscationForSignsWithText() || canObfuscate(chunkData, x, y, z, blockData))) {
+							if (specialObfuscate) {
+								// Proximity hider
+								blockData = proximityHider.getSpecialBlockID();
+							} else {
+								if (engineMode == 1) {
+									// Engine mode 1, replace with stone
+									blockData = worldConfig.getMode1BlockId();
+								} else if (engineMode == 2) {
+									// Ending mode 2, replace with random block
+									if (randomBlocksLength > 1) {
+										randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
+									}
+
+									blockData = worldConfig.getRandomBlock(randomIncrement, randomAlternate);
+									randomAlternate = !randomAlternate;
+								}
+								// Anti texturepack and freecam
+								if (worldConfig.isAntiTexturePackAndFreecam()) {
+									// Add random air blocks
+									randomIncrement2 = random(incrementMax);
+
+									if (randomIncrement2 == 0) {
+										randomCave = 1 + random(3);
+									}
+
+									if (randomCave > 0) {
+										blockData = NmsInstance.current.getCaveAirBlockId();
+										randomCave--;
+									}
+								}
+							}
+						}
+
+						// Check if the block should be obfuscated because of the darkness
+						if (!obfuscate && darknessBlockFlag && worldConfig.isDarknessHideBlocks()) {
+							if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
+								// Hide block, setting it to air
+								blockData = NmsInstance.current.getCaveAirBlockId();
+								obfuscate = true;
+							}
+						}
+
+						if (obfuscate && tileEntityFlag) {
+							removedEntities.add(new BlockCoord(x, y, z));
+						}
+
 						if(offsetY == 0 && offsetZ == 0 && offsetX == 0) {
 							manager.finalizeOutput();							
 							manager.initOutputPalette();
 							addBlocksToPalette(manager, worldConfig);
 							manager.initOutputSection();
 						}
-						
-                        manager.writeOutputBlock(blockData);
+
+						manager.writeOutputBlock(blockData);
                     }
                 }
             }
         }
-		
+
 		manager.finalizeOutput();
 		
 		byte[] output = manager.createOutput();
@@ -242,18 +290,12 @@ public class Calculations {
         return output;
     }
     
-    private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, BlockState blockState) {
-    	if(chunkData.blockEntities == null
-    			|| (
-    				blockState.id != DeprecatedMethods.getMaterialId(Material.WALL_SIGN)
-    				&& blockState.id != DeprecatedMethods.getMaterialId(Material.SIGN_POST)
-    				)
-    			)
-    	{
+    private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, int blockData) {
+    	if(!NmsInstance.current.isSign(blockData)) {
     		return true;
     	}
-    	
-    	NbtCompound tag = getNbtTag(chunkData, x, y, z);
+
+		NbtCompound tag = getBlockEntity(chunkData, x, y, z);
     	
     	return tag == null ||
     			isSignTextEmpty(tag, "Text1")
@@ -274,23 +316,22 @@ public class Calculations {
     	if(json == null || json.isEmpty()) {
     		return true;
     	}
-    	
-    	String text = Orebfuscator.nms.getTextFromChatComponent(json);
+
+    	String text = NmsInstance.current.getTextFromChatComponent(json);
     	
     	return text == null || text.isEmpty();
     }
     
-    private static NbtCompound getNbtTag(ChunkData chunkData, int x, int y, int z) {
+    private static NbtCompound getBlockEntity(ChunkData chunkData, int x, int y, int z) {
     	for(NbtCompound tag : chunkData.blockEntities) {
-    		if(tag != null) {
-	    		if(x == tag.getInteger("x")
-	    				&& y == tag.getInteger("y")
-	    				&& z == tag.getInteger("z")
-	    			)
-	    		{
-	    			return tag;
-	    		}
-    		}
+			if(tag != null
+					&& x == tag.getInteger("x")
+					&& y == tag.getInteger("y")
+					&& z == tag.getInteger("z")
+				)
+			{
+				return tag;
+			}
     	}
     	
     	return null;
@@ -302,8 +343,7 @@ public class Calculations {
     	}
 
     	for(int id : worldConfig.getPaletteBlocks()) {
-    		int blockData = ChunkMapManager.getBlockDataFromId(id);
-    		manager.addToOutputPalette(blockData);
+    		manager.addToOutputPalette(id);
     	}
     }
     
@@ -326,23 +366,7 @@ public class Calculations {
 
         if (storedHash == hash && cache.data != null) {
             int[] proximityList = cache.proximityList;
-        	ArrayList<BlockCoord> proximityBlocks = new ArrayList<BlockCoord>();
-        	
-            // Decrypt chest list
-            if (proximityList != null) {
-            	int index = 0;
-            	
-                while (index < proximityList.length) {
-                	int x = proximityList[index++];
-                	int y = proximityList[index++];
-                	int z = proximityList[index++];
-                	BlockCoord b = new BlockCoord(x, y, z);
-                	
-                	if(b != null) {
-                		proximityBlocks.add(b);
-                	}
-                }
-            }
+			ArrayList<BlockCoord> proximityBlocks = getCoordFromArray(proximityList);
 
             // ProximityHider add blocks
             ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
@@ -373,20 +397,16 @@ public class Calculations {
         if(checkCurrentBlock) {
 	    	ChunkData chunkData = manager.getChunkData();
 	        int blockData = manager.get(x, y, z);
-	        int id;
-	
+
 	        if (blockData < 0) {
-				id = Orebfuscator.nms.loadChunkAndGetBlockId(world, x, y, z);
+				blockData = NmsInstance.current.loadChunkAndGetBlockId(world, x, y, z);
 	        	
-	            if (id < 0) {
-	                id = 1;// Stone
+	            if (blockData < 0) {
 	                chunkData.useCache = false;
 	            }
-	        } else {
-	        	id = ChunkMapManager.getBlockIdFromData(blockData);
 	        }
 	
-	        if (Orebfuscator.config.isBlockTransparent(id)) {
+	        if (blockData >= 0 && Orebfuscator.config.isBlockTransparent(blockData)) {
 	            return true;
 	        }
         }
@@ -394,42 +414,30 @@ public class Calculations {
         if (countdown == 0)
             return false;
 
-        if (areAjacentBlocksTransparent(manager, world, true, x, y + 1, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksTransparent(manager, world, true, x, y - 1, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksTransparent(manager, world, true, x + 1, y, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksTransparent(manager, world, true, x - 1, y, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksTransparent(manager, world, true, x, y, z + 1, countdown - 1))
-            return true;
-        if (areAjacentBlocksTransparent(manager, world, true, x, y, z - 1, countdown - 1))
-            return true;
+        if (areAjacentBlocksTransparent(manager, world, true, x, y + 1, z, countdown - 1)) return true;
+        if (areAjacentBlocksTransparent(manager, world, true, x, y - 1, z, countdown - 1)) return true;
+        if (areAjacentBlocksTransparent(manager, world, true, x + 1, y, z, countdown - 1)) return true;
+        if (areAjacentBlocksTransparent(manager, world, true, x - 1, y, z, countdown - 1)) return true;
+        if (areAjacentBlocksTransparent(manager, world, true, x, y, z + 1, countdown - 1)) return true;
+        if (areAjacentBlocksTransparent(manager, world, true, x, y, z - 1, countdown - 1)) return true;
 
         return false;
     }
 
     public static boolean areAjacentBlocksBright(World world, int x, int y, int z, int countdown) {
-    	if(Orebfuscator.nms.getBlockLightLevel(world, x, y, z) > 0) {
+    	if(NmsInstance.current.getBlockLightLevel(world, x, y, z) > 0) {
     		return true;
     	}
 
         if (countdown == 0)
             return false;
 
-        if (areAjacentBlocksBright(world, x, y + 1, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksBright(world, x, y - 1, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksBright(world, x + 1, y, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksBright(world, x - 1, y, z, countdown - 1))
-            return true;
-        if (areAjacentBlocksBright(world, x, y, z + 1, countdown - 1))
-            return true;
-        if (areAjacentBlocksBright(world, x, y, z - 1, countdown - 1))
-            return true;
+        if (areAjacentBlocksBright(world, x, y + 1, z, countdown - 1)) return true;
+        if (areAjacentBlocksBright(world, x, y - 1, z, countdown - 1)) return true;
+        if (areAjacentBlocksBright(world, x + 1, y, z, countdown - 1)) return true;
+        if (areAjacentBlocksBright(world, x - 1, y, z, countdown - 1)) return true;
+        if (areAjacentBlocksBright(world, x, y, z + 1, countdown - 1)) return true;
+        if (areAjacentBlocksBright(world, x, y, z - 1, countdown - 1)) return true;
 
         return false;
     }

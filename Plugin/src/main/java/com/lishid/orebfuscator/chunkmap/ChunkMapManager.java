@@ -8,7 +8,8 @@ package com.lishid.orebfuscator.chunkmap;
 import java.io.IOException;
 import java.util.Arrays;
 
-import com.lishid.orebfuscator.types.BlockState;
+import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.utils.MaterialHelper;
 
 public class ChunkMapManager {
     private static final ThreadLocal<ChunkMapBuffer> _buffer = new ThreadLocal<ChunkMapBuffer>() {
@@ -80,30 +81,9 @@ public class ChunkMapManager {
     }
     
     public boolean inputHasNonAirBlock() {
-    	return this.buffer.paletteLength > 1 || this.buffer.palette[0] != 0;
+    	return this.buffer.paletteLength > 1 || NmsInstance.current.isAir(this.buffer.palette[0]);
     }
     
-    public static void blockDataToState(int blockData, BlockState blockState) {
-    	blockState.id = blockData >>> 4;
-    	blockState.meta = blockData & 0xf;
-    }
-    
-    public static int getBlockIdFromData(int blockData) {
-    	return blockData >>> 4;
-    }
-
-    public static int getBlockMetaFromData(int blockData) {
-    	return blockData & 0xf;
-    }
-
-    public static int blockStateToData(BlockState blockState) {
-    	return (blockState.id << 4) | blockState.meta; 
-    }
-    
-    public static int getBlockDataFromId(int id) {
-    	return id << 4;
-    }
-
     public boolean initOutputPalette() {
     	if(this.buffer.paletteLength == 0 || this.buffer.paletteLength == 255) {
     		this.buffer.outputPaletteLength = 0;
@@ -188,9 +168,7 @@ public class ChunkMapManager {
     		long paletteIndex = this.buffer.outputPaletteMap[blockData] & 0xffL;
     		
     		if(paletteIndex == 255) {
-    			BlockState blockState = new BlockState();
-    			blockDataToState(blockData, blockState);
-    			throw new IllegalArgumentException("Block " + blockState.id + ":" + blockState.meta + " is absent in output palette.");
+				throw new IllegalArgumentException("Block " + blockData + " is absent in output palette.");
     		}
     		
     		this.buffer.writer.writeBlockBits(paletteIndex);
@@ -229,7 +207,7 @@ public class ChunkMapManager {
     
     private void calcOutputBitsPerBlock() {
     	if(this.buffer.outputPaletteLength == 0) {
-    		this.buffer.outputBitsPerBlock = 13;
+    		this.buffer.outputBitsPerBlock = ChunkMapBuffer.getBitsPerBlock();
     	} else {
     		byte mask = (byte)this.buffer.outputPaletteLength;
     		int index = 0;
@@ -356,7 +334,7 @@ public class ChunkMapManager {
         	if(this.buffer.paletteLength > 0) {
         		blockData = blockData >= 0 && blockData < this.buffer.paletteLength
         				? this.buffer.palette[blockData]
-        				: 0;
+        				: NmsInstance.current.getCaveAirBlockId();
         	}
 
         	layer.map[i] = blockData;

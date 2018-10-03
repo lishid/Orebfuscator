@@ -16,22 +16,19 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.nms.IBlockInfo;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.types.BlockCoord;
-import com.lishid.orebfuscator.types.BlockState;
 
 public class ProximityHider extends Thread implements Runnable {
     private static final Map<Player, ProximityHiderPlayer> proximityHiderTracker = new HashMap<Player, ProximityHiderPlayer>();
@@ -174,15 +171,12 @@ public class ProximityHider extends Thread implements Runnable {
 		                        	// 4.3.1 -- GAZE CHECK END
 			                            removedBlocks.add(b);
 			                            
-			                            BlockState blockState = Orebfuscator.nms.getBlockState(localPlayerInfo.getWorld(), b.x, b.y, b.z);
-			
-			                            if (blockState != null) {
-			                            	DeprecatedMethods.sendBlockChange(p, blockLocation, blockState);
+			                            if (NmsInstance.current.sendBlockChange(p, blockLocation)) {
 			                                final BlockCoord block = b;
 			                                final Player player = p;
 			                                Orebfuscator.instance.runTask(new Runnable() {
 			                                    public void run() {
-			                                    	Orebfuscator.nms.updateBlockTileEntity(block, player);
+                                                    NmsInstance.current.updateBlockTileEntity(block, player);
 			                                    }
 			                                });
 			                            }
@@ -265,8 +259,8 @@ public class ProximityHider extends Thread implements Runnable {
     		ly = Math.floor(ey);
     		lz = Math.floor(ez);
     		if (lx == bx && ly == by && lz == bz) return true; // we've reached our starting block, don't test it.
-    		int between = Orebfuscator.nms.getBlockId(world, (int) lx, (int) ly, (int) lz);
-    		if (between > 0 && !Orebfuscator.config.isBlockTransparent(between)) { // -1 is null, 0 is air, above that? check with config.
+    		IBlockInfo between = NmsInstance.current.getBlockInfo(world, (int) lx, (int) ly, (int) lz);
+    		if (between != null && !Orebfuscator.config.isBlockTransparent(between.getCombinedId())) {
     			return false; // fail on first hit, this ray is "blocked"
     		}
     		s--; // we stop 

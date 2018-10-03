@@ -20,7 +20,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 
-import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.nms.INBT;
 
 public class ObfuscatedCachedChunk {
@@ -29,12 +29,13 @@ public class ObfuscatedCachedChunk {
     int z;
     public byte[] data;
     public int[] proximityList;
+    public int[] removedEntityList;
     public long hash = 0L;
     private boolean loaded = false;
 
     private static final ThreadLocal<INBT> nbtAccessor = new ThreadLocal<INBT>() {
         protected INBT initialValue() {
-            return Orebfuscator.nms.createNBT();
+            return NmsInstance.current.createNBT();
         }
     };
 
@@ -46,12 +47,13 @@ public class ObfuscatedCachedChunk {
     }
 
     public void invalidate() {
-        write(0L, new byte[0], new int[0]);
+        write(0L, new byte[0], new int[0], new int[0]);
     }
 
     public void free() {
         data = null;
         proximityList = null;
+        removedEntityList = null;
     }
 
     public long getHash() {
@@ -84,6 +86,7 @@ public class ObfuscatedCachedChunk {
                 // Get Data
                 data = nbt.getByteArray("Data");
                 proximityList = nbt.getIntArray("ProximityList");
+                removedEntityList = nbt.getIntArray("RemovedEntityList");
                 loaded = true;
             }
         } catch (Exception e) {
@@ -93,7 +96,7 @@ public class ObfuscatedCachedChunk {
         }
     }
 
-    public void write(long hash, byte[] data, int[] proximityList) {
+    public void write(long hash, byte[] data, int[] proximityList, int[] removedEntityList) {
         try {
             INBT nbt = nbtAccessor.get();
             nbt.reset();
@@ -108,6 +111,7 @@ public class ObfuscatedCachedChunk {
             // Set data
             nbt.setByteArray("Data", data);
             nbt.setIntArray("ProximityList", proximityList);
+            nbt.setIntArray("RemovedEntityList", removedEntityList);
 
             DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
 

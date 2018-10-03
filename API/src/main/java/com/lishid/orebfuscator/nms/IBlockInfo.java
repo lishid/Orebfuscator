@@ -9,5 +9,5 @@ public interface IBlockInfo {
 	int getX();
 	int getY();
 	int getZ();
-	int getTypeId();
+	int getCombinedId();
 }

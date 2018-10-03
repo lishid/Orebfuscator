@@ -19,6 +19,8 @@ package com.lishid.orebfuscator;
 import java.io.*;
 import java.util.logging.Logger;
 
+import com.lishid.orebfuscator.chunkmap.ChunkMapBuffer;
+import com.lishid.orebfuscator.utils.MaterialHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -50,8 +52,6 @@ public class Orebfuscator extends JavaPlugin {
     public static OrebfuscatorConfig config;
     public static ConfigManager configManager;
     
-    public static INmsManager nms;
-    
     private boolean isProtocolLibFound;
     public boolean getIsProtocolLibFound() {
     	return this.isProtocolLibFound;
@@ -64,7 +64,11 @@ public class Orebfuscator extends JavaPlugin {
         PluginManager pm = getServer().getPluginManager();
 
         instance = this;
-        nms = createNmsManager();
+
+        NmsInstance.current = createNmsManager();
+
+        MaterialHelper.init();
+        ChunkMapBuffer.init(NmsInstance.current.getBitsPerBlock());
         
         // Load configurations
         loadOrebfuscatorConfig();
@@ -86,7 +90,7 @@ public class Orebfuscator extends JavaPlugin {
         (new ProtocolLibHook()).register(this);
         
         // Run CacheCleaner
-        getServer().getScheduler().scheduleAsyncRepeatingTask(this, new CacheCleaner(), 0, config.getCacheCleanRate());        
+        getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0, config.getCacheCleanRate());
     }
     
     public void loadOrebfuscatorConfig() {
@@ -99,7 +103,7 @@ public class Orebfuscator extends JavaPlugin {
 
         ObfuscatedDataCache.resetCacheFolder();
 
-        nms.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
+        NmsInstance.current.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
         
         //Make sure cache is cleared if config was changed since last start
         try {
@@ -115,7 +119,6 @@ public class Orebfuscator extends JavaPlugin {
         if(outputFile.exists()) return;
 
         InputStream configStream = Orebfuscator.class.getResourceAsStream("/resources/config.example_enabledworlds.yml");
-        StringBuilder content = new StringBuilder();
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(configStream));
                 PrintWriter writer = new PrintWriter(outputFile)
@@ -140,7 +143,13 @@ public class Orebfuscator extends JavaPlugin {
 
         String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 
-        if(serverVersion.equals("v1_12_R1")) {
+        if(serverVersion.equals("v1_13_R2")) {
+            return new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager();
+        }
+        else if(serverVersion.equals("v1_13_R1")) {
+            return new com.lishid.orebfuscator.nms.v1_13_R1.NmsManager();
+        }
+        else if(serverVersion.equals("v1_12_R1")) {
             return new com.lishid.orebfuscator.nms.v1_12_R1.NmsManager();
         }
         else if(serverVersion.equals("v1_11_R1")) {

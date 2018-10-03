@@ -17,9 +17,12 @@
 package com.lishid.orebfuscator.commands;
 
 import java.io.IOException;
+import java.util.*;
 
+import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.config.WorldConfig;
-
+import com.lishid.orebfuscator.utils.Globals;
+import com.lishid.orebfuscator.utils.MaterialHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -28,7 +31,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
@@ -173,45 +175,196 @@ public class OrebfuscatorCommandExecutor {
         }
         
         else if (args[0].equalsIgnoreCase("obfuscateblocks")) {
-        	if(args.length == 1) {
-        		Orebfuscator.message(sender, ChatColor.RED + "World is required parameter.");
-        	} else {
-	        	String worldName = args[1];
-	        	World world = Bukkit.getWorld(worldName);
-	        	
-	        	if(world == null) {
-	        		Orebfuscator.message(sender, ChatColor.RED + "Specified world is not found.");
-	        	} else {
-	        		if(args.length > 2) {
-	        			Material material = Material.getMaterial(args[2]);
-	        			
-	        			if(material == null) {
-	        				Orebfuscator.message(sender, ChatColor.RED + "Specified material is not found.");
-	        			} else {	        			
-		        			int materialId = DeprecatedMethods.getMaterialId(material);
-		        			
-		        			if(Orebfuscator.configManager.getWorld(world).isObfuscated(materialId))
-		        				Orebfuscator.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
-		        			else
-		        				Orebfuscator.message(sender, material.name() + ": " + ChatColor.RED + "not obfuscate");
-	        			}
-	        		} else {
-		        		boolean[] blocks = Orebfuscator.configManager.getWorld(world).getObfuscateAndProximityBlocks();
-		        		
-		        		Orebfuscator.message(sender, ChatColor.GREEN + "Obfuscate blocks:");
-		        		
-		        		for(int i = 0; i < blocks.length; i++) {
-		        			if(blocks[i]) {
-		        				Orebfuscator.message(sender, " - " + DeprecatedMethods.getMaterial(i).name());
-		        			}
-		        		}
-	        		}
-	        	}
-        	}
-        	
+            commandObfuscateBlocks(sender, args);
         	return true;
         }
-        
+
+        else if (args[0].equalsIgnoreCase("ph")) {
+            commandProximityHider(sender, args);
+            return true;
+        }
+
+        else if (args[0].equalsIgnoreCase("lm")) {
+            commandListMaterials(sender, args);
+            return true;
+        }
+
+        else if (args[0].equalsIgnoreCase("tp")) {
+            commandTransparentBlocks(sender, args);
+            return true;
+        }
+
         return false;
+    }
+
+    private static void commandObfuscateBlocks(CommandSender sender, String[] args) {
+        if(args.length == 1) {
+            Orebfuscator.message(sender, ChatColor.RED + "World is required parameter.");
+            return;
+        }
+
+        String worldName = args[1];
+        World world = Bukkit.getWorld(worldName);
+
+        if(world == null) {
+            Orebfuscator.message(sender, ChatColor.RED + "Specified world is not found.");
+            return;
+        }
+
+        if(args.length > 2) {
+            Material material = Material.getMaterial(args[2]);
+
+            if(material == null) {
+                Orebfuscator.message(sender, ChatColor.RED + "Specified material is not found.");
+            } else {
+                int materialId = NmsInstance.current.getMaterialIds(material).iterator().next();
+
+                if((Orebfuscator.configManager.getWorld(world).getObfuscatedBits(materialId) & Globals.MASK_OBFUSCATE) != 0)
+                    Orebfuscator.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
+                else
+                    Orebfuscator.message(sender, material.name() + ": " + ChatColor.RED + "not obfuscate");
+            }
+
+            return;
+        }
+
+        Material[] materials = Material.values();
+        ArrayList<String> blockNames = new ArrayList<>();
+
+        for(Material material : materials) {
+            if(material.isBlock()) {
+                int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
+                int bits = Orebfuscator.configManager.getWorld(world).getObfuscatedBits(blockId);
+
+                if(bits != 0) {
+                    blockNames.add(material.name() + " " + ChatColor.WHITE + bits);
+                }
+            }
+        }
+
+        Collections.sort(blockNames);
+
+        StringBuilder blocks = new StringBuilder();
+        blocks.append("Obfuscate blocks:");
+
+        if(blockNames.size() > 0) {
+            for (String blockName : blockNames) {
+                blocks.append(ChatColor.GREEN + "\n - " + blockName);
+            }
+        } else {
+            blocks.append(" None");
+        }
+
+        Orebfuscator.message(sender, blocks.toString());
+    }
+
+    private static void commandProximityHider(CommandSender sender, String[] args) {
+        if(args.length == 1) {
+            Orebfuscator.message(sender, ChatColor.RED + "World is required parameter.");
+            return;
+        }
+
+        WorldConfig worldConfig = null;
+        String worldName = args[1];
+
+        if(worldName.startsWith(":")) {
+            if(worldName.equalsIgnoreCase(":default")) {
+                worldConfig = Orebfuscator.config.getDefaultWorld();
+            } else if(worldName.equalsIgnoreCase(":normal")) {
+                worldConfig = Orebfuscator.config.getNormalWorld();
+            } else if(worldName.equalsIgnoreCase(":nether")) {
+                worldConfig = Orebfuscator.config.getNetherWorld();
+            } else if(worldName.equalsIgnoreCase(":end")) {
+                worldConfig = Orebfuscator.config.getEndWorld();
+            }
+        } else {
+            World world = Bukkit.getWorld(worldName);
+            worldConfig = Orebfuscator.configManager.getWorld(world);
+        }
+
+        if (worldConfig == null) {
+            Orebfuscator.message(sender, ChatColor.RED + "Specified world is not found.");
+            return;
+        }
+
+        Orebfuscator.message(sender, "ProximityHider: " + (worldConfig.getProximityHiderConfig().isEnabled() ? "Enabled" : "Disabled"));
+
+        StringBuilder blocks = new StringBuilder();
+        blocks.append("Obfuscate blocks:");
+
+        Set<Integer> blockIds = worldConfig.getProximityHiderConfig().getProximityHiderBlocks();
+
+        if(blockIds.size() > 0) {
+            ArrayList<String> blockNames = new ArrayList<>();
+
+            for (int id : blockIds) {
+                blockNames.add(MaterialHelper.getById(id).name());
+            }
+
+            Collections.sort(blockNames);
+
+            for (String blockName : blockNames) {
+                blocks.append("\n - " + blockName);
+            }
+        } else {
+            blocks.append(" None");
+        }
+
+        Orebfuscator.message(sender, blocks.toString());
+    }
+
+    private static void commandListMaterials(CommandSender sender, String[] args) {
+        Material[] materials = Material.values();
+
+        List<String> blockNames = new ArrayList<>();
+
+        for (Material material : materials) {
+            if(material.isBlock()) {
+                List<Integer> ids = new ArrayList<>(NmsInstance.current.getMaterialIds(material));
+                Collections.sort(ids);
+
+                for(int id : ids) {
+                    blockNames.add(material.name() + " = " + id);
+                }
+            }
+        }
+
+        Collections.sort(blockNames);
+
+        StringBuilder blocks = new StringBuilder();
+
+        for (String blockName : blockNames) {
+            blocks.append("\n - " + blockName);
+        }
+
+        Orebfuscator.message(sender, blocks.toString());
+    }
+
+    private static void commandTransparentBlocks(CommandSender sender, String[] args) {
+        Material[] materials = Material.values();
+
+        List<String> blockNames = new ArrayList<>();
+
+        for (Material material : materials) {
+            if(material.isBlock()) {
+                int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
+                boolean isTransparent = Orebfuscator.config.isBlockTransparent(blockId);
+
+                if(isTransparent) {
+                    blockNames.add(material.name());
+                }
+            }
+        }
+
+        Collections.sort(blockNames);
+
+        StringBuilder blocks = new StringBuilder();
+        blocks.append("Transparent blocks:");
+
+        for (String blockName : blockNames) {
+            blocks.append("\n - " + blockName);
+        }
+
+        Orebfuscator.message(sender, blocks.toString());
     }
 }
