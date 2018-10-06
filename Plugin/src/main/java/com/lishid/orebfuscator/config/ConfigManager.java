@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.MaterialHelper;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -262,7 +263,7 @@ public class ConfigManager {
     }
     
     private byte[] generateTransparentBlocks(int engineMode) {
-        byte[] transparentBlocks = new byte[NmsInstance.current.getTypeId(MaterialHelper.getMaxId() + 1)];
+        byte[] transparentBlocks = new byte[MaterialHelper.getMaxId() + 1];
 
         Material[] allMaterials = Material.values();
 
@@ -270,14 +271,30 @@ public class ConfigManager {
             if(material.isBlock()) {
                 boolean isTransparent = DeprecatedMethods.isTransparent(material);
 
-                if(!isTransparent) {
+                if(isTransparent) {
                     Set<Integer> ids = NmsInstance.current.getMaterialIds(material);
 
                     for (int id : ids) {
-                        transparentBlocks[NmsInstance.current.getTypeId(id)] = 1;
+                        transparentBlocks[id] = 1;
                     }
                 }
             }
+        }
+
+        Material[] extraTransparentBlocks = NmsInstance.current.getExtraTransparentBlocks();
+
+        for(Material material : extraTransparentBlocks) {
+            Set<Integer> ids = NmsInstance.current.getMaterialIds(material);
+
+            for (int id : ids) {
+                transparentBlocks[id] = 1;
+            }
+        }
+
+        Set<Integer> lavaIds = NmsInstance.current.getMaterialIds(Material.LAVA);
+
+        for (int id : lavaIds) {
+            transparentBlocks[id] = (byte)(engineMode == 1 ? 0 : 1);
         }
 
         return transparentBlocks;

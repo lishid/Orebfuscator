@@ -18,6 +18,8 @@ import java.util.Set;
 public interface INmsManager {
     ConfigDefaults getConfigDefaults();
 
+    Material[] getExtraTransparentBlocks();
+
     void setMaxLoadedCacheFiles(int value);
 	
 	INBT createNBT();
@@ -51,8 +53,6 @@ public interface INmsManager {
 	boolean canApplyPhysics(Material blockMaterial);
 
 	Set<Integer> getMaterialIds(Material material);
-
-	int getTypeId(int combinedBlockId);
 
 	boolean sendBlockChange(Player player, Location blockLocation);
 }

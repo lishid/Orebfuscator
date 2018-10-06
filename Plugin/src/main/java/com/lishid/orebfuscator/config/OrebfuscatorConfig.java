@@ -5,11 +5,8 @@
 
 package com.lishid.orebfuscator.config;
 
-import java.util.HashSet;
 import java.util.Map;
 
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.utils.Globals;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
@@ -257,8 +254,7 @@ public class OrebfuscatorConfig {
     // Helper methods
     
     public boolean isBlockTransparent(int id) {
-        int blockTypeId = NmsInstance.current.getTypeId(id);
-        return this.transparentBlocks[blockTypeId] == 0;
+        return this.transparentBlocks[id] == 1;
     }
     
     public boolean obfuscateForPlayer(Player player) {

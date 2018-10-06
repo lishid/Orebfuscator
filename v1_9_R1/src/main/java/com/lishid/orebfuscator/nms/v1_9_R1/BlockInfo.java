@@ -36,7 +36,8 @@ public class BlockInfo implements IBlockInfo {
 	}
 
 	public int getCombinedId() {
-		return Block.getCombinedId(this.blockData);
+		Block block = this.blockData.getBlock();
+		return (Block.getId(block) << 4) | block.toLegacyData(this.blockData);
 	}
 
 	public IBlockData getBlockData() {

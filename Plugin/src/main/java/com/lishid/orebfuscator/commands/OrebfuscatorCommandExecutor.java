@@ -343,7 +343,8 @@ public class OrebfuscatorCommandExecutor {
     private static void commandTransparentBlocks(CommandSender sender, String[] args) {
         Material[] materials = Material.values();
 
-        List<String> blockNames = new ArrayList<>();
+        List<String> transparentBlockNames = new ArrayList<>();
+        List<String> nonTransparentBlockNames = new ArrayList<>();
 
         for (Material material : materials) {
             if(material.isBlock()) {
@@ -351,17 +352,26 @@ public class OrebfuscatorCommandExecutor {
                 boolean isTransparent = Orebfuscator.config.isBlockTransparent(blockId);
 
                 if(isTransparent) {
-                    blockNames.add(material.name());
+                    transparentBlockNames.add(material.name());
+                } else {
+                    nonTransparentBlockNames.add(material.name());
                 }
             }
         }
 
-        Collections.sort(blockNames);
+        Collections.sort(transparentBlockNames);
+        Collections.sort(nonTransparentBlockNames);
 
         StringBuilder blocks = new StringBuilder();
         blocks.append("Transparent blocks:");
 
-        for (String blockName : blockNames) {
+        for (String blockName : transparentBlockNames) {
+            blocks.append("\n - " + blockName);
+        }
+
+        blocks.append("\nNon-Transparent blocks:");
+
+        for (String blockName : nonTransparentBlockNames) {
             blocks.append("\n - " + blockName);
         }
 

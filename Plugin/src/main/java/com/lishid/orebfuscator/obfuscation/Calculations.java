@@ -24,8 +24,6 @@ import java.util.Random;
 import com.lishid.orebfuscator.NmsInstance;
 
 import com.lishid.orebfuscator.utils.Globals;
-import com.lishid.orebfuscator.utils.MaterialHelper;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 

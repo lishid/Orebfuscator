@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.utils.MaterialHelper;
 
 public class ChunkMapManager {
     private static final ThreadLocal<ChunkMapBuffer> _buffer = new ThreadLocal<ChunkMapBuffer>() {
