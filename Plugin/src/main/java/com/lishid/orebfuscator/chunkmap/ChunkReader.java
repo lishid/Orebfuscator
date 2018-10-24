@@ -59,7 +59,7 @@ public class ChunkReader {
 	
 	private void readLong() throws IOException {
 		if(this.byteIndex + 7 >= this.data.length) {
-			throw new IOException("No data to read.");
+			throw new IOException("No data to read. byteIndex = " + this.byteIndex);
 		}
 		
 		this.buffer = ((this.data[this.byteIndex] & 0xffL) << 56)
@@ -83,7 +83,7 @@ public class ChunkReader {
             value |= (b & 0x7F) << (size++ * 7);
             
             if(size > 5) {
-                throw new IOException("Invalid VarInt.");
+                throw new IOException("Invalid VarInt. byteIndex = " + this.byteIndex + ", value = " + value + ", size = " + size);
             }
         }
 
@@ -92,7 +92,7 @@ public class ChunkReader {
 	
 	public int readByte() throws IOException {
 		if(this.byteIndex >= this.data.length) {
-			throw new IOException("No data to read.");
+			throw new IOException("No data to read. byteIndex = " + this.byteIndex);
 		}
 		
 		return this.data[this.byteIndex++] & 0xff;

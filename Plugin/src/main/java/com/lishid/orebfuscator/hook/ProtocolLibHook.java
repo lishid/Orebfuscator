@@ -18,6 +18,7 @@ package com.lishid.orebfuscator.hook;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -50,6 +51,8 @@ public class ProtocolLibHook {
         this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
             @Override
             public void onPacketSending(PacketEvent event) {
+				ChunkData chunkData = null;
+
 				try {
 					Player player = event.getPlayer();
 
@@ -72,7 +75,7 @@ public class ProtocolLibHook {
 
 					List nmsTags = list.read(0);
 
-					ChunkData chunkData = new ChunkData();
+					chunkData = new ChunkData();
 					chunkData.chunkX = ints.read(0);
 					chunkData.chunkZ = ints.read(1);
 					chunkData.groundUpContinuous = bools.read(0);
@@ -83,7 +86,7 @@ public class ProtocolLibHook {
                 
 					Calculations.Result result = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
 					
-					if(result.output != null) {
+					if(result != null && result.output != null) {
 						byteArray.write(0, result.output);
 
 						if(nmsTags != null) {
@@ -92,6 +95,10 @@ public class ProtocolLibHook {
 						}
 					}
 				} catch (Exception e) {
+					if(chunkData != null) {
+						Orebfuscator.logger.log(Level.SEVERE, "ChunkX = " + chunkData.chunkX + ", chunkZ = " + chunkData.chunkZ);
+					}
+
 					e.printStackTrace();
 				}
             }
@@ -147,7 +154,7 @@ public class ProtocolLibHook {
 		}
 	}
 
-    /*
+	/*
     private static boolean _isSaved;
     private void saveTestData(ChunkData chunkData) {
     	if(_isSaved) return;
@@ -156,7 +163,7 @@ public class ProtocolLibHook {
 
 		FileOutputStream fos;
 		try {
-			fos = new FileOutputStream("D:\\Temp\\chunk.dat");
+			fos = new FileOutputStream("D:\\Temp\\chunk_X" + chunkData.chunkX + "_Z" + chunkData.chunkZ + ".dat");
 			fos.write(chunkData.chunkX & 0xff);
 			fos.write((chunkData.chunkX >> 8) & 0xff);
 			fos.write(chunkData.chunkZ & 0xff);
