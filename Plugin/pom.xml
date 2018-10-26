@@ -4,7 +4,7 @@
 
   <groupId>com.lishid</groupId>
   <artifactId>orebfuscator</artifactId>
-  <version>4.4.2-SNAPSHOT</version>
+  <version>4.4.2</version>
   <packaging>jar</packaging>
 
   <name>Orebfuscator4</name>
