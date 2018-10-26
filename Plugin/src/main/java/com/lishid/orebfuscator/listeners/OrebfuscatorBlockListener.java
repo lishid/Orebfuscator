@@ -16,6 +16,7 @@
 
 package com.lishid.orebfuscator.listeners;
 
+import com.lishid.orebfuscator.NmsInstance;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -26,7 +27,6 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 
-import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.BlockUpdate;
@@ -62,7 +62,9 @@ public class OrebfuscatorBlockListener implements Listener {
             return;
         }
 
-        if (!DeprecatedMethods.applyPhysics(event.getBlock())) {
+        Material blockMaterial = event.getBlock().getRelative(0, -1, 0).getType();
+
+        if(!NmsInstance.current.canApplyPhysics(blockMaterial)) {
             return;
         }
 

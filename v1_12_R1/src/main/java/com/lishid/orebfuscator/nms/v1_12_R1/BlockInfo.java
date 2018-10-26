@@ -34,9 +34,10 @@ public class BlockInfo implements IBlockInfo {
 	public int getZ() {
 		return this.z;
 	}
-	
-	public int getTypeId() {
-		return Block.getId(this.blockData.getBlock());
+
+	public int getCombinedId() {
+		Block block = this.blockData.getBlock();
+		return (Block.getId(block) << 4) | block.toLegacyData(this.blockData);
 	}
 	
 	public IBlockData getBlockData() {

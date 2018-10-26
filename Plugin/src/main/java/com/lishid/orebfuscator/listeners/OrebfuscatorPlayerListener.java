@@ -16,6 +16,7 @@
 
 package com.lishid.orebfuscator.listeners;
 
+import com.lishid.orebfuscator.NmsInstance;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -71,10 +72,8 @@ public class OrebfuscatorPlayerListener implements Listener {
         if (event.getItem() != null &&
                 event.getItem().getType() != null &&
                 (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS) &&
-                ((event.getItem().getType() == Material.WOOD_HOE) ||
-                        (event.getItem().getType() == Material.IRON_HOE) ||
-                        (event.getItem().getType() == Material.GOLD_HOE) ||
-                        (event.getItem().getType() == Material.DIAMOND_HOE)))
+                NmsInstance.current.isHoe(event.getItem().getType())
+            )
         {
             BlockUpdate.update(event.getClickedBlock());
         }

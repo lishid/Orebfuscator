@@ -9,19 +9,16 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.bukkit.Material;
+import com.lishid.orebfuscator.NmsInstance;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.utils.Globals;
 
 public class WorldReader {
-	private static enum WorldType { Default, Normal, TheEnd, Nether }
+	private enum WorldType { Default, Normal, TheEnd, Nether }
 	
-    private boolean[] transparentBlocks;
-    
     private WorldConfig defaultWorld;
     private WorldConfig normalWorld;
     private WorldConfig endWorld;
@@ -47,8 +44,6 @@ public class WorldReader {
     }
 
 	public void load() {
-        this.transparentBlocks = this.orebfuscatorConfig.getTransparentBlocks();
-        
     	ConfigurationSection section = getConfig().getConfigurationSection("Worlds");
     	Set<String> keys = section != null ? section.getKeys(false): new HashSet<String>();
     	
@@ -179,29 +174,38 @@ public class WorldReader {
 		if(cfg == null) {
 			cfg = new WorldConfig();
 		}
-		
+
 		Boolean enabled = getBoolean(worldPath + ".Enabled", cfg.isEnabled(), withSave);
 	    Boolean antiTexturePackAndFreecam = getBoolean(worldPath + ".AntiTexturePackAndFreecam", cfg.isAntiTexturePackAndFreecam(), withSave);
 	    Integer airGeneratorMaxChance = getInt(worldPath + ".AirGeneratorMaxChance", cfg.getAirGeneratorMaxChance(), 40, 100, withSave);
 	    Boolean darknessHideBlocks = getBoolean(worldPath + ".DarknessHideBlocks", cfg.isDarknessHideBlocks(), withSave);
 	    Boolean bypassObfuscationForSignsWithText = getBoolean(worldPath + ".BypassObfuscationForSignsWithText", cfg.isBypassObfuscationForSignsWithText(), withSave);
-	    boolean[] darknessBlocks = readBlockMatrix(cfg.getDarknessBlocks(), cfg.getDarknessBlockIds(), worldPath + ".DarknessBlocks", withSave);	    
+	    HashSet<Integer> darknessBlocks = readBlockMatrix(cfg.getDarknessBlocks(), worldPath + ".DarknessBlocks", withSave);
 	    Integer mode1Block = this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", cfg.getMode1BlockId(), withSave);
 		Integer[] randomBlocks = this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", cfg.getRandomBlocks(), withSave);
-		boolean[] obfuscateBlocks = readBlockMatrix(cfg.getObfuscateBlocks(), cfg.getObfuscateBlockIds(), worldPath + ".ObfuscateBlocks", withSave);
+		HashSet<Integer> obfuscateBlocks = readBlockMatrix(cfg.getObfuscateBlocks(), worldPath + ".ObfuscateBlocks", withSave);
+
+		int[] requiredObfuscateBlockIds;
 		
 		switch(worldType) {
 		case Normal:
-			obfuscateBlocks[DeprecatedMethods.getMaterialId(Material.STONE)] = true;
+			requiredObfuscateBlockIds = NmsInstance.current.getConfigDefaults().normalWorldRequiredObfuscateBlockIds;
 			break;
 		case TheEnd:
-			obfuscateBlocks[DeprecatedMethods.getMaterialId(Material.ENDER_STONE)] = true;
+			requiredObfuscateBlockIds = NmsInstance.current.getConfigDefaults().endWorldRequiredObfuscateBlockIds;
 			break;
 		case Nether:
-			obfuscateBlocks[DeprecatedMethods.getMaterialId(Material.NETHERRACK)] = true;
+			requiredObfuscateBlockIds = NmsInstance.current.getConfigDefaults().netherWorldRequiredObfuscateBlockIds;
 			break;
 		default:
+			requiredObfuscateBlockIds = null;
 			break;
+		}
+
+		if(requiredObfuscateBlockIds != null) {
+			for (int blockId : requiredObfuscateBlockIds) {
+				obfuscateBlocks.add(blockId);
+			}
 		}
 
 		readProximityHider(worldPath, cfg, withSave);
@@ -215,12 +219,13 @@ public class WorldReader {
 	    cfg.setMode1BlockId(mode1Block);
 		cfg.setRandomBlocks(randomBlocks);
 		cfg.setObfuscateBlocks(obfuscateBlocks);
-		
+
 	    return cfg;
 	}
 	
 	private void readProximityHider(String worldPath, WorldConfig worldConfig, boolean withSave) {
     	ProximityHiderConfig cfg = worldConfig.getProximityHiderConfig();
+    	Integer[] defaultProximityHiderBlockIds = cfg.getProximityHiderBlocks() != null ? cfg.getProximityHiderBlocks().toArray(new Integer[0]) : null;
     	
 	    String sectionPath = worldPath + ".ProximityHider";
 	    Boolean enabled = getBoolean(sectionPath + ".Enabled", cfg.isEnabled(), withSave);
@@ -229,7 +234,7 @@ public class WorldReader {
 	    Integer y = getInt(sectionPath + ".Y", cfg.getY(), 0, 255, withSave);
 	    Boolean useSpecialBlock = getBoolean(sectionPath + ".UseSpecialBlock", cfg.isUseSpecialBlock(), withSave);
 	    Boolean useYLocationProximity = getBoolean(sectionPath + ".ObfuscateAboveY", cfg.isObfuscateAboveY(), withSave);
-	    Integer[] proximityHiderBlockIds = this.materialReader.getMaterialIdsByPath(sectionPath + ".ProximityHiderBlocks", cfg.getProximityHiderBlockIds(), withSave);
+	    Integer[] proximityHiderBlockIds = this.materialReader.getMaterialIdsByPath(sectionPath + ".ProximityHiderBlocks", defaultProximityHiderBlockIds, withSave);
 	    ProximityHiderConfig.BlockSetting[] proximityHiderBlockSettings = readProximityHiderBlockSettings(sectionPath + ".ProximityHiderBlockSettings", cfg.getProximityHiderBlockSettings());
 	    Boolean useFastGazeCheck = getBoolean(sectionPath + ".UseFastGazeCheck", cfg.isUseFastGazeCheck(), withSave);
 	    
@@ -239,7 +244,7 @@ public class WorldReader {
 	    cfg.setY(y);
 	    cfg.setUseSpecialBlock(useSpecialBlock);
 	    cfg.setObfuscateAboveY(useYLocationProximity); 
-	    cfg.setProximityHiderBlockIds(proximityHiderBlockIds);
+	    cfg.setProximityHiderBlocks(proximityHiderBlockIds);
 	    cfg.setProximityHiderBlockSettings(proximityHiderBlockSettings);
 	    cfg.setUseFastGazeCheck(useFastGazeCheck);
 	}
@@ -260,36 +265,57 @@ public class WorldReader {
     	List<ProximityHiderConfig.BlockSetting> list = new ArrayList<ProximityHiderConfig.BlockSetting>();
     	
     	for(String key : keys) {
-    		Integer blockId = this.materialReader.getMaterialId(key);
+    		Set<Integer> blockIds = this.materialReader.getMaterialIds(key);
     		
-    		if(blockId == null) {
+    		if(blockIds == null) {
     			continue;
     		}
     		
     		String blockPath = configKey + "." + key;
+			int blockY = getConfig().getInt(blockPath + ".Y", 255);
+			boolean blockObfuscateAboveY = getConfig().getBoolean(blockPath + ".ObfuscateAboveY", false);
 
-    		ProximityHiderConfig.BlockSetting block = new ProximityHiderConfig.BlockSetting();
-    		block.blockId = blockId;
-    		block.y = getConfig().getInt(blockPath + ".Y", 255);
-    		block.obfuscateAboveY = getConfig().getBoolean(blockPath + ".ObfuscateAboveY", false);
-    		
-    		list.add(block);
+    		for(int blockId : blockIds) {
+				ProximityHiderConfig.BlockSetting block = new ProximityHiderConfig.BlockSetting();
+				block.blockId = blockId;
+				block.y = blockY;
+				block.obfuscateAboveY = blockObfuscateAboveY;
+
+				list.add(block);
+			}
     	}
     	
     	return list.toArray(new ProximityHiderConfig.BlockSetting[0]);
 	}
 	
-	private boolean[] readBlockMatrix(boolean[] original, Integer[] defaultBlockIds, String configKey, boolean withSave) {
-	    boolean[] blocks = original;
+	private HashSet<Integer> readBlockMatrix(HashSet<Integer> original, String configKey, boolean withSave) {
+	    Integer[] defaultBlockIds;
+
+	    if(original != null && original.size() != 0) {
+			defaultBlockIds = new Integer[original.size()];
+
+			int index = 0;
+
+			for(Integer id : original) {
+				defaultBlockIds[index++] = id;
+			}
+		} else {
+			defaultBlockIds = null;
+		}
+
 	    Integer[] blockIds = this.materialReader.getMaterialIdsByPath(configKey, defaultBlockIds, withSave);
-	    
+
+		HashSet<Integer> blocks;
+
 	    if(blockIds != null) {
-	    	if(blocks == null) {
-	    		blocks = new boolean[256];
-	    	}
-	    	
-	    	setBlockValues(blocks, blockIds);
-	    }
+			blocks = new HashSet<>();
+
+	    	for(int id : blockIds) {
+				blocks.add(id);
+			}
+	    } else {
+	    	blocks = original;
+		}
 	    
 	    return blocks;
 	}
@@ -304,92 +330,64 @@ public class WorldReader {
 	}
 	
 	private WorldConfig createNormalWorld(String worldPath) {
-		Integer[] randomBlocks = new Integer[]{ 1, 4, 5, 14, 15, 16, 21, 46, 48, 49, 56, 73, 82, 129 };
-		Integer[] obfuscateBlockIds = new Integer[] { 14, 15, 16, 21, 54, 56, 73, 74, 129, 130 };
+		Integer[] randomBlocks = cloneIntArray(NmsInstance.current.getConfigDefaults().normalWorldRandomBlockIds);
+		Integer[] obfuscateBlockIds = mergeIntArrays(NmsInstance.current.getConfigDefaults().normalWorldObfuscateBlockIds, NmsInstance.current.getConfigDefaults().normalWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "NORMAL" });
+
+		int mode1BlockId = NmsInstance.current.getConfigDefaults().normalWorldMode1BlockId;
 		
-		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", 1, true);
+		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".ObfuscateBlocks", obfuscateBlockIds, true);
 		
-		boolean[] obfuscateBlocks = new boolean[256];
-		
-		setBlockValues(obfuscateBlocks, obfuscateBlockIds, false);
-		
 		WorldConfig cfg = new WorldConfig();
-		cfg.setObfuscateBlocks(obfuscateBlocks);
+		cfg.setObfuscateBlocks(obfuscateBlockIds);
 		cfg.setRandomBlocks(randomBlocks);
-		cfg.setMode1BlockId(1);
+		cfg.setMode1BlockId(mode1BlockId);
 		
 		return cfg;
 	}
 	
 	private WorldConfig createEndWorld(String worldPath) {
-		Integer[] randomBlocks = new Integer[]{ 7, 49, 121, 201, 206 };
-		Integer[] obfuscateBlockIds = new Integer[] { 121 };
+		Integer[] randomBlocks = cloneIntArray(NmsInstance.current.getConfigDefaults().endWorldRandomBlockIds);
+		Integer[] obfuscateBlockIds = mergeIntArrays(NmsInstance.current.getConfigDefaults().endWorldObfuscateBlockIds, NmsInstance.current.getConfigDefaults().endWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "THE_END" });
+
+		int mode1BlockId = NmsInstance.current.getConfigDefaults().endWorldMode1BlockId;
 		
-		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", 121, true);
+		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".ObfuscateBlocks", obfuscateBlockIds, true);
 		
-		boolean[] obfuscateBlocks = new boolean[256];
-		
-		setBlockValues(obfuscateBlocks, obfuscateBlockIds, false);
-		
 		WorldConfig cfg = new WorldConfig();
 		cfg.setRandomBlocks(randomBlocks);
-		cfg.setObfuscateBlocks(obfuscateBlocks);
-		cfg.setMode1BlockId(121);
+		cfg.setObfuscateBlocks(obfuscateBlockIds);
+		cfg.setMode1BlockId(mode1BlockId);
 		
 		return cfg;
 	}
 
 	private WorldConfig createNetherWorld(String worldPath) {
-		Integer[] randomBlocks = new Integer[]{ 13, 87, 88, 112, 153 };
-		Integer[] obfuscateBlockIds = new Integer[]{ 87, 153 };
+		Integer[] randomBlocks = cloneIntArray(NmsInstance.current.getConfigDefaults().netherWorldRandomBlockIds);
+		Integer[] obfuscateBlockIds = mergeIntArrays(NmsInstance.current.getConfigDefaults().netherWorldObfuscateBlockIds, NmsInstance.current.getConfigDefaults().netherWorldRequiredObfuscateBlockIds);
 		
 		getConfig().set(worldPath + ".Types", new String[] { "NETHER" });
+
+		int mode1BlockId = NmsInstance.current.getConfigDefaults().netherWorldMode1BlockId;
 		
-		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", 87, true);
+		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".ObfuscateBlocks", obfuscateBlockIds, true);
 		
-		boolean[] obfuscateBlocks = new boolean[256];
-		
-		setBlockValues(obfuscateBlocks, obfuscateBlockIds, false);
-		
 		WorldConfig cfg = new WorldConfig();
 		cfg.setRandomBlocks(randomBlocks);
-		cfg.setObfuscateBlocks(obfuscateBlocks);
-		cfg.setMode1BlockId(87);
+		cfg.setObfuscateBlocks(obfuscateBlockIds);
+		cfg.setMode1BlockId(mode1BlockId);
 		
 		return cfg;
 	}
-
-    private static void setBlockValues(boolean[] boolArray, Integer[] blocks) {
-    	List<Integer> blockList = Arrays.asList(blocks);
-    	
-        for (int i = 0; i < boolArray.length; i++) {
-            boolArray[i] = blockList.contains(i);
-        }
-    }
-    
-    private void setBlockValues(boolean[] boolArray, Integer[] blocks, boolean transparent) {
-    	List<Integer> blockList = Arrays.asList(blocks);
-    	
-        for (int i = 0; i < boolArray.length; i++) {
-            boolArray[i] = blockList.contains(i);
-
-            // If block is transparent while we don't want them to, or the other way around
-            if (transparent != isBlockTransparent((short) i)) {
-                // Remove it
-                boolArray[i] = false;
-            }
-        }
-    }
         
     private Integer getInt(String path, Integer defaultData, int min, int max, boolean withSave) {
         if (getConfig().get(path) == null && withSave) {
@@ -433,15 +431,28 @@ public class WorldReader {
         
         return getConfig().getStringList(path);
     }
-    
-    private boolean isBlockTransparent(int id) {
-        if (id < 0)
-            id += 256;
 
-        if (id >= 256) {
-            return false;
-        }
+    private static Integer[] cloneIntArray(int[] array) {
+    	Integer[] result = new Integer[array.length];
 
-        return this.transparentBlocks[id];
-    }
+    	for(int i = 0; i < array.length; i++) {
+    		result[i] = array[i];
+		}
+
+		return result;
+	}
+
+	private static Integer[] mergeIntArrays(int[] array1, int[] array2) {
+		Integer[] result = new Integer[array1.length + array2.length];
+
+		for(int i = 0; i < array1.length; i++) {
+			result[i] = array1[i];
+		}
+
+		for(int i = 0; i < array2.length; i++) {
+			result[array1.length + i] = array2[i];
+		}
+
+		return result;
+	}
 }

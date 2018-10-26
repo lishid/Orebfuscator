@@ -7,17 +7,26 @@ package com.lishid.orebfuscator.chunkmap;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Stack;
 
-import com.lishid.orebfuscator.types.BlockState;
+import com.lishid.orebfuscator.NmsInstance;
 
-public class ChunkMapManager {
-    private static final ThreadLocal<ChunkMapBuffer> _buffer = new ThreadLocal<ChunkMapBuffer>() {
-    	@Override
-        protected ChunkMapBuffer initialValue() {
-            return new ChunkMapBuffer();
-        }
-    };
-    
+public class ChunkMapManager implements AutoCloseable {
+	private static final Object _lock = new Object();
+	private static final Stack<ChunkMapBuffer> _bufferStack = new Stack<>();
+
+	private static ChunkMapBuffer popBuffer() {
+		synchronized(_lock) {
+			return _bufferStack.isEmpty() ? new ChunkMapBuffer() : _bufferStack.pop();
+		}
+	}
+
+	private static void pushBuffer(ChunkMapBuffer buffer) {
+		synchronized(_lock) {
+			_bufferStack.push(buffer);
+		}
+	}
+
     private ChunkMapBuffer buffer;
     private ChunkData chunkData;
     private ChunkReader reader;
@@ -42,68 +51,55 @@ public class ChunkMapManager {
     	return this.chunkData;
     }
 
-    public ChunkMapManager(ChunkData chunkData) {
-    	this.buffer = _buffer.get();
-    	this.chunkData = chunkData;
-    }
-    
-    public void init() throws IOException {
-    	this.reader = new ChunkReader(this.chunkData.data);
-    	this.sectionCount = 0;
-    	this.sectionIndex = -1;
-    	this.minX = this.chunkData.chunkX << 4;
-    	this.maxX = this.minX + 15;
-    	this.minZ = this.chunkData.chunkZ << 4;
-    	this.maxZ = this.minZ + 15;
-    	
-		this.buffer.lightArrayLength = 2048;
+    private ChunkMapManager() {
+
+	}
+
+    public static ChunkMapManager create(ChunkData chunkData) throws IOException {
+    	ChunkMapManager manager = new ChunkMapManager();
+		manager.chunkData = chunkData;
+		manager.buffer = popBuffer();
+		manager.reader = new ChunkReader(chunkData.data);
+		manager.sectionCount = 0;
+		manager.sectionIndex = -1;
+		manager.minX = chunkData.chunkX << 4;
+		manager.maxX = manager.minX + 15;
+		manager.minZ = chunkData.chunkZ << 4;
+		manager.maxZ = manager.minZ + 15;
+
+		manager.buffer.lightArrayLength = 2048;
 		
-		if(this.chunkData.isOverworld) {
-			this.buffer.lightArrayLength <<= 1;
+		if(chunkData.isOverworld) {
+			manager.buffer.lightArrayLength <<= 1;
 		}
+
+		manager.buffer.writer.init();
     	
-    	this.buffer.writer.init();
-    	
-    	int mask = this.chunkData.primaryBitMask;
+    	int mask = chunkData.primaryBitMask;
     	
     	while(mask != 0) {
     		if((mask & 0x1) != 0) {
-    			this.sectionCount++;
+				manager.sectionCount++;
     		}
     		
     		mask >>>= 1;
     	}
-    	
-    	this.buffer.clearLayers();
 
-    	moveToNextLayer();
+		manager.buffer.clearLayers();
+
+		manager.moveToNextLayer();
+
+		return manager;
     }
-    
+
+	public void close() throws Exception {
+		pushBuffer(this.buffer);
+	}
+
     public boolean inputHasNonAirBlock() {
-    	return this.buffer.paletteLength > 1 || this.buffer.palette[0] != 0;
+    	return this.buffer.paletteLength > 1 || NmsInstance.current.isAir(this.buffer.palette[0]);
     }
     
-    public static void blockDataToState(int blockData, BlockState blockState) {
-    	blockState.id = blockData >>> 4;
-    	blockState.meta = blockData & 0xf;
-    }
-    
-    public static int getBlockIdFromData(int blockData) {
-    	return blockData >>> 4;
-    }
-
-    public static int getBlockMetaFromData(int blockData) {
-    	return blockData & 0xf;
-    }
-
-    public static int blockStateToData(BlockState blockState) {
-    	return (blockState.id << 4) | blockState.meta; 
-    }
-    
-    public static int getBlockDataFromId(int id) {
-    	return id << 4;
-    }
-
     public boolean initOutputPalette() {
     	if(this.buffer.paletteLength == 0 || this.buffer.paletteLength == 255) {
     		this.buffer.outputPaletteLength = 0;
@@ -188,9 +184,7 @@ public class ChunkMapManager {
     		long paletteIndex = this.buffer.outputPaletteMap[blockData] & 0xffL;
     		
     		if(paletteIndex == 255) {
-    			BlockState blockState = new BlockState();
-    			blockDataToState(blockData, blockState);
-    			throw new IllegalArgumentException("Block " + blockState.id + ":" + blockState.meta + " is absent in output palette.");
+				throw new IllegalArgumentException("Block " + blockData + " is absent in output palette.");
     		}
     		
     		this.buffer.writer.writeBlockBits(paletteIndex);
@@ -229,7 +223,7 @@ public class ChunkMapManager {
     
     private void calcOutputBitsPerBlock() {
     	if(this.buffer.outputPaletteLength == 0) {
-    		this.buffer.outputBitsPerBlock = 13;
+    		this.buffer.outputBitsPerBlock = ChunkMapBuffer.getBitsPerBlock();
     	} else {
     		byte mask = (byte)this.buffer.outputPaletteLength;
     		int index = 0;
@@ -356,7 +350,7 @@ public class ChunkMapManager {
         	if(this.buffer.paletteLength > 0) {
         		blockData = blockData >= 0 && blockData < this.buffer.paletteLength
         				? this.buffer.palette[blockData]
-        				: 0;
+        				: NmsInstance.current.getCaveAirBlockId();
         	}
 
         	layer.map[i] = blockData;

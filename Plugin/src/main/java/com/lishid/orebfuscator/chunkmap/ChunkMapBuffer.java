@@ -6,26 +6,36 @@
 package com.lishid.orebfuscator.chunkmap;
 
 public class ChunkMapBuffer {
+	private static int _bitsPerBlock;
+	public static int getBitsPerBlock() { return _bitsPerBlock; }
+
 	private static final int BITS_PER_BLOCK_SIZE = 1;
 	private static final int PALETTE_LENGTH_SIZE = 5;
 	private static final int DATA_ARRAY_LENGTH_SIZE = 5;
 	private static final int BLOCKS_PER_CHUNK_SECTION = 16 * 16 * 16;
-	private static final int DATA_ARRAY_SIZE = BLOCKS_PER_CHUNK_SECTION * 13 / 8;
 	private static final int BLOCK_LIGHT_SIZE = BLOCKS_PER_CHUNK_SECTION / 2;
 	private static final int SKY_LIGHT_SIZE = BLOCKS_PER_CHUNK_SECTION / 2;
 	private static final int COLUMNS_PER_CHUNK = 16;
-	
-	private static final int MAX_BYTES_PER_CHUNK =
-			COLUMNS_PER_CHUNK *
-			(
-				BITS_PER_BLOCK_SIZE
-				+ PALETTE_LENGTH_SIZE
-				+ DATA_ARRAY_LENGTH_SIZE
-				+ DATA_ARRAY_SIZE
-				+ BLOCK_LIGHT_SIZE
-				+ SKY_LIGHT_SIZE
-			);
-	
+
+	private static int MAX_BYTES_PER_CHUNK;
+
+	public static void init(int bitsPerBlock) {
+		_bitsPerBlock = bitsPerBlock;
+
+		int dataArraySize = BLOCKS_PER_CHUNK_SECTION * _bitsPerBlock / 8;
+
+		MAX_BYTES_PER_CHUNK =
+				COLUMNS_PER_CHUNK *
+						(
+								BITS_PER_BLOCK_SIZE
+										+ PALETTE_LENGTH_SIZE
+										+ DATA_ARRAY_LENGTH_SIZE
+										+ dataArraySize
+										+ BLOCK_LIGHT_SIZE
+										+ SKY_LIGHT_SIZE
+						);
+	}
+
 	public int[] palette;
 	public byte[] output;
 	public int[] outputPalette;
