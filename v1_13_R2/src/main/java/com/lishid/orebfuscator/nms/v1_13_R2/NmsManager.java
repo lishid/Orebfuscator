@@ -13,6 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_13_R2.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftChatMessage;
@@ -24,6 +25,8 @@ import com.lishid.orebfuscator.nms.INBT;
 import com.lishid.orebfuscator.nms.INmsManager;
 import com.lishid.orebfuscator.types.BlockCoord;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -427,7 +430,16 @@ public class NmsManager implements INmsManager {
 
 	public void updateBlockTileEntity(BlockCoord blockCoord, Player player) {
 		CraftWorld world = (CraftWorld)player.getWorld();
-		TileEntity tileEntity = world.getTileEntityAt(blockCoord.x, blockCoord.y, blockCoord.z);
+		// 1.13.2 has made this quite a bit different in later builds.
+		TileEntity tileEntity = null;
+		try {
+			Method getTileEntityAt = world.getClass().getMethod("getTileEntityAt", int.class, int.class, int.class);
+			tileEntity = (TileEntity) getTileEntityAt.invoke(world, blockCoord.x, blockCoord.y, blockCoord.z);
+		} catch (NoSuchMethodException nsme) {
+			tileEntity = world.getHandle().getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
+		} catch (Exception e) {
+			return;
+		}
 
 		if (tileEntity == null) {
 			return;
@@ -527,8 +539,23 @@ public class NmsManager implements INmsManager {
 		int chunkZ = z >> 4;
 
 		WorldServer worldServer = ((CraftWorld)world).getHandle();
-		ChunkProviderServer chunkProviderServer = worldServer.getChunkProviderServer();
-
+		// like in ChunkCache, NMS change without R increment.
+		ChunkProviderServer chunkProviderServer = null;
+		try {
+			Method getChunkProviderServer = worldServer.getClass().getDeclaredMethod("getChunkProviderServer");
+			chunkProviderServer = (ChunkProviderServer) getChunkProviderServer.invoke(worldServer);
+		} catch (NoSuchMethodException nmfe) {
+			try {
+				Method getChunkProvider = worldServer.getClass().getDeclaredMethod("getChunkProvider");
+				chunkProviderServer = (ChunkProviderServer) getChunkProvider.invoke(worldServer);
+			} catch (NoSuchMethodException nsme) {
+				return null; // oops
+			} catch (Exception e) {
+				return null;
+			}
+		} catch (Exception e) {
+			return null;
+		}
 		if(!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ)) return null;
 
 		Chunk chunk = chunkProviderServer.getChunkAt(chunkX, chunkZ, true, true);
