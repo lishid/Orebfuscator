@@ -9,6 +9,7 @@ package com.lishid.orebfuscator.nms.v1_13_R2;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 
 import net.minecraft.server.v1_13_R2.RegionFile;
@@ -73,8 +74,20 @@ public class ChunkCache implements IChunkCache {
     private synchronized void closeCacheFilesInternal() {
         for (RegionFile regionFile : cachedRegionFiles.values()) {
             try {
-                if (regionFile != null)
-                    regionFile.c();
+                if (regionFile != null) {
+                	// This lovely piece of work is due to an NMS change in Spigot 1.13.2 without an R increase.
+                	try {
+                		Method c = regionFile.getClass().getDeclaredMethod("c");
+                		c.invoke(regionFile);
+                	} catch (NoSuchMethodException nsme) {
+                		try {
+                			Method close = regionFile.getClass().getDeclaredMethod("close");
+                			close.invoke(regionFile);
+                		} catch (NoSuchMethodException nsme2) {
+                			
+                		}
+                	}
+                }
             }
             catch (Exception e) {
                 e.printStackTrace();

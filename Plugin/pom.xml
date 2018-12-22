@@ -4,7 +4,7 @@
 
   <groupId>com.lishid</groupId>
   <artifactId>orebfuscator</artifactId>
-  <version>4.4.2-SNAPSHOT</version>
+  <version>4.4.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Orebfuscator4</name>
@@ -20,14 +20,14 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.13.1-R0.1-SNAPSHOT</version>
+      <version>1.13.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.comphenix.protocol</groupId>
       <artifactId>ProtocolLib-API</artifactId>
-      <version>4.0</version>
+      <version>4.4.0</version>
       <scope>provided</scope>
       <optional>true</optional>
       <exclusions>
