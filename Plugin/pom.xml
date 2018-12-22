@@ -50,6 +50,13 @@
       <optional>true</optional>
     </dependency>
     <dependency>
+      <groupId>net.openhft</groupId>
+      <artifactId>zero-allocation-hashing</artifactId>
+      <version>0.8</version>
+      <type>jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>com.lishid</groupId>
       <artifactId>orebfuscator-v1_9_R1</artifactId>
       <version>v1_9_R1</version>

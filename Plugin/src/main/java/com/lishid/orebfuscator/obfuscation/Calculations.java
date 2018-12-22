@@ -351,7 +351,7 @@ public class Calculations {
         chunkData.useCache = true;
         
         // Hash the chunk
-        long hash = CalculationsUtil.Hash(chunkData.data, chunkData.data.length);
+        long hash = CalculationsUtil.Hash(chunkData.data);
         // Get cache folder
         File cacheFolder = new File(ObfuscatedDataCache.getCacheFolder(), player.getWorld().getName());
         // Create cache objects
