@@ -27,6 +27,10 @@
        <id>techcable-repo</id>
        <url>https://repo.techcable.net/content/groups/public/</url>
      </repository>
+    <repository>
+      <id>spigot-plugins</id>
+      <url>https://repo.aikar.co/nexus/content/repositories/aikar/</url>
+    </repository>
   </repositories>
 
   <modules>
@@ -38,6 +42,7 @@
     <module>v1_12_R1</module>
     <module>v1_13_R1</module>
     <module>v1_13_R2</module>
+    <module>v1_14_R1</module>
     <module>Plugin</module>
   </modules>
 

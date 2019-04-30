@@ -20,7 +20,7 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.13.2-R0.1-SNAPSHOT</version>
+      <version>1.14-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -101,6 +101,14 @@
       <groupId>com.lishid</groupId>
       <artifactId>orebfuscator-v1_13_R2</artifactId>
       <version>v1_13_R2</version>
+      <type>jar</type>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.lishid</groupId>
+      <artifactId>orebfuscator-v1_14_R1</artifactId>
+      <version>v1_14_R1</version>
       <type>jar</type>
       <scope>compile</scope>
       <optional>true</optional>
