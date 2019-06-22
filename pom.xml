@@ -27,10 +27,10 @@
        <id>techcable-repo</id>
        <url>https://repo.techcable.net/content/groups/public/</url>
      </repository>
-    <repository>
+    <!--<repository>
       <id>spigot-plugins</id>
       <url>https://repo.aikar.co/nexus/content/repositories/aikar/</url>
-    </repository>
+    </repository>-->
   </repositories>
 
   <modules>
@@ -51,9 +51,9 @@
   </build>
 
   <scm>
-    <connection>scm:git:git://github.com/lishid/Orebfuscator.git</connection>
-    <developerConnection>scm:git:git@github.com:lishid/Orebfuscator.git</developerConnection>
-    <url>https://github.com/lishid/Orebfuscator</url>
+    <connection>scm:git:git://github.com/JayJay1989/Orebfuscator.git</connection>
+    <developerConnection>scm:git:git@github.com:JayJay1989/Orebfuscator.git</developerConnection>
+    <url>https://github.com/JayJay1989/Orebfuscator</url>
   </scm>
 
 </project>
