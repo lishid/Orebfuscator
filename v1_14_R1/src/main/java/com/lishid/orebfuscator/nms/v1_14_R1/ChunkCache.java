@@ -76,18 +76,13 @@ public class ChunkCache implements IChunkCache {
         for (RegionFile regionFile : cachedRegionFiles.values()) {
             try {
                 if (regionFile != null) {
-                	// This lovely piece of work is due to an NMS change in Spigot 1.13.2 without an R increase.
-                	try {
-                		Method c = regionFile.getClass().getDeclaredMethod("c");
-                		c.invoke(regionFile);
-                	} catch (NoSuchMethodException nsme) {
-                		try {
-                			Method close = regionFile.getClass().getDeclaredMethod("close");
-                			close.invoke(regionFile);
-                		} catch (NoSuchMethodException nsme2) {
-                			
-                		}
-                	}
+                    // This lovely piece of work is due to an NMS change in Spigot 1.13.2 without an R increase.
+                    try {
+                        Method c = regionFile.getClass().getDeclaredMethod("c");
+                        c.invoke(regionFile);
+                    } catch (Exception nsme) {
+                        regionFile.close();
+                    }
                 }
             }
             catch (Exception e) {

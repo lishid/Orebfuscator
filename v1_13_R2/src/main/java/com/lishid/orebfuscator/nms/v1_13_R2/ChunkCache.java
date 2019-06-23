@@ -79,13 +79,8 @@ public class ChunkCache implements IChunkCache {
                 	try {
                 		Method c = regionFile.getClass().getDeclaredMethod("c");
                 		c.invoke(regionFile);
-                	} catch (NoSuchMethodException nsme) {
-                		try {
-                			Method close = regionFile.getClass().getDeclaredMethod("close");
-                			close.invoke(regionFile);
-                		} catch (NoSuchMethodException nsme2) {
-                			
-                		}
+                	} catch (Exception nsme) {
+                		regionFile.close();
                 	}
                 }
             }

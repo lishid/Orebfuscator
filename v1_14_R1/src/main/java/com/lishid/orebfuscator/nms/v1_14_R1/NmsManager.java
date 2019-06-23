@@ -527,7 +527,7 @@ public class NmsManager implements INmsManager {
 	public void updateBlockTileEntity(BlockCoord blockCoord, Player player) {
 		CraftWorld world = (CraftWorld)player.getWorld();
 		// 1.13.2 has made this quite a bit different in later builds.
-		TileEntity tileEntity = null;
+		TileEntity tileEntity;
 		try {
 			Method getTileEntityAt = world.getClass().getMethod("getTileEntityAt", int.class, int.class, int.class);
 			tileEntity = (TileEntity) getTileEntityAt.invoke(world, blockCoord.x, blockCoord.y, blockCoord.z);
@@ -638,23 +638,13 @@ public class NmsManager implements INmsManager {
 		// like in ChunkCache, NMS change without R increment.
 		ChunkProviderServer chunkProviderServer = null;
 		try {
-			Method getChunkProviderServer = worldServer.getClass().getDeclaredMethod("getChunkProviderServer");
-			chunkProviderServer = (ChunkProviderServer) getChunkProviderServer.invoke(worldServer);
-		} catch (NoSuchMethodException nmfe) {
-			try {
-				Method getChunkProvider = worldServer.getClass().getDeclaredMethod("getChunkProvider");
-				chunkProviderServer = (ChunkProviderServer) getChunkProvider.invoke(worldServer);
-			} catch (NoSuchMethodException nsme) {
-				return null; // oops
-			} catch (Exception e) {
-				return null;
-			}
-		} catch (Exception e) {
-			return null;
+			chunkProviderServer = worldServer.getChunkProvider();
+		} catch (Exception nmfe) {
 		}
+
 		if(!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ)) return null;
 
-		IChunkAccess chunk = chunkProviderServer.getChunkAt(chunkX, chunkZ, ChunkStatus.FULL, true);
+		Chunk chunk = (Chunk) chunkProviderServer.getChunkAt(chunkX, chunkZ, ChunkStatus.FULL, true);
 		return chunk != null ? chunk.getType(new BlockPosition(x,y,z)) : null;
 	}
 
