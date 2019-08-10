@@ -4,7 +4,7 @@
  *
  */
 
-package com.lishid.orebfuscator.nms.v1_13_R2;
+package com.lishid.orebfuscator.nms.v1_14_R1;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -12,7 +12,8 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-import net.minecraft.server.v1_13_R2.RegionFile;
+import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
+import net.minecraft.server.v1_14_R1.RegionFile;
 
 import com.lishid.orebfuscator.nms.IChunkCache;
 
@@ -27,12 +28,12 @@ public class ChunkCache implements IChunkCache {
 
     public DataInputStream getInputStream(File folder, int x, int z) {
         RegionFile regionFile = getRegionFile(folder, x, z);
-        return regionFile.a(x & 0x1F, z & 0x1F);
+        return regionFile.a(new ChunkCoordIntPair(x & 0x1F, z & 0x1F));
     }
 
     public DataOutputStream getOutputStream(File folder, int x, int z) {
         RegionFile regionFile = getRegionFile(folder, x, z);
-        return regionFile.c(x & 0x1F, z & 0x1F);
+        return regionFile.c(new ChunkCoordIntPair(x & 0x1F, z & 0x1F));
     }
     
     public void closeCacheFiles() {
@@ -75,13 +76,13 @@ public class ChunkCache implements IChunkCache {
         for (RegionFile regionFile : cachedRegionFiles.values()) {
             try {
                 if (regionFile != null) {
-                	// This lovely piece of work is due to an NMS change in Spigot 1.13.2 without an R increase.
-                	try {
-                		Method c = regionFile.getClass().getDeclaredMethod("c");
-                		c.invoke(regionFile);
-                	} catch (Exception nsme) {
-                		regionFile.close();
-                	}
+                    // This lovely piece of work is due to an NMS change in Spigot 1.13.2 without an R increase.
+                    try {
+                        Method c = regionFile.getClass().getDeclaredMethod("c");
+                        c.invoke(regionFile);
+                    } catch (Exception nsme) {
+                        regionFile.close();
+                    }
                 }
             }
             catch (Exception e) {

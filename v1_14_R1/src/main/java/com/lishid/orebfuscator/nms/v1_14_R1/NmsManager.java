@@ -1,23 +1,23 @@
 /**
  * @author lishid
  * @author Aleksey Terzi
- *
+ * @author JayJay1989BE
  */
 
-package com.lishid.orebfuscator.nms.v1_13_R2;
+package com.lishid.orebfuscator.nms.v1_14_R1;
 
 import com.lishid.orebfuscator.types.ConfigDefaults;
-import net.minecraft.server.v1_13_R2.*;
+import net.minecraft.server.v1_14_R1.*;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
-import org.bukkit.craftbukkit.v1_13_R2.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_13_R2.util.CraftChatMessage;
 import org.bukkit.entity.Player;
+
+import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_14_R1.util.CraftChatMessage;
 
 import com.lishid.orebfuscator.nms.IBlockInfo;
 import com.lishid.orebfuscator.nms.IChunkCache;
@@ -25,7 +25,6 @@ import com.lishid.orebfuscator.nms.INBT;
 import com.lishid.orebfuscator.nms.INmsManager;
 import com.lishid.orebfuscator.types.BlockCoord;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,8 +46,25 @@ public class NmsManager implements INmsManager {
 		initBlockIds();
 
 		this.BLOCK_ID_CAVE_AIR = getMaterialIds(Material.CAVE_AIR).iterator().next();
-		this.BLOCK_ID_AIRS = convertMaterialsToSet(new Material[] { Material.AIR, Material.CAVE_AIR, Material.VOID_AIR });
-		this.BLOCK_ID_SIGNS = convertMaterialsToSet(new Material[] { Material.SIGN, Material.WALL_SIGN });
+		this.BLOCK_ID_AIRS = convertMaterialsToSet(new Material[] {
+				Material.AIR,
+				Material.CAVE_AIR,
+				Material.VOID_AIR
+		});
+
+		this.BLOCK_ID_SIGNS = convertMaterialsToSet(new Material[] {
+				Material.ACACIA_SIGN,
+				Material.ACACIA_WALL_SIGN,
+				Material.DARK_OAK_SIGN,
+				Material.DARK_OAK_WALL_SIGN,
+				Material.JUNGLE_SIGN,
+				Material.JUNGLE_WALL_SIGN,
+				Material.OAK_SIGN,
+				Material.OAK_WALL_SIGN,
+				Material.SPRUCE_SIGN,
+				Material.SPRUCE_WALL_SIGN
+
+		});
 
 		this.configDefaults = new ConfigDefaults();
 
@@ -68,7 +84,21 @@ public class NmsManager implements INmsManager {
 				Material.CHIPPED_ANVIL,
 				Material.DAMAGED_ANVIL,
 				Material.TRAPPED_CHEST,
-				Material.DIAMOND_ORE
+				Material.DIAMOND_ORE,
+				Material.BARREL,
+				Material.BLAST_FURNACE,
+				Material.CAMPFIRE,
+				Material.CARTOGRAPHY_TABLE,
+				Material.COMPOSTER,
+				Material.FLETCHING_TABLE,
+				Material.GRINDSTONE,
+				Material.JIGSAW,
+				Material.LECTERN,
+				Material.LOOM,
+				Material.SMITHING_TABLE,
+				Material.SMOKER,
+				Material.STONECUTTER,
+
 		});
 
 		this.configDefaults.defaultDarknessBlockIds = convertMaterialsToIds(new Material[] {
@@ -166,8 +196,15 @@ public class NmsManager implements INmsManager {
 				Material.ACACIA_SLAB,
 				Material.ACACIA_STAIRS,
 				Material.ACACIA_TRAPDOOR,
+				Material.ACACIA_SIGN,
+				Material.ACACIA_WALL_SIGN,
+				Material.ANDESITE_SLAB,
+				Material.ANDESITE_STAIRS,
+				Material.ANDESITE_WALL,
 				Material.ANVIL,
+				Material.BARREL,
 				Material.BEACON,
+				Material.BLAST_FURNACE,
 				Material.BIRCH_DOOR,
 				Material.BIRCH_FENCE,
 				Material.BIRCH_FENCE_GATE,
@@ -176,6 +213,8 @@ public class NmsManager implements INmsManager {
 				Material.BIRCH_SLAB,
 				Material.BIRCH_STAIRS,
 				Material.BIRCH_TRAPDOOR,
+				Material.BIRCH_SIGN,
+				Material.BIRCH_WALL_SIGN,
 				Material.BLACK_BANNER,
 				Material.BLACK_BED,
 				Material.BLACK_STAINED_GLASS,
@@ -190,6 +229,7 @@ public class NmsManager implements INmsManager {
 				Material.BREWING_STAND,
 				Material.BRICK_SLAB,
 				Material.BRICK_STAIRS,
+				Material.BRICK_WALL,
 				Material.BRAIN_CORAL,
 				Material.BRAIN_CORAL_FAN,
 				Material.BRAIN_CORAL_WALL_FAN,
@@ -204,13 +244,21 @@ public class NmsManager implements INmsManager {
 				Material.BUBBLE_CORAL_WALL_FAN,
 				Material.CACTUS,
 				Material.CAKE,
+				Material.CAMPFIRE,
+				Material.CARTOGRAPHY_TABLE,
 				Material.CAULDRON,
 				Material.CHIPPED_ANVIL,
 				Material.COBBLESTONE_SLAB,
 				Material.COBBLESTONE_STAIRS,
 				Material.COBBLESTONE_WALL,
 				Material.COBWEB,
+				Material.COMPOSTER,
 				Material.CONDUIT,
+				Material.CRAFTING_TABLE,
+				Material.CUT_RED_SANDSTONE,
+				Material.CUT_RED_SANDSTONE_SLAB,
+				Material.CUT_SANDSTONE,
+				Material.CUT_SANDSTONE_SLAB,
 				Material.CYAN_BANNER,
 				Material.CYAN_BED,
 				Material.CYAN_STAINED_GLASS,
@@ -225,6 +273,8 @@ public class NmsManager implements INmsManager {
 				Material.DARK_OAK_SLAB,
 				Material.DARK_OAK_STAIRS,
 				Material.DARK_OAK_TRAPDOOR,
+				Material.DARK_OAK_SIGN,
+				Material.DARK_OAK_WALL_SIGN,
 				Material.DARK_PRISMARINE_SLAB,
 				Material.DARK_PRISMARINE_STAIRS,
 				Material.DAYLIGHT_DETECTOR,
@@ -243,14 +293,24 @@ public class NmsManager implements INmsManager {
 				Material.DEAD_TUBE_CORAL,
 				Material.DEAD_TUBE_CORAL_FAN,
 				Material.DEAD_TUBE_CORAL_WALL_FAN,
+				Material.DIORITE_SLAB,
+				Material.DIORITE_STAIRS,
+				Material.DIORITE_WALL,
 				Material.DRAGON_EGG,
+				Material.END_STONE_BRICK_SLAB,
+				Material.END_STONE_BRICK_STAIRS,
+				Material.END_STONE_BRICK_WALL,
 				Material.FARMLAND,
 				Material.FIRE_CORAL,
 				Material.FIRE_CORAL_FAN,
 				Material.FIRE_CORAL_WALL_FAN,
+				Material.FLETCHING_TABLE,
 				Material.FROSTED_ICE,
 				Material.GLASS,
 				Material.GLASS_PANE,
+				Material.GRANITE_SLAB,
+				Material.GRANITE_STAIRS,
+				Material.GRANITE_WALL,
 				Material.GRAY_BANNER,
 				Material.GRAY_BED,
 				Material.GRAY_STAINED_GLASS,
@@ -261,6 +321,7 @@ public class NmsManager implements INmsManager {
 				Material.GREEN_STAINED_GLASS,
 				Material.GREEN_STAINED_GLASS_PANE,
 				Material.GREEN_WALL_BANNER,
+				Material.GRINDSTONE,
 				Material.HEAVY_WEIGHTED_PRESSURE_PLATE,
 				Material.HOPPER,
 				Material.HORN_CORAL,
@@ -270,6 +331,7 @@ public class NmsManager implements INmsManager {
 				Material.IRON_BARS,
 				Material.IRON_DOOR,
 				Material.IRON_TRAPDOOR,
+				Material.JIGSAW,
 				Material.JUNGLE_DOOR,
 				Material.JUNGLE_FENCE,
 				Material.JUNGLE_FENCE_GATE,
@@ -278,6 +340,8 @@ public class NmsManager implements INmsManager {
 				Material.JUNGLE_SLAB,
 				Material.JUNGLE_STAIRS,
 				Material.JUNGLE_TRAPDOOR,
+				Material.JUNGLE_SIGN,
+				Material.JUNGLE_WALL_SIGN,
 				Material.KELP,
 				Material.KELP_PLANT,
 				Material.LIGHT_BLUE_BANNER,
@@ -296,16 +360,23 @@ public class NmsManager implements INmsManager {
 				Material.LIME_STAINED_GLASS,
 				Material.LIME_STAINED_GLASS_PANE,
 				Material.LIME_WALL_BANNER,
+				Material.LOOM,
 				Material.MAGENTA_BANNER,
 				Material.MAGENTA_BED,
 				Material.MAGENTA_STAINED_GLASS,
 				Material.MAGENTA_STAINED_GLASS_PANE,
 				Material.MAGENTA_WALL_BANNER,
+				Material.MOSSY_COBBLESTONE_SLAB,
+				Material.MOSSY_COBBLESTONE_STAIRS,
 				Material.MOSSY_COBBLESTONE_WALL,
+				Material.MOSSY_STONE_BRICK_SLAB,
+				Material.MOSSY_STONE_BRICK_STAIRS,
+				Material.MOSSY_STONE_BRICK_WALL,
 				Material.MOVING_PISTON,
 				Material.NETHER_BRICK_FENCE,
 				Material.NETHER_BRICK_SLAB,
 				Material.NETHER_BRICK_STAIRS,
+				Material.NETHER_BRICK_WALL,
 				Material.OAK_DOOR,
 				Material.OAK_FENCE,
 				Material.OAK_FENCE_GATE,
@@ -314,6 +385,8 @@ public class NmsManager implements INmsManager {
 				Material.OAK_SLAB,
 				Material.OAK_STAIRS,
 				Material.OAK_TRAPDOOR,
+				Material.OAK_SIGN,
+				Material.OAK_WALL_SIGN,
 				Material.ORANGE_BANNER,
 				Material.ORANGE_BED,
 				Material.ORANGE_STAINED_GLASS,
@@ -332,6 +405,12 @@ public class NmsManager implements INmsManager {
 				Material.PRISMARINE_BRICK_STAIRS,
 				Material.PRISMARINE_SLAB,
 				Material.PRISMARINE_STAIRS,
+				Material.POLISHED_ANDESITE_SLAB,
+				Material.POLISHED_ANDESITE_STAIRS,
+				Material.POLISHED_DIORITE_SLAB,
+				Material.POLISHED_DIORITE_STAIRS,
+				Material.POLISHED_GRANITE_SLAB,
+				Material.POLISHED_GRANITE_STAIRS,
 				Material.PURPLE_BANNER,
 				Material.PURPLE_BED,
 				Material.PURPLE_STAINED_GLASS,
@@ -343,6 +422,9 @@ public class NmsManager implements INmsManager {
 				Material.QUARTZ_STAIRS,
 				Material.RED_BANNER,
 				Material.RED_BED,
+				Material.RED_NETHER_BRICK_SLAB,
+				Material.RED_NETHER_BRICK_STAIRS,
+				Material.RED_NETHER_BRICK_WALL,
 				Material.RED_SANDSTONE_SLAB,
 				Material.RED_SANDSTONE_STAIRS,
 				Material.RED_STAINED_GLASS,
@@ -350,10 +432,20 @@ public class NmsManager implements INmsManager {
 				Material.RED_WALL_BANNER,
 				Material.SANDSTONE_SLAB,
 				Material.SANDSTONE_STAIRS,
+				Material.SANDSTONE_WALL,
+				Material.SCAFFOLDING,
 				Material.SEAGRASS,
 				Material.SEA_PICKLE,
-				Material.SIGN,
 				Material.SLIME_BLOCK,
+				Material.SMITHING_TABLE,
+				Material.SMOKER,
+				Material.SMOOTH_QUARTZ_SLAB,
+				Material.SMOOTH_QUARTZ_STAIRS,
+				Material.SMOOTH_RED_SANDSTONE_SLAB,
+				Material.SMOOTH_RED_SANDSTONE_STAIRS,
+				Material.SMOOTH_SANDSTONE_SLAB,
+				Material.SMOOTH_SANDSTONE_STAIRS,
+				Material.SMOOTH_STONE_SLAB,
 				Material.SPAWNER,
 				Material.SPRUCE_DOOR,
 				Material.SPRUCE_FENCE,
@@ -363,17 +455,21 @@ public class NmsManager implements INmsManager {
 				Material.SPRUCE_SLAB,
 				Material.SPRUCE_STAIRS,
 				Material.SPRUCE_TRAPDOOR,
+				Material.SPRUCE_SIGN,
+				Material.SPRUCE_WALL_SIGN,
 				Material.STICKY_PISTON,
+				Material.STONECUTTER,
 				Material.STONE_BRICK_SLAB,
 				Material.STONE_BRICK_STAIRS,
+				Material.STONE_BRICK_WALL,
 				Material.STONE_PRESSURE_PLATE,
 				Material.STONE_SLAB,
+				Material.STONE_STAIRS,
 				Material.TALL_SEAGRASS,
 				Material.TUBE_CORAL,
 				Material.TUBE_CORAL_FAN,
 				Material.TUBE_CORAL_WALL_FAN,
 				Material.TURTLE_EGG,
-				Material.WALL_SIGN,
 				Material.WATER,
 				Material.WHITE_BANNER,
 				Material.WHITE_BED,
@@ -431,11 +527,14 @@ public class NmsManager implements INmsManager {
 	public void updateBlockTileEntity(BlockCoord blockCoord, Player player) {
 		CraftWorld world = (CraftWorld)player.getWorld();
 		// 1.13.2 has made this quite a bit different in later builds.
-		TileEntity tileEntity = null;
+		TileEntity tileEntity;
 		try {
-			// hasty hf introduced issue due to getDeclaredMethod, it's not declared in WorldServer but in World
+			Method getTileEntityAt = world.getClass().getMethod("getTileEntityAt", int.class, int.class, int.class);
+			tileEntity = (TileEntity) getTileEntityAt.invoke(world, blockCoord.x, blockCoord.y, blockCoord.z);
+		} catch (NoSuchMethodException nsme) {
 			tileEntity = world.getHandle().getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
-		} catch (Exception nsme) {
+		} catch (Exception e) {
+			return;
 		}
 
 		if (tileEntity == null) {
@@ -542,11 +641,11 @@ public class NmsManager implements INmsManager {
 			chunkProviderServer = worldServer.getChunkProvider();
 		} catch (Exception nmfe) {
 		}
+
 		if(!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ)) return null;
 
-		Chunk chunk = chunkProviderServer.getChunkAt(chunkX, chunkZ, true, true);
-
-		return chunk != null ? chunk.getBlockData(x, y, z) : null;
+		Chunk chunk = (Chunk) chunkProviderServer.getChunkAt(chunkX, chunkZ, ChunkStatus.FULL, true);
+		return chunk != null ? chunk.getType(new BlockPosition(x,y,z)) : null;
 	}
 
 	private Set<Integer> convertMaterialsToSet(Material[] materials) {

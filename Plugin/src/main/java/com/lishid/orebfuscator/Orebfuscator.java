@@ -143,7 +143,10 @@ public class Orebfuscator extends JavaPlugin {
 
         String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 
-        if(serverVersion.equals("v1_13_R2")) {
+        if(serverVersion.equals("v1_14_R1")) {
+            return new com.lishid.orebfuscator.nms.v1_14_R1.NmsManager();
+        }
+        else if(serverVersion.equals("v1_13_R2")) {
             return new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager();
         }
         else if(serverVersion.equals("v1_13_R1")) {
