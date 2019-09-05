@@ -78,14 +78,14 @@ public class Calculations {
 
 					cache.write(cache.hash, output, proximityList, removedEntityList);
 
-					// Orebfuscator.log("Write to cache");/*debug*//*
+					// Orebfuscator.log("Write to cache");/*debug*/
 				}
 
 				cache.free();
 			}
 		}
 
-		OFCLogger.log("Send chunk x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ + " to player " + player.getName());/*debug*/
+		// OFCLogger.log("Send chunk x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ + " to player " + player.getName());/*debug*/
 
 		Result result = new Result();
 		result.output = output;
@@ -279,8 +279,7 @@ public class Calculations {
 
 		ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, proximityBlocks);
 
-		// Orebfuscator.log("Create new chunk data for x = " + chunkData.chunkX + ", z =
-		// " + chunkData.chunkZ);/*debug*/
+		// Orebfuscator.log("Create new chunk data for x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ); /*debug*/
 
 		return output;
 	}
