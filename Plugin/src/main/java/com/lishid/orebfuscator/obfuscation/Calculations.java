@@ -35,7 +35,6 @@ import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
 import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.config.WorldConfig;
-import com.lishid.orebfuscator.logger.OFCLogger;
 import com.lishid.orebfuscator.types.BlockCoord;
 import com.lishid.orebfuscator.utils.Globals;
 
