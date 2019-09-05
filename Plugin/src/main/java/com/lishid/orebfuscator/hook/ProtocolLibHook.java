@@ -22,7 +22,6 @@ import java.util.logging.Level;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -34,35 +33,42 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
-
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
+import com.lishid.orebfuscator.logger.OFCLogger;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.types.BlockCoord;
 
 public class ProtocolLibHook {
-    private ProtocolManager manager;
 
-    public void register(Plugin plugin) {
-        this.manager = ProtocolLibrary.getProtocolManager();
+	private final Orebfuscator plugin;
+	private final ProtocolManager manager;
 
-        this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
-            @Override
-            public void onPacketSending(PacketEvent event) {
+	public ProtocolLibHook(Orebfuscator plugin) {
+		this.plugin = plugin;
+
+		this.manager = ProtocolLibrary.getProtocolManager();
+	}
+
+	public void register() {
+		this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void onPacketSending(PacketEvent event) {
 				ChunkData chunkData = null;
 
 				try {
 					Player player = event.getPlayer();
 
-					if (!Orebfuscator.config.isEnabled()  || !Orebfuscator.config.obfuscateForPlayer(player)) {
+					if (!Orebfuscator.config.isEnabled() || !Orebfuscator.config.obfuscateForPlayer(player)) {
 						return;
 					}
 
 					WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
 
-					if(!worldConfig.isEnabled()) {
+					if (!worldConfig.isEnabled()) {
 						return;
 					}
 
@@ -83,57 +89,55 @@ public class ProtocolLibHook {
 					chunkData.data = byteArray.read(0);
 					chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
 					chunkData.blockEntities = getBlockEntities(nmsTags);
-                
+
 					Calculations.Result result = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
-					
-					if(result != null && result.output != null) {
+
+					if (result != null && result.output != null) {
 						byteArray.write(0, result.output);
 
-						if(nmsTags != null) {
+						if (nmsTags != null) {
 							removeBlockEntities(nmsTags, chunkData.blockEntities, result.removedEntities);
 							list.write(0, nmsTags);
 						}
 					}
 				} catch (Exception e) {
-					if(chunkData != null) {
-						Orebfuscator.logger.log(Level.SEVERE, "ChunkX = " + chunkData.chunkX + ", chunkZ = " + chunkData.chunkZ);
+					if (chunkData != null) {
+						OFCLogger.logger.log(Level.SEVERE, "ChunkX = " + chunkData.chunkX + ", chunkZ = " + chunkData.chunkZ);
 					}
 
 					e.printStackTrace();
 				}
-            }
-        });
+			}
+		});
 
-        manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                EnumWrappers.PlayerDigType status = event.getPacket().getPlayerDigTypes().read(0);
-                if (status == EnumWrappers.PlayerDigType.ABORT_DESTROY_BLOCK) {
-                    if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
-                        event.setCancelled(true);
-                    }
-                }
-            }
-        });
-    }
-    
-    @SuppressWarnings("rawtypes")
-	private static List<NbtCompound> getBlockEntities(List nmsTags) {
-    	List<NbtCompound> entities = new ArrayList<>();
+		manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
+			@Override
+			public void onPacketReceiving(PacketEvent event) {
+				EnumWrappers.PlayerDigType status = event.getPacket().getPlayerDigTypes().read(0);
+				if (status == EnumWrappers.PlayerDigType.ABORT_DESTROY_BLOCK) {
+					if (!BlockHitManager.hitBlock(event.getPlayer(), null)) {
+						event.setCancelled(true);
+					}
+				}
+			}
+		});
+	}
 
-    	if(nmsTags != null) {
+	private static List<NbtCompound> getBlockEntities(List<?> nmsTags) {
+		List<NbtCompound> entities = new ArrayList<>();
+
+		if (nmsTags != null) {
 			for (Object nmsTag : nmsTags) {
 				entities.add(NbtFactory.fromNMSCompound(nmsTag));
 			}
 		}
-    	
-    	return entities;
-    }
 
-	@SuppressWarnings("rawtypes")
-	private static void removeBlockEntities(List nmsTags, List<NbtCompound> tags, List<BlockCoord> removedEntities) {
-		for(int i = nmsTags.size() - 1; i >= 0; i--) {
-			if(removedEntities.size() == 0) {
+		return entities;
+	}
+
+	private static void removeBlockEntities(List<?> nmsTags, List<NbtCompound> tags, List<BlockCoord> removedEntities) {
+		for (int i = nmsTags.size() - 1; i >= 0; i--) {
+			if (removedEntities.size() == 0) {
 				break;
 			}
 
@@ -142,10 +146,10 @@ public class ProtocolLibHook {
 			int y = tag.getInteger("y");
 			int z = tag.getInteger("z");
 
-			for(int k = 0; k < removedEntities.size(); k++) {
+			for (int k = 0; k < removedEntities.size(); k++) {
 				BlockCoord blockCoord = removedEntities.get(k);
 
-				if(blockCoord.x == x && blockCoord.y == y && blockCoord.z == z) {
+				if (blockCoord.x == x && blockCoord.y == y && blockCoord.z == z) {
 					nmsTags.remove(i);
 					removedEntities.remove(k);
 					break;
@@ -155,31 +159,20 @@ public class ProtocolLibHook {
 	}
 
 	/*
-    private static boolean _isSaved;
-    private void saveTestData(ChunkData chunkData) {
-    	if(_isSaved) return;
-    	
-		_isSaved = true;
-
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream("D:\\Temp\\chunk_X" + chunkData.chunkX + "_Z" + chunkData.chunkZ + ".dat");
-			fos.write(chunkData.chunkX & 0xff);
-			fos.write((chunkData.chunkX >> 8) & 0xff);
-			fos.write(chunkData.chunkZ & 0xff);
-			fos.write((chunkData.chunkZ >> 8) & 0xff);
-			fos.write(chunkData.primaryBitMask & 0xff);
-			fos.write((chunkData.primaryBitMask >> 8) & 0xff);
-			fos.write(chunkData.data.length & 0xff);
-			fos.write((chunkData.data.length >> 8) & 0xff);
-			fos.write((chunkData.data.length >> 16) & 0xff);
-			fos.write(chunkData.data);
-			fos.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	*/
+	 * private static boolean _isSaved; private void saveTestData(ChunkData
+	 * chunkData) { if(_isSaved) return;
+	 * 
+	 * _isSaved = true;
+	 * 
+	 * FileOutputStream fos; try { fos = new FileOutputStream("D:\\Temp\\chunk_X" +
+	 * chunkData.chunkX + "_Z" + chunkData.chunkZ + ".dat");
+	 * fos.write(chunkData.chunkX & 0xff); fos.write((chunkData.chunkX >> 8) &
+	 * 0xff); fos.write(chunkData.chunkZ & 0xff); fos.write((chunkData.chunkZ >> 8)
+	 * & 0xff); fos.write(chunkData.primaryBitMask & 0xff);
+	 * fos.write((chunkData.primaryBitMask >> 8) & 0xff);
+	 * fos.write(chunkData.data.length & 0xff); fos.write((chunkData.data.length >>
+	 * 8) & 0xff); fos.write((chunkData.data.length >> 16) & 0xff);
+	 * fos.write(chunkData.data); fos.close(); } catch (FileNotFoundException e) {
+	 * e.printStackTrace(); } catch (IOException e) { e.printStackTrace(); } }
+	 */
 }

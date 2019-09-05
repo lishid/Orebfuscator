@@ -4,7 +4,7 @@
  *
  */
 
-package com.lishid.orebfuscator.nms.v1_14_2_R1;
+package com.lishid.orebfuscator.nms.v1_14_R1;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -423,7 +423,7 @@ public class NmsManager implements INmsManager {
 		Block.REGISTRY_ID.iterator().forEachRemaining(blockData -> {
 			Material material = CraftBlockData.fromData(blockData).getMaterial();
 
-			if(material.isBlock()) {
+			if (material.isBlock()) {
 				int materialId = Block.REGISTRY_ID.getId(blockData);
 
 				Set<Integer> ids = this.materialIds.get(material);
@@ -458,7 +458,7 @@ public class NmsManager implements INmsManager {
 	}
 
 	public void updateBlockTileEntity(BlockCoord blockCoord, Player player) {
-		CraftWorld world = (CraftWorld)player.getWorld();
+		CraftWorld world = (CraftWorld) player.getWorld();
 		// 1.13.2 has made this quite a bit different in later builds.
 		TileEntity tileEntity = null;
 		try {
@@ -477,33 +477,31 @@ public class NmsManager implements INmsManager {
 		Packet<?> packet = tileEntity.getUpdatePacket();
 
 		if (packet != null) {
-			CraftPlayer player2 = (CraftPlayer)player;
+			CraftPlayer player2 = (CraftPlayer) player;
 			player2.getHandle().playerConnection.sendPacket(packet);
 		}
 	}
 
 	public void notifyBlockChange(World world, IBlockInfo blockInfo) {
 		BlockPosition blockPosition = new BlockPosition(blockInfo.getX(), blockInfo.getY(), blockInfo.getZ());
-		IBlockData blockData = ((BlockInfo)blockInfo).getBlockData();
+		IBlockData blockData = ((BlockInfo) blockInfo).getBlockData();
 
-		((CraftWorld)world).getHandle().notify(blockPosition, blockData, blockData, 0);
+		((CraftWorld) world).getHandle().notify(blockPosition, blockData, blockData, 0);
 	}
 
 	public int getBlockLightLevel(World world, int x, int y, int z) {
-		return ((CraftWorld)world).getHandle().getLightLevel(new BlockPosition(x, y, z));
+		return ((CraftWorld) world).getHandle().getLightLevel(new BlockPosition(x, y, z));
 	}
 
 	public IBlockInfo getBlockInfo(World world, int x, int y, int z) {
 		IBlockData blockData = getBlockData(world, x, y, z, false);
 
-		return blockData != null
-				? new BlockInfo(x, y, z, blockData)
-				: null;
+		return blockData != null ? new BlockInfo(x, y, z, blockData) : null;
 	}
 
 	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
 		IBlockData blockData = getBlockData(world, x, y, z, true);
-		return blockData != null ? Block.getCombinedId(blockData): -1;
+		return blockData != null ? Block.getCombinedId(blockData) : -1;
 	}
 
 	public String getTextFromChatComponent(String json) {
@@ -512,10 +510,7 @@ public class NmsManager implements INmsManager {
 	}
 
 	public boolean isHoe(Material item) {
-		return item == Material.WOODEN_HOE
-				|| item == Material.IRON_HOE
-				|| item == Material.GOLDEN_HOE
-				|| item == Material.DIAMOND_HOE;
+		return item == Material.WOODEN_HOE || item == Material.STONE_HOE || item == Material.IRON_HOE || item == Material.GOLDEN_HOE || item == Material.DIAMOND_HOE;
 	}
 
 	public boolean isSign(int combinedBlockId) {
@@ -539,12 +534,8 @@ public class NmsManager implements INmsManager {
 	}
 
 	public boolean canApplyPhysics(Material blockMaterial) {
-		return blockMaterial == Material.AIR
-				|| blockMaterial == Material.CAVE_AIR
-				|| blockMaterial == Material.VOID_AIR
-				|| blockMaterial == Material.FIRE
-				|| blockMaterial == Material.WATER
-				|| blockMaterial == Material.LAVA;
+		return blockMaterial == Material.AIR || blockMaterial == Material.CAVE_AIR || blockMaterial == Material.VOID_AIR
+				|| blockMaterial == Material.FIRE || blockMaterial == Material.WATER || blockMaterial == Material.LAVA;
 	}
 
 	public Set<Integer> getMaterialIds(Material material) {
@@ -552,9 +543,11 @@ public class NmsManager implements INmsManager {
 	}
 
 	public boolean sendBlockChange(Player player, Location blockLocation) {
-		IBlockData blockData = getBlockData(blockLocation.getWorld(), blockLocation.getBlockX(), blockLocation.getBlockY(), blockLocation.getBlockZ(), false);
+		IBlockData blockData = getBlockData(blockLocation.getWorld(), blockLocation.getBlockX(),
+				blockLocation.getBlockY(), blockLocation.getBlockZ(), false);
 
-		if(blockData == null) return false;
+		if (blockData == null)
+			return false;
 
 		CraftBlockData craftBlockData = CraftBlockData.fromData(blockData);
 
@@ -567,7 +560,7 @@ public class NmsManager implements INmsManager {
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
 
-		WorldServer worldServer = ((CraftWorld)world).getHandle();
+		WorldServer worldServer = ((CraftWorld) world).getHandle();
 		// like in ChunkCache, NMS change without R increment.
 		ChunkProviderServer chunkProviderServer = null;
 		try {
@@ -585,7 +578,8 @@ public class NmsManager implements INmsManager {
 		} catch (Exception e) {
 			return null;
 		}
-		if(!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ)) return null;
+		if (!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ))
+			return null;
 
 		Chunk chunk = chunkProviderServer.getChunkAt(chunkX, chunkZ, true);
 
@@ -595,7 +589,7 @@ public class NmsManager implements INmsManager {
 	private Set<Integer> convertMaterialsToSet(Material[] materials) {
 		Set<Integer> ids = new HashSet<>();
 
-		for(Material material : materials) {
+		for (Material material : materials) {
 			ids.addAll(getMaterialIds(material));
 		}
 
@@ -608,7 +602,7 @@ public class NmsManager implements INmsManager {
 		int[] result = new int[ids.size()];
 		int index = 0;
 
-		for(int id : ids) {
+		for (int id : ids) {
 			result[index++] = id;
 		}
 

@@ -16,19 +16,20 @@
 
 package com.lishid.orebfuscator;
 
-import java.io.*;
-import java.util.logging.Logger;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
-import com.lishid.orebfuscator.chunkmap.ChunkMapBuffer;
-import com.lishid.orebfuscator.utils.MaterialHelper;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.lishid.orebfuscator.cache.CacheCleaner;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
+import com.lishid.orebfuscator.chunkmap.ChunkMapBuffer;
 import com.lishid.orebfuscator.commands.OrebfuscatorCommandExecutor;
 import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.config.OrebfuscatorConfig;
@@ -37,8 +38,8 @@ import com.lishid.orebfuscator.hook.ProtocolLibHook;
 import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
-import com.lishid.orebfuscator.nms.INmsManager;
-import com.lishid.orebfuscator.utils.Globals;
+import com.lishid.orebfuscator.logger.OFCLogger;
+import com.lishid.orebfuscator.utils.MaterialHelper;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -47,163 +48,109 @@ import com.lishid.orebfuscator.utils.Globals;
  */
 public class Orebfuscator extends JavaPlugin {
 
-    public static final Logger logger = Logger.getLogger("Minecraft.OFC");
-    public static Orebfuscator instance;
-    public static OrebfuscatorConfig config;
-    public static ConfigManager configManager;
-    
-    private boolean isProtocolLibFound;
-    public boolean getIsProtocolLibFound() {
-    	return this.isProtocolLibFound;
-    }
+	public static Orebfuscator instance;
+	public static OrebfuscatorConfig config;
+	public static ConfigManager configManager;
 
-    @SuppressWarnings("deprecation")
+	private boolean isProtocolLibFound;
+
 	@Override
-    public void onEnable() {
-        // Get plugin manager
-        PluginManager pm = getServer().getPluginManager();
+	public void onEnable() {
+		instance = this;
 
-        instance = this;
+		// Calling the class to initialize and returning with error message when no version is available
+		if (NmsInstance.current == null)
+			return;
 
-        NmsInstance.current = createNmsManager();
+		MaterialHelper.init();
+		ChunkMapBuffer.init(NmsInstance.current.getBitsPerBlock());
 
-        MaterialHelper.init();
-        ChunkMapBuffer.init(NmsInstance.current.getBitsPerBlock());
-        
-        // Load configurations
-        loadOrebfuscatorConfig();
+		// Load configurations
+		loadOrebfuscatorConfig();
 
-        makeConfigExample();
-        
-        this.isProtocolLibFound = pm.getPlugin("ProtocolLib") != null;
+		makeConfigExample();
 
-        if (!this.isProtocolLibFound) {
-            Orebfuscator.log("ProtocolLib is not found! Plugin cannot be enabled.");
-            return;
-        }
-        
-        // Orebfuscator events
-        pm.registerEvents(new OrebfuscatorPlayerListener(), this);
-        pm.registerEvents(new OrebfuscatorEntityListener(), this);
-        pm.registerEvents(new OrebfuscatorBlockListener(), this);
+		PluginManager pluginManager = Bukkit.getPluginManager();
+		this.isProtocolLibFound = pluginManager.getPlugin("ProtocolLib") != null;
 
-        (new ProtocolLibHook()).register(this);
-        
-        // Run CacheCleaner
-        getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0, config.getCacheCleanRate());
-    }
-    
-    public void loadOrebfuscatorConfig() {
-    	if(config == null) {
-    		config = new OrebfuscatorConfig();
-    		configManager = new ConfigManager(this, logger, config);
-    	}
-    	
-    	configManager.load();
+		if (!this.isProtocolLibFound) {
+			OFCLogger.log("ProtocolLib is not found! Plugin cannot be enabled.");
+			return;
+		}
 
-        ObfuscatedDataCache.resetCacheFolder();
+		// Orebfuscator events
+		pluginManager.registerEvents(new OrebfuscatorPlayerListener(), this);
+		pluginManager.registerEvents(new OrebfuscatorEntityListener(), this);
+		pluginManager.registerEvents(new OrebfuscatorBlockListener(), this);
 
-        NmsInstance.current.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
-        
-        //Make sure cache is cleared if config was changed since last start
-        try {
+		// Orebfuscator commands
+		getCommand("ofc").setExecutor(new OrebfuscatorCommandExecutor());
+
+		new ProtocolLibHook(this).register();
+
+		// Run CacheCleaner
+		getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0, config.getCacheCleanRate());
+	}
+
+	@Override
+	public void onDisable() {
+		ObfuscatedDataCache.closeCacheFiles();
+		BlockHitManager.clearAll();
+		getServer().getScheduler().cancelTasks(this);
+	}
+
+	public void runTask(Runnable task) {
+		if (this.isEnabled()) {
+			getServer().getScheduler().runTask(this, task);
+		}
+	}
+
+	public boolean getIsProtocolLibFound() {
+		return this.isProtocolLibFound;
+	}
+
+	public void loadOrebfuscatorConfig() {
+		if (config == null) {
+			config = new OrebfuscatorConfig();
+			configManager = new ConfigManager(this, OFCLogger.logger, config);
+		}
+
+		configManager.load();
+
+		ObfuscatedDataCache.resetCacheFolder();
+
+		NmsInstance.current.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
+
+		// Make sure cache is cleared if config was changed since last start
+		try {
 			ObfuscatedDataCache.checkCacheAndConfigSynchronized();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-    }
+	}
 
-    private void makeConfigExample() {
-        File outputFile = new File(getDataFolder(), "config.example_enabledworlds.yml");
+	private void makeConfigExample() {
+		File outputFile = new File(getDataFolder(), "config.example_enabledworlds.yml");
 
-        if(outputFile.exists()) return;
+		if (outputFile.exists())
+			return;
 
-        InputStream configStream = Orebfuscator.class.getResourceAsStream("/resources/config.example_enabledworlds.yml");
+		InputStream configStream = Orebfuscator.class.getResourceAsStream("/resources/config.example_enabledworlds.yml");
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(configStream));
-                PrintWriter writer = new PrintWriter(outputFile)
-            )
-        {
-            String line;
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(configStream));
+				PrintWriter writer = new PrintWriter(outputFile)) {
+			String line;
 
-            while ((line = reader.readLine()) != null) {
-                writer.println(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public void reloadOrebfuscatorConfig() {
-    	reloadConfig();
-    	loadOrebfuscatorConfig();
-    }
+			while ((line = reader.readLine()) != null) {
+				writer.println(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
-    private static INmsManager createNmsManager() {
-
-        String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-
-        if(serverVersion.equals("v1_13_R2")) {
-            return new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager();
-        }
-        else if(serverVersion.equals("v1_13_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_13_R1.NmsManager();
-        }
-        else if(serverVersion.equals("v1_12_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_12_R1.NmsManager();
-        }
-        else if(serverVersion.equals("v1_11_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_11_R1.NmsManager();
-        }
-        else if(serverVersion.equals("v1_10_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
-        }
-        else if(serverVersion.equals("v1_9_R2")) {
-            return new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager();
-        }
-        else if(serverVersion.equals("v1_9_R1")) {
-            return new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager();
-        }
-        else return null;
-    }
-
-    @Override
-    public void onDisable() {
-        ObfuscatedDataCache.closeCacheFiles();
-        BlockHitManager.clearAll();
-        getServer().getScheduler().cancelTasks(this);
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return OrebfuscatorCommandExecutor.onCommand(sender, command, label, args);
-    }
-
-    public void runTask(Runnable task) {
-        if (this.isEnabled()) {
-            getServer().getScheduler().runTask(this, task);
-        }
-    }
-
-    /**
-     * Log an information
-     */
-    public static void log(String text) {
-        logger.info(Globals.LogPrefix + text);
-    }
-
-    /**
-     * Log an error
-     */
-    public static void log(Throwable e) {
-        logger.severe(Globals.LogPrefix + e.toString());
-        e.printStackTrace();
-    }
-
-    /**
-     * Send a message to a player
-     */
-    public static void message(CommandSender target, String message) {
-        target.sendMessage(ChatColor.AQUA + Globals.LogPrefix + message);
-    }
+	public void reloadOrebfuscatorConfig() {
+		reloadConfig();
+		loadOrebfuscatorConfig();
+	}
 }

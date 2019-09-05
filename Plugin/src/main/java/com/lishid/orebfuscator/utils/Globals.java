@@ -1,6 +1,7 @@
 package com.lishid.orebfuscator.utils;
 
 public class Globals {
+
 	public static final String LogPrefix = "[OFC] ";
 
 	public static final int MASK_OBFUSCATE = 1;

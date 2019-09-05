@@ -20,6 +20,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.logger.OFCLogger;
 
 public class PlayerBlockTracking {
     private Block block;
@@ -59,7 +60,7 @@ public class PlayerBlockTracking {
             Orebfuscator.instance.runTask(new Runnable() {
                 public void run() {
                     String name = player.getName();
-                    Orebfuscator.log("Player \"" + name + "\" tried to hack with packet spamming.");
+                    OFCLogger.log("Player \"" + name + "\" tried to hack with packet spamming.");
                     player.kickPlayer("End of Stream");
                 }
             });

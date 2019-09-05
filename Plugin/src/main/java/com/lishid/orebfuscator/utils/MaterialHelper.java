@@ -12,37 +12,38 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class MaterialHelper {
-    private static HashMap<Integer, Material> _blocks;
 
-    public static void init() {
-        _blocks = new HashMap<>();
+	private static HashMap<Integer, Material> _blocks;
 
-        Material[] allMaterials = Material.values();
+	public static void init() {
+		MaterialHelper._blocks = new HashMap<>();
 
-        for(Material material : allMaterials) {
-            if(material.isBlock()) {
-                Set<Integer> ids = NmsInstance.current.getMaterialIds(material);
+		Material[] allMaterials = Material.values();
 
-                for(int id : ids) {
-                    _blocks.put(id, material);
-                }
-            }
-        }
-    }
+		for (Material material : allMaterials) {
+			if (material.isBlock()) {
+				Set<Integer> ids = NmsInstance.current.getMaterialIds(material);
 
-    public static Material getById(int combinedBlockId) {
-        return _blocks.get(combinedBlockId);
-    }
+				for (int id : ids) {
+					MaterialHelper._blocks.put(id, material);
+				}
+			}
+		}
+	}
 
-    public static int getMaxId() {
-        int maxId = -1;
+	public static Material getById(int combinedBlockId) {
+		return MaterialHelper._blocks.get(combinedBlockId);
+	}
 
-        for(int id : _blocks.keySet()) {
-            if(id > maxId) {
-                maxId = id;
-            }
-        }
+	public static int getMaxId() {
+		int maxId = -1;
 
-        return maxId;
-    }
+		for (int id : MaterialHelper._blocks.keySet()) {
+			if (id > maxId) {
+				maxId = id;
+			}
+		}
+
+		return maxId;
+	}
 }

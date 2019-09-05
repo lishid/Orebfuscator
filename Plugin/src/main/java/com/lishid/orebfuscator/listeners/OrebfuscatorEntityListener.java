@@ -24,13 +24,13 @@ import org.bukkit.event.entity.*;
 import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 
 public class OrebfuscatorEntityListener implements Listener {
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEntityExplode(EntityExplodeEvent event) {
-        BlockUpdate.update(event.blockList());
-    }
-    
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        BlockUpdate.update(event.getBlock());
-    }
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onEntityExplode(EntityExplodeEvent event) {
+		BlockUpdate.update(event.blockList());
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+		BlockUpdate.update(event.getBlock());
+	}
 }

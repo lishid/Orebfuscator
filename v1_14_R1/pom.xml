@@ -3,10 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.lishid</groupId>
-	<artifactId>orebfuscator-v1_14_4_R1</artifactId>
-	<version>v1_14_4_R1</version>
+	<artifactId>orebfuscator-v1_14_R1</artifactId>
+	<version>v1_14_R1</version>
 	<packaging>jar</packaging>
-	<name>Orebfuscator4 v1_14_4_R1</name>
+	<name>Orebfuscator4 v1_14_R1</name>
 
 	<parent>
 		<groupId>com.lishid.parent</groupId>

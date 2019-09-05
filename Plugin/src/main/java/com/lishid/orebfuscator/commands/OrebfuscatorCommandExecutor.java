@@ -18,363 +18,319 @@ package com.lishid.orebfuscator.commands;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.config.WorldConfig;
+import com.lishid.orebfuscator.logger.OFCLogger;
 import com.lishid.orebfuscator.utils.Globals;
 import com.lishid.orebfuscator.utils.MaterialHelper;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
 
-public class OrebfuscatorCommandExecutor {
-    public static boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+public class OrebfuscatorCommandExecutor implements CommandExecutor {
 
-        if ((sender instanceof Player) && !sender.hasPermission("Orebfuscator.admin")) {
-            Orebfuscator.message(sender, "You do not have permissions.");
-            return true;
-        }
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+		if ((sender instanceof Player) && !sender.hasPermission("orebfuscator.admin")) {
+			OFCLogger.message(sender, "You do not have permissions.");
+			return true;
+		}
 
-        if (args.length <= 0) {
-            return false;
-        }
+		if (args.length <= 0) {
+			return false;
+		}
 
-        if (args[0].equalsIgnoreCase("engine") && args.length > 1) {
-            int engine = Orebfuscator.config.getEngineMode();
-            try {
-                engine = new Integer(args[1]);
-            }
-            catch (NumberFormatException e) {
-                Orebfuscator.message(sender, args[1] + " is not a number!");
-                return true;
-            }
-            if (engine != 1 && engine != 2) {
-                Orebfuscator.message(sender, args[1] + " is not a valid EngineMode!");
-                return true;
-            }
-            else {
-                Orebfuscator.configManager.setEngineMode(engine);
-                Orebfuscator.message(sender, "Engine set to: " + engine);
-                return true;
-            }
-        }
+		if (args[0].equalsIgnoreCase("engine") && args.length > 1) {
+			int engine = Orebfuscator.config.getEngineMode();
+			try {
+				engine = new Integer(args[1]);
+			} catch (NumberFormatException e) {
+				OFCLogger.message(sender, args[1] + " is not a number!");
+				return true;
+			}
+			if (engine != 1 && engine != 2) {
+				OFCLogger.message(sender, args[1] + " is not a valid EngineMode!");
+				return true;
+			} else {
+				Orebfuscator.configManager.setEngineMode(engine);
+				OFCLogger.message(sender, "Engine set to: " + engine);
+				return true;
+			}
+		} else if (args[0].equalsIgnoreCase("updateradius") && args.length > 1) {
+			int radius = Orebfuscator.config.getUpdateRadius();
+			try {
+				radius = new Integer(args[1]);
+			} catch (NumberFormatException e) {
+				OFCLogger.message(sender, args[1] + " is not a number!");
+				return true;
+			}
+			Orebfuscator.configManager.setUpdateRadius(radius);
+			OFCLogger.message(sender, "UpdateRadius set to: " + Orebfuscator.config.getUpdateRadius());
+			return true;
+		} else if (args[0].equalsIgnoreCase("initialradius") && args.length > 1) {
+			int radius = Orebfuscator.config.getInitialRadius();
+			try {
+				radius = new Integer(args[1]);
+			} catch (NumberFormatException e) {
+				OFCLogger.message(sender, args[1] + " is not a number!");
+				return true;
+			}
+			Orebfuscator.configManager.setInitialRadius(radius);
+			OFCLogger.message(sender, "InitialRadius set to: " + radius);
+			return true;
+		} else if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable")) {
+			boolean data = args[0].equalsIgnoreCase("enable");
 
-        else if (args[0].equalsIgnoreCase("updateradius") && args.length > 1) {
-            int radius = Orebfuscator.config.getUpdateRadius();
-            try {
-                radius = new Integer(args[1]);
-            }
-            catch (NumberFormatException e) {
-                Orebfuscator.message(sender, args[1] + " is not a number!");
-                return true;
-            }
-            Orebfuscator.configManager.setUpdateRadius(radius);
-            Orebfuscator.message(sender, "UpdateRadius set to: " + Orebfuscator.config.getUpdateRadius());
-            return true;
-        }
+			if (args[0].equalsIgnoreCase("enable") && args.length == 1) {
+				Orebfuscator.configManager.setEnabled(true);
+				OFCLogger.message(sender, "Enabled.");
+				return true;
+			} else if (args[0].equalsIgnoreCase("disable") && args.length == 1) {
+				Orebfuscator.configManager.setEnabled(false);
+				OFCLogger.message(sender, "Disabled.");
+				return true;
+			} else if (args.length > 1) {
+				if (args[1].equalsIgnoreCase("op")) {
+					Orebfuscator.configManager.setNoObfuscationForOps(data);
+					OFCLogger.message(sender, "Ops No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
+					return true;
+				} else if (args[1].equalsIgnoreCase("perms") || args[1].equalsIgnoreCase("permissions")) {
+					Orebfuscator.configManager.setNoObfuscationForPermission(data);
+					OFCLogger.message(sender, "Permissions No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
+					return true;
+				} else if (args[1].equalsIgnoreCase("cache")) {
+					Orebfuscator.configManager.setUseCache(data);
+					OFCLogger.message(sender, "Cache " + (data ? "enabled" : "disabled") + ".");
+					return true;
+				} else if (args[1].equalsIgnoreCase("notification")) {
+					Orebfuscator.configManager.setLoginNotification(data);
+					OFCLogger.message(sender, "Login Notification " + (data ? "enabled" : "disabled") + ".");
+					return true;
+				}
+			}
+		} else if (args[0].equalsIgnoreCase("reload")) {
+			Orebfuscator.instance.reloadOrebfuscatorConfig();
+			OFCLogger.message(sender, "Reload complete.");
+			return true;
+		} else if (args[0].equalsIgnoreCase("status")) {
+			String status = Orebfuscator.instance.getIsProtocolLibFound()
+					? (Orebfuscator.config.isEnabled() ? "Enabled" : "Disabled")
+					: "ProtocolLib is not found! Plugin cannot be enabled.";
 
-        else if (args[0].equalsIgnoreCase("initialradius") && args.length > 1) {
-            int radius = Orebfuscator.config.getInitialRadius();
-            try {
-                radius = new Integer(args[1]);
-            }
-            catch (NumberFormatException e) {
-                Orebfuscator.message(sender, args[1] + " is not a number!");
-                return true;
-            }
-            Orebfuscator.configManager.setInitialRadius(radius);
-            Orebfuscator.message(sender, "InitialRadius set to: " + radius);
-            return true;
-        }
+			OFCLogger.message(sender,
+					"Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + status);
+			OFCLogger.message(sender, "Engine Mode: " + Orebfuscator.config.getEngineMode());
 
-        else if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable")) {
-            boolean data = args[0].equalsIgnoreCase("enable");
+			OFCLogger.message(sender, "Caching: " + (Orebfuscator.config.isUseCache() ? "Enabled" : "Disabled"));
+			OFCLogger.message(sender,
+					"ProximityHider: " + (Orebfuscator.config.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
+			OFCLogger.message(sender, "DarknessHideBlocks: "
+					+ (Orebfuscator.config.getDefaultWorld().isDarknessHideBlocks() ? "Enabled" : "Disabled"));
 
-            if (args[0].equalsIgnoreCase("enable") && args.length == 1) {
-                Orebfuscator.configManager.setEnabled(true);
-                Orebfuscator.message(sender, "Enabled.");
-                return true;
-            }
+			OFCLogger.message(sender, "Initial Obfuscation Radius: " + Orebfuscator.config.getInitialRadius());
+			OFCLogger.message(sender, "Update Radius: " + Orebfuscator.config.getUpdateRadius());
 
-            else if (args[0].equalsIgnoreCase("disable") && args.length == 1) {
-                Orebfuscator.configManager.setEnabled(false);
-                Orebfuscator.message(sender, "Disabled.");
-                return true;
-            }
+			OFCLogger.message(sender, "World by Default: "
+					+ (Orebfuscator.config.getDefaultWorld().isEnabled() ? "Enabled" : "Disabled"));
 
-            else if (args.length > 1) {
-                if (args[1].equalsIgnoreCase("op")) {
-                	Orebfuscator.configManager.setNoObfuscationForOps(data);
-                    Orebfuscator.message(sender, "Ops No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
-                    return true;
-                }
-                else if (args[1].equalsIgnoreCase("perms") || args[1].equalsIgnoreCase("permissions")) {
-                	Orebfuscator.configManager.setNoObfuscationForPermission(data);
-                    Orebfuscator.message(sender, "Permissions No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
-                    return true;
-                }
-                else if (args[1].equalsIgnoreCase("cache")) {
-                	Orebfuscator.configManager.setUseCache(data);
-                    Orebfuscator.message(sender, "Cache " + (data ? "enabled" : "disabled") + ".");
-                    return true;
-                }
-                else if (args[1].equalsIgnoreCase("notification")) {
-                	Orebfuscator.configManager.setLoginNotification(data);
-                    Orebfuscator.message(sender, "Login Notification " + (data ? "enabled" : "disabled") + ".");
-                    return true;
-                }
-            }
-        }
-        
-        else if (args[0].equalsIgnoreCase("reload")) {
-            Orebfuscator.instance.reloadOrebfuscatorConfig();
-            Orebfuscator.message(sender, "Reload complete.");
-            return true;
-        }
+			String worldNames = Orebfuscator.config.getWorldNames();
 
-        else if (args[0].equalsIgnoreCase("status")) {
-        	String status = Orebfuscator.instance.getIsProtocolLibFound()
-        			? (Orebfuscator.config.isEnabled() ? "Enabled" : "Disabled")
-        			: "ProtocolLib is not found! Plugin cannot be enabled.";
-        	
-            Orebfuscator.message(sender, "Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + status);
-            Orebfuscator.message(sender, "Engine Mode: " + Orebfuscator.config.getEngineMode());
+			OFCLogger.message(sender, "Worlds in List: " + (worldNames.equals("") ? "None" : worldNames));
 
-            Orebfuscator.message(sender, "Caching: " + (Orebfuscator.config.isUseCache() ? "Enabled" : "Disabled"));
-            Orebfuscator.message(sender, "ProximityHider: " + (Orebfuscator.config.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
-            Orebfuscator.message(sender, "DarknessHideBlocks: " + (Orebfuscator.config.getDefaultWorld().isDarknessHideBlocks() ? "Enabled": "Disabled"));
-
-            Orebfuscator.message(sender, "Initial Obfuscation Radius: " + Orebfuscator.config.getInitialRadius());
-            Orebfuscator.message(sender, "Update Radius: " + Orebfuscator.config.getUpdateRadius());
-
-            Orebfuscator.message(sender, "World by Default: " + (Orebfuscator.config.getDefaultWorld().isEnabled() ? "Enabled" : "Disabled"));
-
-            String worldNames = Orebfuscator.config.getWorldNames();
-
-            Orebfuscator.message(sender, "Worlds in List: " + (worldNames.equals("") ? "None" : worldNames));
-
-            return true;
-        }
-
-        else if (args[0].equalsIgnoreCase("clearcache")) {
-            try {
+			return true;
+		} else if (args[0].equalsIgnoreCase("clearcache")) {
+			try {
 				ObfuscatedDataCache.clearCache();
-	            Orebfuscator.message(sender, "Cache cleared.");
+				OFCLogger.message(sender, "Cache cleared.");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-            
-            return true;
-        }
-        
-        else if (args[0].equalsIgnoreCase("obfuscateblocks")) {
-            commandObfuscateBlocks(sender, args);
-        	return true;
-        }
 
-        else if (args[0].equalsIgnoreCase("ph")) {
-            commandProximityHider(sender, args);
-            return true;
-        }
+			return true;
+		} else if (args[0].equalsIgnoreCase("obfuscateblocks")) {
+			commandObfuscateBlocks(sender, args);
+			return true;
+		} else if (args[0].equalsIgnoreCase("ph")) {
+			commandProximityHider(sender, args);
+			return true;
+		} else if (args[0].equalsIgnoreCase("lm")) {
+			commandListMaterials(sender, args);
+			return true;
+		} else if (args[0].equalsIgnoreCase("tp")) {
+			commandTransparentBlocks(sender, args);
+			return true;
+		}
 
-        else if (args[0].equalsIgnoreCase("lm")) {
-            commandListMaterials(sender, args);
-            return true;
-        }
+		return false;
+	}
 
-        else if (args[0].equalsIgnoreCase("tp")) {
-            commandTransparentBlocks(sender, args);
-            return true;
-        }
+	private static void commandObfuscateBlocks(CommandSender sender, String[] args) {
+		if (args.length == 1) {
+			OFCLogger.message(sender, ChatColor.RED + "World is required parameter.");
+			return;
+		}
 
-        return false;
-    }
+		String worldName = args[1];
+		World world = Bukkit.getWorld(worldName);
 
-    private static void commandObfuscateBlocks(CommandSender sender, String[] args) {
-        if(args.length == 1) {
-            Orebfuscator.message(sender, ChatColor.RED + "World is required parameter.");
-            return;
-        }
+		if (world == null) {
+			OFCLogger.message(sender, ChatColor.RED + "Specified world is not found.");
+			return;
+		}
 
-        String worldName = args[1];
-        World world = Bukkit.getWorld(worldName);
+		if (args.length > 2) {
+			Material material = Material.getMaterial(args[2]);
 
-        if(world == null) {
-            Orebfuscator.message(sender, ChatColor.RED + "Specified world is not found.");
-            return;
-        }
+			if (material == null) {
+				OFCLogger.message(sender, ChatColor.RED + "Specified material is not found.");
+			} else {
+				int materialId = NmsInstance.current.getMaterialIds(material).iterator().next();
 
-        if(args.length > 2) {
-            Material material = Material.getMaterial(args[2]);
+				if ((Orebfuscator.configManager.getWorld(world).getObfuscatedBits(materialId) & Globals.MASK_OBFUSCATE) != 0)
+					OFCLogger.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
+				else
+					OFCLogger.message(sender, material.name() + ": " + ChatColor.RED + "not obfuscate");
+			}
 
-            if(material == null) {
-                Orebfuscator.message(sender, ChatColor.RED + "Specified material is not found.");
-            } else {
-                int materialId = NmsInstance.current.getMaterialIds(material).iterator().next();
+			return;
+		}
 
-                if((Orebfuscator.configManager.getWorld(world).getObfuscatedBits(materialId) & Globals.MASK_OBFUSCATE) != 0)
-                    Orebfuscator.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
-                else
-                    Orebfuscator.message(sender, material.name() + ": " + ChatColor.RED + "not obfuscate");
-            }
+		Material[] materials = Material.values();
+		ArrayList<String> blockNames = new ArrayList<>();
 
-            return;
-        }
+		for (Material material : materials) {
+			if (material.isBlock()) {
+				int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
+				int bits = Orebfuscator.configManager.getWorld(world).getObfuscatedBits(blockId);
 
-        Material[] materials = Material.values();
-        ArrayList<String> blockNames = new ArrayList<>();
+				if (bits != 0) {
+					blockNames.add(material.name() + " " + ChatColor.WHITE + bits);
+				}
+			}
+		}
 
-        for(Material material : materials) {
-            if(material.isBlock()) {
-                int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
-                int bits = Orebfuscator.configManager.getWorld(world).getObfuscatedBits(blockId);
+		Collections.sort(blockNames);
 
-                if(bits != 0) {
-                    blockNames.add(material.name() + " " + ChatColor.WHITE + bits);
-                }
-            }
-        }
+		StringBuilder blocks = new StringBuilder();
+		blocks.append("Obfuscate blocks:");
 
-        Collections.sort(blockNames);
+		if (blockNames.size() > 0) {
+			for (String blockName : blockNames) {
+				blocks.append(ChatColor.GREEN + "\n - " + blockName);
+			}
+		} else {
+			blocks.append(" None");
+		}
 
-        StringBuilder blocks = new StringBuilder();
-        blocks.append("Obfuscate blocks:");
+		OFCLogger.message(sender, blocks.toString());
+	}
 
-        if(blockNames.size() > 0) {
-            for (String blockName : blockNames) {
-                blocks.append(ChatColor.GREEN + "\n - " + blockName);
-            }
-        } else {
-            blocks.append(" None");
-        }
+	private static void commandProximityHider(CommandSender sender, String[] args) {
+		if (args.length == 1) {
+			OFCLogger.message(sender, ChatColor.RED + "World is required parameter.");
+			return;
+		}
 
-        Orebfuscator.message(sender, blocks.toString());
-    }
+		WorldConfig worldConfig = null;
+		String worldName = args[1];
 
-    private static void commandProximityHider(CommandSender sender, String[] args) {
-        if(args.length == 1) {
-            Orebfuscator.message(sender, ChatColor.RED + "World is required parameter.");
-            return;
-        }
+		if (worldName.startsWith(":")) {
+			if (worldName.equalsIgnoreCase(":default")) {
+				worldConfig = Orebfuscator.config.getDefaultWorld();
+			} else if (worldName.equalsIgnoreCase(":normal")) {
+				worldConfig = Orebfuscator.config.getNormalWorld();
+			} else if (worldName.equalsIgnoreCase(":nether")) {
+				worldConfig = Orebfuscator.config.getNetherWorld();
+			} else if (worldName.equalsIgnoreCase(":end")) {
+				worldConfig = Orebfuscator.config.getEndWorld();
+			}
+		} else {
+			World world = Bukkit.getWorld(worldName);
+			worldConfig = Orebfuscator.configManager.getWorld(world);
+		}
 
-        WorldConfig worldConfig = null;
-        String worldName = args[1];
+		if (worldConfig == null) {
+			OFCLogger.message(sender, ChatColor.RED + "Specified world is not found.");
+			return;
+		}
 
-        if(worldName.startsWith(":")) {
-            if(worldName.equalsIgnoreCase(":default")) {
-                worldConfig = Orebfuscator.config.getDefaultWorld();
-            } else if(worldName.equalsIgnoreCase(":normal")) {
-                worldConfig = Orebfuscator.config.getNormalWorld();
-            } else if(worldName.equalsIgnoreCase(":nether")) {
-                worldConfig = Orebfuscator.config.getNetherWorld();
-            } else if(worldName.equalsIgnoreCase(":end")) {
-                worldConfig = Orebfuscator.config.getEndWorld();
-            }
-        } else {
-            World world = Bukkit.getWorld(worldName);
-            worldConfig = Orebfuscator.configManager.getWorld(world);
-        }
+		OFCLogger.message(sender, "ProximityHider: " + (worldConfig.getProximityHiderConfig().isEnabled() ? "Enabled" : "Disabled"));
 
-        if (worldConfig == null) {
-            Orebfuscator.message(sender, ChatColor.RED + "Specified world is not found.");
-            return;
-        }
+		StringBuilder blocks = new StringBuilder();
+		blocks.append("Obfuscate blocks:");
 
-        Orebfuscator.message(sender, "ProximityHider: " + (worldConfig.getProximityHiderConfig().isEnabled() ? "Enabled" : "Disabled"));
+		Set<Integer> blockIds = worldConfig.getProximityHiderConfig().getProximityHiderBlocks();
 
-        StringBuilder blocks = new StringBuilder();
-        blocks.append("Obfuscate blocks:");
+		if (blockIds.size() > 0) {
+			ArrayList<String> blockNames = new ArrayList<>();
 
-        Set<Integer> blockIds = worldConfig.getProximityHiderConfig().getProximityHiderBlocks();
+			for (int id : blockIds) {
+				blockNames.add(MaterialHelper.getById(id).name());
+			}
 
-        if(blockIds.size() > 0) {
-            ArrayList<String> blockNames = new ArrayList<>();
+			Collections.sort(blockNames);
 
-            for (int id : blockIds) {
-                blockNames.add(MaterialHelper.getById(id).name());
-            }
+			blockNames.forEach(blockName -> blocks.append("\n - " + blockName));
+		} else {
+			blocks.append(" None");
+		}
 
-            Collections.sort(blockNames);
+		OFCLogger.message(sender, blocks.toString());
+	}
 
-            for (String blockName : blockNames) {
-                blocks.append("\n - " + blockName);
-            }
-        } else {
-            blocks.append(" None");
-        }
+	private static void commandListMaterials(CommandSender sender, String[] args) {
+		Material[] materials = Material.values();
 
-        Orebfuscator.message(sender, blocks.toString());
-    }
+		List<String> blockNames = new ArrayList<>();
 
-    private static void commandListMaterials(CommandSender sender, String[] args) {
-        Material[] materials = Material.values();
+		for (Material material : materials) {
+			if (material.isBlock())
+				NmsInstance.current.getMaterialIds(material).stream().sorted().forEach(id -> blockNames.add(material.name() + " = " + id));
+		}
 
-        List<String> blockNames = new ArrayList<>();
+		OFCLogger.message(sender, blockNames.isEmpty() ? "" : (" - " + blockNames.stream().sorted().collect(Collectors.joining("\n - "))));
+	}
 
-        for (Material material : materials) {
-            if(material.isBlock()) {
-                List<Integer> ids = new ArrayList<>(NmsInstance.current.getMaterialIds(material));
-                Collections.sort(ids);
+	private static void commandTransparentBlocks(CommandSender sender, String[] args) {
+		Material[] materials = Material.values();
 
-                for(int id : ids) {
-                    blockNames.add(material.name() + " = " + id);
-                }
-            }
-        }
+		List<String> transparentBlockNames = new ArrayList<>();
+		List<String> nonTransparentBlockNames = new ArrayList<>();
 
-        Collections.sort(blockNames);
+		for (Material material : materials) {
+			if (material.isBlock()) {
+				int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
+				boolean isTransparent = Orebfuscator.config.isBlockTransparent(blockId);
 
-        StringBuilder blocks = new StringBuilder();
+				if (isTransparent) {
+					transparentBlockNames.add(material.name());
+				} else {
+					nonTransparentBlockNames.add(material.name());
+				}
+			}
+		}
 
-        for (String blockName : blockNames) {
-            blocks.append("\n - " + blockName);
-        }
+		Collections.sort(transparentBlockNames);
+		Collections.sort(nonTransparentBlockNames);
 
-        Orebfuscator.message(sender, blocks.toString());
-    }
+		StringBuilder blocks = new StringBuilder();
+		blocks.append("Transparent blocks:");
+		transparentBlockNames.forEach(blockName -> blocks.append("\n - " + blockName));
 
-    private static void commandTransparentBlocks(CommandSender sender, String[] args) {
-        Material[] materials = Material.values();
+		blocks.append("\nNon-Transparent blocks:");
+		nonTransparentBlockNames.forEach(blockName -> blocks.append("\n - " + blockName));
 
-        List<String> transparentBlockNames = new ArrayList<>();
-        List<String> nonTransparentBlockNames = new ArrayList<>();
-
-        for (Material material : materials) {
-            if(material.isBlock()) {
-                int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
-                boolean isTransparent = Orebfuscator.config.isBlockTransparent(blockId);
-
-                if(isTransparent) {
-                    transparentBlockNames.add(material.name());
-                } else {
-                    nonTransparentBlockNames.add(material.name());
-                }
-            }
-        }
-
-        Collections.sort(transparentBlockNames);
-        Collections.sort(nonTransparentBlockNames);
-
-        StringBuilder blocks = new StringBuilder();
-        blocks.append("Transparent blocks:");
-
-        for (String blockName : transparentBlockNames) {
-            blocks.append("\n - " + blockName);
-        }
-
-        blocks.append("\nNon-Transparent blocks:");
-
-        for (String blockName : nonTransparentBlockNames) {
-            blocks.append("\n - " + blockName);
-        }
-
-        Orebfuscator.message(sender, blocks.toString());
-    }
+		OFCLogger.message(sender, blocks.toString());
+	}
 }

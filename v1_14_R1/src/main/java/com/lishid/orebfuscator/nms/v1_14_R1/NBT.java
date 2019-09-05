@@ -4,7 +4,7 @@
  *
  */
 
-package com.lishid.orebfuscator.nms.v1_14_2_R1;
+package com.lishid.orebfuscator.nms.v1_14_R1;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
