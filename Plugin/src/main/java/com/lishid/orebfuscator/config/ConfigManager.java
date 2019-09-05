@@ -267,13 +267,13 @@ public class ConfigManager {
 
 		Arrays.stream(Material.values())
 			.filter(material -> material.isBlock() && DeprecatedMethods.isTransparent(material))
-			.forEach(material -> NmsInstance.current.getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
+			.forEach(material -> NmsInstance.get().getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
 
-		Arrays.stream(NmsInstance.current.getExtraTransparentBlocks())
-			.forEach(material -> NmsInstance.current.getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
+		Arrays.stream(NmsInstance.get().getExtraTransparentBlocks())
+			.forEach(material -> NmsInstance.get().getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
 
 		byte status = (byte) (engineMode == 1 ? 0 : 1);
-		NmsInstance.current.getMaterialIds(Material.LAVA).stream().forEach(id -> transparentBlocks[id] = status);
+		NmsInstance.get().getMaterialIds(Material.LAVA).stream().forEach(id -> transparentBlocks[id] = status);
 
 		return transparentBlocks;
 	}

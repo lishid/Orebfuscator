@@ -35,7 +35,7 @@ public class ObfuscatedCachedChunk {
 
 	private static final ThreadLocal<INBT> nbtAccessor = new ThreadLocal<INBT>() {
 		protected INBT initialValue() {
-			return NmsInstance.current.createNBT();
+			return NmsInstance.get().createNBT();
 		}
 	};
 

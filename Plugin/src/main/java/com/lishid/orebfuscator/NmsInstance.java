@@ -10,8 +10,8 @@ import com.lishid.orebfuscator.nms.INmsManager;
 
 public class NmsInstance {
 
-	public static final String currentServerVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-	public static final INmsManager current = NmsInstance.createNmsManager();
+	private static final String currentServerVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+	private static final INmsManager instance = NmsInstance.createNmsManager();
 
 	private static INmsManager createNmsManager() {
 		OFCLogger.log("Searching NMS protocol for server version \"" + currentServerVersion + "\"!");
@@ -51,5 +51,13 @@ public class NmsInstance {
 		}
 
 		throw new NullPointerException("Server version \"" + currentServerVersion + "\" is currently not supported!");
+	}
+
+	public static INmsManager get() {
+		return NmsInstance.instance;
+	}
+
+	public static String getServerVersion() {
+		return NmsInstance.currentServerVersion;
 	}
 }

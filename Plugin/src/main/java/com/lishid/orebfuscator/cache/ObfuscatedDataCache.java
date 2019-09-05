@@ -38,7 +38,7 @@ public class ObfuscatedDataCache {
 
 	private static IChunkCache getInternalCache() {
 		if (internalCache == null) {
-			internalCache = NmsInstance.current.createChunkCache();
+			internalCache = NmsInstance.get().createChunkCache();
 		}
 		return internalCache;
 	}

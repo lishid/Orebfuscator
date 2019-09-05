@@ -97,7 +97,7 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	public boolean inputHasNonAirBlock() {
-		return this.buffer.paletteLength > 1 || NmsInstance.current.isAir(this.buffer.palette[0]);
+		return this.buffer.paletteLength > 1 || NmsInstance.get().isAir(this.buffer.palette[0]);
 	}
 
 	public boolean initOutputPalette() {
@@ -345,7 +345,7 @@ public class ChunkMapManager implements AutoCloseable {
 
 			if (this.buffer.paletteLength > 0) {
 				blockData = blockData >= 0 && blockData < this.buffer.paletteLength ? this.buffer.palette[blockData]
-						: NmsInstance.current.getCaveAirBlockId();
+						: NmsInstance.get().getCaveAirBlockId();
 			}
 
 			layer.map[i] = blockData;

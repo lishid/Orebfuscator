@@ -38,7 +38,7 @@ import com.lishid.orebfuscator.types.ChunkCoord;
 public class BlockUpdate {
 
 	public static boolean needsUpdate(Block block) {
-		int materialId = NmsInstance.current.getMaterialIds(block.getType()).iterator().next();
+		int materialId = NmsInstance.get().getMaterialIds(block.getType()).iterator().next();
 		return !Orebfuscator.config.isBlockTransparent(materialId);
 	}
 
@@ -63,7 +63,7 @@ public class BlockUpdate {
 
 		for (Block block : blocks) {
 			if (needsUpdate(block)) {
-				IBlockInfo blockInfo = NmsInstance.current.getBlockInfo(world, block.getX(), block.getY(),
+				IBlockInfo blockInfo = NmsInstance.get().getBlockInfo(world, block.getX(), block.getY(),
 						block.getZ());
 
 				getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
@@ -97,7 +97,7 @@ public class BlockUpdate {
 		HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
 
 		for (Location location : locations) {
-			IBlockInfo blockInfo = NmsInstance.current.getBlockInfo(world, location.getBlockX(), location.getBlockY(),
+			IBlockInfo blockInfo = NmsInstance.get().getBlockInfo(world, location.getBlockX(), location.getBlockY(),
 					location.getBlockZ());
 
 			getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
@@ -123,7 +123,7 @@ public class BlockUpdate {
 		// blocks");/*debug*/
 
 		for (IBlockInfo blockInfo : blocks) {
-			NmsInstance.current.notifyBlockChange(world, blockInfo);
+			NmsInstance.get().notifyBlockChange(world, blockInfo);
 		}
 	}
 
@@ -154,12 +154,12 @@ public class BlockUpdate {
 
 		if (countdown > 0) {
 			countdown--;
-			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.current.getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()), countdown);
-			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.current.getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()), countdown);
-			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.current.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()), countdown);
-			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.current.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()), countdown);
-			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.current.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1), countdown);
-			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.current.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1), countdown);
+			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.get().getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()), countdown);
+			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.get().getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()), countdown);
+			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()), countdown);
+			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()), countdown);
+			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1), countdown);
+			getAdjacentBlocks(allBlocks, world, worldConfig, NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1), countdown);
 		}
 	}
 }

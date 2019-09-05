@@ -39,7 +39,6 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.logger.OFCLogger;
-import com.lishid.orebfuscator.utils.MaterialHelper;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -59,11 +58,10 @@ public class Orebfuscator extends JavaPlugin {
 		instance = this;
 
 		// Calling the class to initialize and returning with error message when no version is available
-		if (NmsInstance.current == null)
+		if (NmsInstance.get() == null)
 			return;
 
-		MaterialHelper.init();
-		ChunkMapBuffer.init(NmsInstance.current.getBitsPerBlock());
+		ChunkMapBuffer.init(NmsInstance.get().getBitsPerBlock());
 
 		// Load configurations
 		loadOrebfuscatorConfig();
@@ -119,7 +117,7 @@ public class Orebfuscator extends JavaPlugin {
 
 		ObfuscatedDataCache.resetCacheFolder();
 
-		NmsInstance.current.setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
+		NmsInstance.get().setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
 
 		// Make sure cache is cleared if config was changed since last start
 		try {

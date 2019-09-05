@@ -5,45 +5,45 @@
 
 package com.lishid.orebfuscator.utils;
 
-import com.lishid.orebfuscator.NmsInstance;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bukkit.Material;
 
-import java.util.HashMap;
-import java.util.Set;
+import com.lishid.orebfuscator.NmsInstance;
 
 public class MaterialHelper {
 
-	private static HashMap<Integer, Material> _blocks;
+	private static final Map<Integer, Material> blocks = MaterialHelper.getAllMaterials();
+	private static final int highestBlockId = MaterialHelper.getHighestBlockId();
 
-	public static void init() {
-		MaterialHelper._blocks = new HashMap<>();
+	private static Map<Integer, Material> getAllMaterials() {
+		Map<Integer, Material> blocks = new HashMap<Integer, Material>();
 
-		Material[] allMaterials = Material.values();
+		Arrays.stream(Material.values())
+			.filter(material -> material.isBlock())
+			.forEach(material -> NmsInstance.get().getMaterialIds(material).forEach(id -> blocks.put(id, material)));
 
-		for (Material material : allMaterials) {
-			if (material.isBlock()) {
-				Set<Integer> ids = NmsInstance.current.getMaterialIds(material);
-
-				for (int id : ids) {
-					MaterialHelper._blocks.put(id, material);
-				}
-			}
-		}
+		return blocks;
 	}
 
-	public static Material getById(int combinedBlockId) {
-		return MaterialHelper._blocks.get(combinedBlockId);
-	}
-
-	public static int getMaxId() {
+	private static int getHighestBlockId() {
 		int maxId = -1;
 
-		for (int id : MaterialHelper._blocks.keySet()) {
-			if (id > maxId) {
+		for (int id : MaterialHelper.blocks.keySet()) {
+			if (id > maxId)
 				maxId = id;
-			}
 		}
 
 		return maxId;
+	}
+
+	public static Material getById(int combinedBlockId) {
+		return MaterialHelper.blocks.get(combinedBlockId);
+	}
+
+	public static int getMaxId() {
+		return MaterialHelper.highestBlockId;
 	}
 }

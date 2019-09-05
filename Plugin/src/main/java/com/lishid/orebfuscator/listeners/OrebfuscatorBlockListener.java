@@ -64,7 +64,7 @@ public class OrebfuscatorBlockListener implements Listener {
 
 		Material blockMaterial = event.getBlock().getRelative(0, -1, 0).getType();
 
-		if (!NmsInstance.current.canApplyPhysics(blockMaterial)) {
+		if (!NmsInstance.get().canApplyPhysics(blockMaterial)) {
 			return;
 		}
 

@@ -6,8 +6,12 @@
 package com.lishid.orebfuscator.chunkmap;
 
 public class ChunkMapBuffer {
+
 	private static int _bitsPerBlock;
-	public static int getBitsPerBlock() { return _bitsPerBlock; }
+
+	public static int getBitsPerBlock() {
+		return _bitsPerBlock;
+	}
 
 	private static final int BITS_PER_BLOCK_SIZE = 1;
 	private static final int PALETTE_LENGTH_SIZE = 5;
@@ -22,16 +26,13 @@ public class ChunkMapBuffer {
 	public static void init(int bitsPerBlock) {
 		_bitsPerBlock = bitsPerBlock;
 
-		MAX_BYTES_PER_CHUNK =
-				COLUMNS_PER_CHUNK *
-						(
-								BITS_PER_BLOCK_SIZE
-										+ PALETTE_LENGTH_SIZE
-										+ DATA_ARRAY_LENGTH_SIZE
-										+ (BLOCKS_PER_CHUNK_SECTION * _bitsPerBlock / 8)
-										+ BLOCK_LIGHT_SIZE
-										+ SKY_LIGHT_SIZE
-						);
+		MAX_BYTES_PER_CHUNK = COLUMNS_PER_CHUNK * (
+				BITS_PER_BLOCK_SIZE
+				+ PALETTE_LENGTH_SIZE
+				+ DATA_ARRAY_LENGTH_SIZE
+				+ (BLOCKS_PER_CHUNK_SECTION * _bitsPerBlock / 8)
+				+ BLOCK_LIGHT_SIZE + SKY_LIGHT_SIZE
+			);
 	}
 
 	public int[] palette;
@@ -42,7 +43,7 @@ public class ChunkMapBuffer {
 	public ChunkLayer prevLayer;
 	public ChunkLayer curLayer;
 	public ChunkLayer nextLayer;
-	
+
 	public int bitsPerBlock;
 	public int paletteLength;
 	public int dataArrayLength;
@@ -50,9 +51,9 @@ public class ChunkMapBuffer {
 	public int dataArrayStartIndex;
 	public int outputPaletteLength;
 	public int outputBitsPerBlock;
-    
+
 	public ChunkMapBuffer() {
-    	this.palette = new int[256];
+		this.palette = new int[256];
 		this.output = new byte[MAX_BYTES_PER_CHUNK];
 		this.outputPalette = new int[256];
 		this.outputPaletteMap = new byte[65536];
@@ -64,7 +65,7 @@ public class ChunkMapBuffer {
 		this.nextLayer = new ChunkLayer();
 		this.nextLayer.map = new int[16 * 16];
 	}
-	
+
 	public void clearLayers() {
 		this.prevLayer.hasData = false;
 		this.curLayer.hasData = false;

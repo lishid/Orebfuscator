@@ -179,12 +179,12 @@ public class ProximityHider extends Thread implements Runnable {
 										// 4.3.1 -- GAZE CHECK END
 										removedBlocks.add(b);
 
-										if (NmsInstance.current.sendBlockChange(p, blockLocation)) {
+										if (NmsInstance.get().sendBlockChange(p, blockLocation)) {
 											final BlockCoord block = b;
 											final Player player = p;
 											Orebfuscator.instance.runTask(new Runnable() {
 												public void run() {
-													NmsInstance.current.updateBlockTileEntity(block, player);
+													NmsInstance.get().updateBlockTileEntity(block, player);
 												}
 											});
 										}
@@ -270,7 +270,7 @@ public class ProximityHider extends Thread implements Runnable {
 			if (lx == bx && ly == by && lz == bz)
 				return true; // we've reached our starting block, don't test it.
 
-			IBlockInfo between = NmsInstance.current.getBlockInfo(world, (int) lx, (int) ly, (int) lz);
+			IBlockInfo between = NmsInstance.get().getBlockInfo(world, (int) lx, (int) ly, (int) lz);
 			if (between != null && !Orebfuscator.config.isBlockTransparent(between.getCombinedId())) {
 				return false; // fail on first hit, this ray is "blocked"
 			}

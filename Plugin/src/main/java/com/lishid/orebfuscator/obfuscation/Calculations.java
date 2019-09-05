@@ -245,7 +245,7 @@ public class Calculations {
 										}
 
 										if (randomCave > 0) {
-											blockData = NmsInstance.current.getCaveAirBlockId();
+											blockData = NmsInstance.get().getCaveAirBlockId();
 											randomCave--;
 										}
 									}
@@ -256,7 +256,7 @@ public class Calculations {
 							if (!obfuscate && darknessBlockFlag && worldConfig.isDarknessHideBlocks()) {
 								if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
 									// Hide block, setting it to air
-									blockData = NmsInstance.current.getCaveAirBlockId();
+									blockData = NmsInstance.get().getCaveAirBlockId();
 									obfuscate = true;
 								}
 							}
@@ -292,7 +292,7 @@ public class Calculations {
 	}
 
 	private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, int blockData) {
-		if (!NmsInstance.current.isSign(blockData)) {
+		if (!NmsInstance.get().isSign(blockData)) {
 			return true;
 		}
 
@@ -314,7 +314,7 @@ public class Calculations {
 			return true;
 		}
 
-		String text = NmsInstance.current.getTextFromChatComponent(json);
+		String text = NmsInstance.get().getTextFromChatComponent(json);
 
 		return text == null || text.isEmpty();
 	}
@@ -384,7 +384,7 @@ public class Calculations {
 			int blockData = manager.get(x, y, z);
 
 			if (blockData < 0) {
-				blockData = NmsInstance.current.loadChunkAndGetBlockId(world, x, y, z);
+				blockData = NmsInstance.get().loadChunkAndGetBlockId(world, x, y, z);
 
 				if (blockData < 0) {
 					chunkData.useCache = false;
@@ -416,7 +416,7 @@ public class Calculations {
 	}
 
 	public static boolean areAjacentBlocksBright(World world, int x, int y, int z, int countdown) {
-		if (NmsInstance.current.getBlockLightLevel(world, x, y, z) > 0) {
+		if (NmsInstance.get().getBlockLightLevel(world, x, y, z) > 0) {
 			return true;
 		}
 

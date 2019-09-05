@@ -45,14 +45,14 @@ public class WorldConfig {
 		this.obfuscateBlocks = new HashSet<>();
 
 		this.darknessBlocks = new HashSet<>();
-		for (int blockId : NmsInstance.current.getConfigDefaults().defaultDarknessBlockIds) {
+		for (int blockId : NmsInstance.get().getConfigDefaults().defaultDarknessBlockIds) {
 			this.darknessBlocks.add(blockId);
 		}
 
 		this.randomBlocks = new Integer[0];
 		this.randomBlocks2 = this.randomBlocks;
 
-		this.mode1BlockId = NmsInstance.current.getConfigDefaults().defaultMode1BlockId;
+		this.mode1BlockId = NmsInstance.get().getConfigDefaults().defaultMode1BlockId;
 		this.paletteBlocks = null;
 
 		this.proximityHiderConfig.setDefaults();
@@ -204,7 +204,7 @@ public class WorldConfig {
 			if (isProximityHider)
 				bits |= Globals.MASK_PROXIMITYHIDER;
 
-			if (NmsInstance.current.isTileEntity(blockId))
+			if (NmsInstance.get().isTileEntity(blockId))
 				bits |= Globals.MASK_TILEENTITY;
 
 			this.obfuscateAndProximityBlocks[blockId] = (byte) bits;
@@ -257,7 +257,7 @@ public class WorldConfig {
 
 		HashSet<Integer> map = new HashSet<Integer>();
 
-		map.add(NmsInstance.current.getCaveAirBlockId());
+		map.add(NmsInstance.get().getCaveAirBlockId());
 		map.add(this.mode1BlockId);
 
 		if (this.proximityHiderConfig.isUseSpecialBlock())

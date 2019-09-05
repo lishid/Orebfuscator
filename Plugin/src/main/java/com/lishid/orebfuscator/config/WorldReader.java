@@ -191,13 +191,13 @@ public class WorldReader {
 
 		switch (worldType) {
 		case Normal:
-			requiredObfuscateBlockIds = NmsInstance.current.getConfigDefaults().normalWorldRequiredObfuscateBlockIds;
+			requiredObfuscateBlockIds = NmsInstance.get().getConfigDefaults().normalWorldRequiredObfuscateBlockIds;
 			break;
 		case TheEnd:
-			requiredObfuscateBlockIds = NmsInstance.current.getConfigDefaults().endWorldRequiredObfuscateBlockIds;
+			requiredObfuscateBlockIds = NmsInstance.get().getConfigDefaults().endWorldRequiredObfuscateBlockIds;
 			break;
 		case Nether:
-			requiredObfuscateBlockIds = NmsInstance.current.getConfigDefaults().netherWorldRequiredObfuscateBlockIds;
+			requiredObfuscateBlockIds = NmsInstance.get().getConfigDefaults().netherWorldRequiredObfuscateBlockIds;
 			break;
 		default:
 			requiredObfuscateBlockIds = null;
@@ -330,14 +330,14 @@ public class WorldReader {
 	}
 
 	private WorldConfig createNormalWorld(String worldPath) {
-		Integer[] randomBlocks = cloneIntArray(NmsInstance.current.getConfigDefaults().normalWorldRandomBlockIds);
+		Integer[] randomBlocks = cloneIntArray(NmsInstance.get().getConfigDefaults().normalWorldRandomBlockIds);
 		Integer[] obfuscateBlockIds = mergeIntArrays(
-				NmsInstance.current.getConfigDefaults().normalWorldObfuscateBlockIds,
-				NmsInstance.current.getConfigDefaults().normalWorldRequiredObfuscateBlockIds);
+				NmsInstance.get().getConfigDefaults().normalWorldObfuscateBlockIds,
+				NmsInstance.get().getConfigDefaults().normalWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "NORMAL" });
 
-		int mode1BlockId = NmsInstance.current.getConfigDefaults().normalWorldMode1BlockId;
+		int mode1BlockId = NmsInstance.get().getConfigDefaults().normalWorldMode1BlockId;
 
 		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
@@ -352,13 +352,13 @@ public class WorldReader {
 	}
 
 	private WorldConfig createEndWorld(String worldPath) {
-		Integer[] randomBlocks = cloneIntArray(NmsInstance.current.getConfigDefaults().endWorldRandomBlockIds);
-		Integer[] obfuscateBlockIds = mergeIntArrays(NmsInstance.current.getConfigDefaults().endWorldObfuscateBlockIds,
-				NmsInstance.current.getConfigDefaults().endWorldRequiredObfuscateBlockIds);
+		Integer[] randomBlocks = cloneIntArray(NmsInstance.get().getConfigDefaults().endWorldRandomBlockIds);
+		Integer[] obfuscateBlockIds = mergeIntArrays(NmsInstance.get().getConfigDefaults().endWorldObfuscateBlockIds,
+				NmsInstance.get().getConfigDefaults().endWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "THE_END" });
 
-		int mode1BlockId = NmsInstance.current.getConfigDefaults().endWorldMode1BlockId;
+		int mode1BlockId = NmsInstance.get().getConfigDefaults().endWorldMode1BlockId;
 
 		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
@@ -373,14 +373,14 @@ public class WorldReader {
 	}
 
 	private WorldConfig createNetherWorld(String worldPath) {
-		Integer[] randomBlocks = cloneIntArray(NmsInstance.current.getConfigDefaults().netherWorldRandomBlockIds);
+		Integer[] randomBlocks = cloneIntArray(NmsInstance.get().getConfigDefaults().netherWorldRandomBlockIds);
 		Integer[] obfuscateBlockIds = mergeIntArrays(
-				NmsInstance.current.getConfigDefaults().netherWorldObfuscateBlockIds,
-				NmsInstance.current.getConfigDefaults().netherWorldRequiredObfuscateBlockIds);
+				NmsInstance.get().getConfigDefaults().netherWorldObfuscateBlockIds,
+				NmsInstance.get().getConfigDefaults().netherWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "NETHER" });
 
-		int mode1BlockId = NmsInstance.current.getConfigDefaults().netherWorldMode1BlockId;
+		int mode1BlockId = NmsInstance.get().getConfigDefaults().netherWorldMode1BlockId;
 
 		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);

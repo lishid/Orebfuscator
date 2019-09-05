@@ -132,7 +132,7 @@ public class MaterialReader {
 				Material obj = Material.getMaterial(materialName.toUpperCase());
 
 				if (obj != null) {
-					materialIds = NmsInstance.current.getMaterialIds(obj);
+					materialIds = NmsInstance.get().getMaterialIds(obj);
 				} else {
 					if (defaultMaterialId != null) {
 						this.logger.info(String.format("%sMaterial %s is not found. Will be used default material: %s", Globals.LogPrefix, materialName, defaultMaterialName));

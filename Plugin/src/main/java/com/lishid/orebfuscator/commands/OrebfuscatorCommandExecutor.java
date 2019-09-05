@@ -195,7 +195,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 			if (material == null) {
 				OFCLogger.message(sender, ChatColor.RED + "Specified material is not found.");
 			} else {
-				int materialId = NmsInstance.current.getMaterialIds(material).iterator().next();
+				int materialId = NmsInstance.get().getMaterialIds(material).iterator().next();
 
 				if ((Orebfuscator.configManager.getWorld(world).getObfuscatedBits(materialId) & Globals.MASK_OBFUSCATE) != 0)
 					OFCLogger.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
@@ -211,7 +211,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 
 		for (Material material : materials) {
 			if (material.isBlock()) {
-				int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
+				int blockId = NmsInstance.get().getMaterialIds(material).iterator().next();
 				int bits = Orebfuscator.configManager.getWorld(world).getObfuscatedBits(blockId);
 
 				if (bits != 0) {
@@ -296,7 +296,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 
 		for (Material material : materials) {
 			if (material.isBlock())
-				NmsInstance.current.getMaterialIds(material).stream().sorted().forEach(id -> blockNames.add(material.name() + " = " + id));
+				NmsInstance.get().getMaterialIds(material).stream().sorted().forEach(id -> blockNames.add(material.name() + " = " + id));
 		}
 
 		OFCLogger.message(sender, blockNames.isEmpty() ? "" : (" - " + blockNames.stream().sorted().collect(Collectors.joining("\n - "))));
@@ -310,7 +310,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 
 		for (Material material : materials) {
 			if (material.isBlock()) {
-				int blockId = NmsInstance.current.getMaterialIds(material).iterator().next();
+				int blockId = NmsInstance.get().getMaterialIds(material).iterator().next();
 				boolean isTransparent = Orebfuscator.config.isBlockTransparent(blockId);
 
 				if (isTransparent) {

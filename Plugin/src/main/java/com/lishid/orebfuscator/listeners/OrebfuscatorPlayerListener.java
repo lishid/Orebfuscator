@@ -72,7 +72,7 @@ public class OrebfuscatorPlayerListener implements Listener {
 		// For using a hoe for farming
 		if (event.getItem() != null && event.getItem().getType() != null
 				&& (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS)
-				&& NmsInstance.current.isHoe(event.getItem().getType())) {
+				&& NmsInstance.get().isHoe(event.getItem().getType())) {
 			BlockUpdate.update(event.getClickedBlock());
 		}
 	}

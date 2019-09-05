@@ -45,13 +45,13 @@ public class ProximityHiderConfig {
 		this.enabled = true;
 		this.distance = 8;
 		this.distanceSquared = this.distance * this.distance;
-		this.specialBlockID = NmsInstance.current.getConfigDefaults().defaultProximityHiderSpecialBlockId;
+		this.specialBlockID = NmsInstance.get().getConfigDefaults().defaultProximityHiderSpecialBlockId;
 		this.y = 255;
 		this.useSpecialBlock = true;
 		this.obfuscateAboveY = false;
 		this.useFastGazeCheck = true;
 
-		this.proximityHiderBlocks = Arrays.stream(NmsInstance.current.getConfigDefaults().defaultProximityHiderBlockIds).boxed().collect(Collectors.toCollection(HashSet::new));
+		this.proximityHiderBlocks = Arrays.stream(NmsInstance.get().getConfigDefaults().defaultProximityHiderBlockIds).boxed().collect(Collectors.toCollection(HashSet::new));
 	}
 
 	public void init(ProximityHiderConfig baseCfg) {
