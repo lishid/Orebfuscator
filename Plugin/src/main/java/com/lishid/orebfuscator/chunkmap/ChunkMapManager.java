@@ -233,7 +233,7 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	public int readNextBlock() throws IOException {
-		if (this.blockIndex == 16 * 16) {
+		if (this.blockIndex == 256) { // 16 * 16
 			if (!moveToNextLayer())
 				return -1;
 		}

@@ -21,16 +21,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.lishid.orebfuscator.NmsInstance;
-
-import com.lishid.orebfuscator.utils.Globals;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtType;
-
+import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
@@ -38,7 +35,9 @@ import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
 import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.config.WorldConfig;
+import com.lishid.orebfuscator.logger.OFCLogger;
 import com.lishid.orebfuscator.types.BlockCoord;
+import com.lishid.orebfuscator.utils.Globals;
 
 public class Calculations {
 
@@ -79,15 +78,14 @@ public class Calculations {
 
 					cache.write(cache.hash, output, proximityList, removedEntityList);
 
-					// Orebfuscator.log("Write to cache");/*debug*/
+					// Orebfuscator.log("Write to cache");/*debug*//*
 				}
 
 				cache.free();
 			}
 		}
 
-		// Orebfuscator.log("Send chunk x = " + chunkData.chunkX + ", z = " +
-		// chunkData.chunkZ + " to player " + player.getName());/*debug*/
+		OFCLogger.log("Send chunk x = " + chunkData.chunkX + ", z = " + chunkData.chunkZ + " to player " + player.getName());/*debug*/
 
 		Result result = new Result();
 		result.output = output;
@@ -182,10 +180,8 @@ public class Calculations {
 							if (obfuscateFlag) {
 								if (initialRadius == 0) {
 									// Do not interfere with PH
-									if (proximityHiderFlag && proximityHider.isEnabled()
-											&& proximityHider.isProximityObfuscated(y, blockData)) {
-										if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z,
-												1)) {
+									if (proximityHiderFlag && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockData)) {
+										if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
 											obfuscate = true;
 										}
 									} else {
@@ -194,8 +190,7 @@ public class Calculations {
 									}
 								} else {
 									// Check if any nearby blocks are transparent
-									if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z,
-											initialRadius)) {
+									if (!areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
 										obfuscate = true;
 									}
 								}
@@ -228,8 +223,7 @@ public class Calculations {
 									} else if (engineMode == 2) {
 										// Ending mode 2, replace with random block
 										if (randomBlocksLength > 1) {
-											randomIncrement = CalculationsUtil.increment(randomIncrement,
-													randomBlocksLength);
+											randomIncrement = CalculationsUtil.increment(randomIncrement, randomBlocksLength);
 										}
 
 										blockData = worldConfig.getRandomBlock(randomIncrement, randomAlternate);
