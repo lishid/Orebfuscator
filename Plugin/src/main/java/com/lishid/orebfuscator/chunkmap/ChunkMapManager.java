@@ -67,7 +67,7 @@ public class ChunkMapManager implements AutoCloseable {
 		manager.minZ = chunkData.chunkZ << 4;
 		manager.maxZ = manager.minZ + 15;
 
-		manager.buffer.lightArrayLength = 2048;
+		manager.buffer.lightArrayLength = NmsInstance.get().hasLightArray() ? 2048 : 0;
 
 		if (chunkData.isOverworld) {
 			manager.buffer.lightArrayLength <<= 1;
@@ -146,6 +146,10 @@ public class ChunkMapManager implements AutoCloseable {
 
 		this.buffer.writer.setBitsPerBlock(this.buffer.outputBitsPerBlock);
 
+		// Block count
+		if(NmsInstance.get().hasBlockCount())
+		    this.buffer.writer.writeShort((short) this.buffer.blockCount);
+		
 		// Bits Per Block
 		this.buffer.writer.writeByte((byte) this.buffer.outputBitsPerBlock);
 
@@ -355,6 +359,8 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	private void readSectionHeader() throws IOException {
+	    if(NmsInstance.get().hasBlockCount())
+	            this.buffer.blockCount = this.reader.readShort();
 		this.buffer.bitsPerBlock = this.reader.readByte();
 		this.buffer.paletteLength = this.reader.readVarInt();
 

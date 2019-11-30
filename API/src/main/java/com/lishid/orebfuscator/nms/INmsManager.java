@@ -55,4 +55,8 @@ public interface INmsManager {
 	Set<Integer> getMaterialIds(Material material);
 
 	boolean sendBlockChange(Player player, Location blockLocation);
+
+    default boolean hasLightArray() { return true; }
+    
+    default boolean hasBlockCount() { return false; };
 }
