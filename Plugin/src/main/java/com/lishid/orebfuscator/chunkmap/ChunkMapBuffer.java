@@ -44,6 +44,7 @@ public class ChunkMapBuffer {
 	public ChunkLayer curLayer;
 	public ChunkLayer nextLayer;
 
+    public int blockCount;
 	public int bitsPerBlock;
 	public int paletteLength;
 	public int dataArrayLength;

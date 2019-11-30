@@ -99,4 +99,11 @@ public class ChunkReader {
 
 		return this.data[this.byteIndex++] & 0xff;
 	}
+
+    public int readShort() throws IOException {
+        int b1 = readByte();
+        int b2 = readByte();
+        
+        return (b1 << 8) | b2;
+    }
 }

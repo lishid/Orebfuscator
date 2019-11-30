@@ -561,23 +561,8 @@ public class NmsManager implements INmsManager {
 		int chunkZ = z >> 4;
 
 		WorldServer worldServer = ((CraftWorld) world).getHandle();
-		// like in ChunkCache, NMS change without R increment.
-		ChunkProviderServer chunkProviderServer = null;
-		try {
-			Method getChunkProviderServer = worldServer.getClass().getDeclaredMethod("getChunkProviderServer");
-			chunkProviderServer = (ChunkProviderServer) getChunkProviderServer.invoke(worldServer);
-		} catch (NoSuchMethodException nmfe) {
-			try {
-				Method getChunkProvider = worldServer.getClass().getDeclaredMethod("getChunkProvider");
-				chunkProviderServer = (ChunkProviderServer) getChunkProvider.invoke(worldServer);
-			} catch (NoSuchMethodException nsme) {
-				return null; // oops
-			} catch (Exception e) {
-				return null;
-			}
-		} catch (Exception e) {
-			return null;
-		}
+		ChunkProviderServer chunkProviderServer = worldServer.getChunkProvider();
+
 		if (!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ))
 			return null;
 
@@ -608,4 +593,15 @@ public class NmsManager implements INmsManager {
 
 		return result;
 	}
+	
+	@Override
+	public boolean hasLightArray() {
+	    return false;
+	}
+	
+	@Override
+	public boolean hasBlockCount() {
+	    return true;
+	}
+	
 }

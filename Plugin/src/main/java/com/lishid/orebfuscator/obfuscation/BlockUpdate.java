@@ -68,14 +68,16 @@ public class BlockUpdate {
 
 				getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
 
-				if ((blockInfo.getX() & 0xf) == 0) {
-					invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4));
-				} else if (((blockInfo.getX() + 1) & 0xf) == 0) {
-					invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) + 1, blockInfo.getZ() >> 4));
-				} else if (((blockInfo.getZ()) & 0xf) == 0) {
-					invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) - 1));
-				} else if (((blockInfo.getZ() + 1) & 0xf) == 0) {
-					invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) + 1));
+				if(blockInfo != null) {
+    				if ((blockInfo.getX() & 0xf) == 0) {
+    					invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4));
+    				} else if (((blockInfo.getX() + 1) & 0xf) == 0) {
+    					invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) + 1, blockInfo.getZ() >> 4));
+    				} else if (((blockInfo.getZ()) & 0xf) == 0) {
+    					invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) - 1));
+    				} else if (((blockInfo.getZ() + 1) & 0xf) == 0) {
+    					invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) + 1));
+    				}
 				}
 			}
 		}
@@ -102,14 +104,16 @@ public class BlockUpdate {
 
 			getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
 
-			if ((blockInfo.getX() & 0xf) == 0) {
-				invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4));
-			} else if (((blockInfo.getX() + 1) & 0xf) == 0) {
-				invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) + 1, blockInfo.getZ() >> 4));
-			} else if (((blockInfo.getZ()) & 0xf) == 0) {
-				invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) - 1));
-			} else if (((blockInfo.getZ() + 1) & 0xf) == 0) {
-				invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) + 1));
+			if(blockInfo != null) {
+    			if ((blockInfo.getX() & 0xf) == 0) {
+    				invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4));
+    			} else if (((blockInfo.getX() + 1) & 0xf) == 0) {
+    				invalidChunks.add(new ChunkCoord((blockInfo.getX() >> 4) + 1, blockInfo.getZ() >> 4));
+    			} else if (((blockInfo.getZ()) & 0xf) == 0) {
+    				invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) - 1));
+    			} else if (((blockInfo.getZ() + 1) & 0xf) == 0) {
+    				invalidChunks.add(new ChunkCoord(blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) + 1));
+    			}
 			}
 		}
 

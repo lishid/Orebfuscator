@@ -105,4 +105,13 @@ public class ChunkWriter {
 
 		this.data[this.byteIndex++] = (byte) value;
 	}
+
+    public void writeShort(int blockCount) throws IOException {
+        if (this.byteIndex + 1 >= this.data.length) {
+            throw new IOException("No space to write.");
+        }
+
+        this.data[this.byteIndex++] = (byte) (blockCount >> 8);
+        this.data[this.byteIndex++] = (byte) (blockCount >> 0);
+    }
 }
