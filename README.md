@@ -6,6 +6,7 @@
 The definitive Anti X-Ray plugin for CraftBukkit
 
 ### Changelog:
+- Updated to support 1.14 - 1.14.4 (Thanks SydMontague and NgLoader)
 - Updated to support 1.11 - 1.11.2
 - Updated to support 1.10 (Thanks Asgorioth)
 - Updated to support 1.9.4
@@ -13,7 +14,7 @@ The definitive Anti X-Ray plugin for CraftBukkit
 
 ### Requirements:
 - Java 1.6 / 1.7 / 1.8
-- Spigot/PaperSpigot and any other fork of CraftBukkit! (1.9 through 1.10)
+- Spigot/PaperSpigot and any other fork of CraftBukkit! (1.9 through 1.14.*)
 - ProtocolLib (4.0 or better)
 
 ### License:
