@@ -1,6 +1,6 @@
 <img align="right" src="https://raw.githubusercontent.com/DevotedMC/Orebfuscator/master/Oreb.png" height="200" width="200">
 
-# Orebfuscator - Anti X-Ray [![Build Status](https://github.com/TeamWuffy/Orebfuscator/workflows/Build/badge.svg)](https://github.com/TeamWuffy/Orebfuscator/actions?query=workflow%3ABuild) [![Release Status](https://github.com/TeamWuffy/Orebfuscator/workflows/Releases/badge.svg)(https://github.com/TeamWuffy/Orebfuscator/releases/latest)
+# Orebfuscator - Anti X-Ray [![Build Status](https://github.com/TeamWuffy/Orebfuscator/workflows/Build/badge.svg)](https://github.com/TeamWuffy/Orebfuscator/actions?query=workflow%3ABuild) [![Release Status](https://github.com/TeamWuffy/Orebfuscator/workflows/Releases/badge.svg)](https://github.com/TeamWuffy/Orebfuscator/releases/latest)
 
 ### Description
 The definitive Anti X-Ray plugin for CraftBukkit
