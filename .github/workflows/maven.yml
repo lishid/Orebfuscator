@@ -1,4 +1,4 @@
-name: Orebfuscator Build CI
+name: Build
 
 on:
   push:
@@ -23,5 +23,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: Artifacts
+        name: Plugin
         path: dist/
