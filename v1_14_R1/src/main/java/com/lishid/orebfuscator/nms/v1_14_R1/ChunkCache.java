@@ -17,6 +17,7 @@ import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_14_R1.RegionFile;
 
 public class ChunkCache implements IChunkCache {
+
 	private static final HashMap<File, RegionFile> cachedRegionFiles = new HashMap<File, RegionFile>();
 
 	private int maxLoadedCacheFiles;
@@ -26,24 +27,26 @@ public class ChunkCache implements IChunkCache {
 	}
 
 	public DataInputStream getInputStream(File folder, int x, int z) {
-		RegionFile regionFile = getRegionFile(folder, x, z);
+		RegionFile regionFile = this.getRegionFile(folder, x, z);
 		return regionFile.a(new ChunkCoordIntPair(x & 0x1F, z & 0x1F));
 	}
 
 	public DataOutputStream getOutputStream(File folder, int x, int z) {
-		RegionFile regionFile = getRegionFile(folder, x, z);
+		RegionFile regionFile = this.getRegionFile(folder, x, z);
 		return regionFile.c(new ChunkCoordIntPair(x & 0x1F, z & 0x1F));
 	}
 
 	public void closeCacheFiles() {
-		closeCacheFilesInternal();
+		this.closeCacheFilesInternal();
 	}
 
 	private synchronized RegionFile getRegionFile(File folder, int x, int z) {
 		File path = new File(folder, "region");
 		File file = new File(path, "r." + (x >> 5) + "." + (z >> 5) + ".mcr");
+
 		try {
 			RegionFile regionFile = cachedRegionFiles.get(file);
+
 			if (regionFile != null) {
 				return regionFile;
 			}
@@ -63,7 +66,8 @@ public class ChunkCache implements IChunkCache {
 		} catch (Exception e) {
 			try {
 				file.delete();
-			} catch (Exception e2) { }
+			} catch (Exception e2) {
+			}
 		}
 		return null;
 	}

@@ -17,7 +17,6 @@ public class FileHelper {
 			return null;
 
 		StringBuilder text = new StringBuilder("");
-
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 
 		try {
@@ -30,14 +29,13 @@ public class FileHelper {
 		} finally {
 			reader.close();
 		}
-
 		return text.toString();
 	}
 
 	public static void delete(File file) {
 		if (file.isDirectory()) {
 			for (File child : file.listFiles())
-				delete(child);
+				FileHelper.delete(child);
 		}
 
 		file.delete();

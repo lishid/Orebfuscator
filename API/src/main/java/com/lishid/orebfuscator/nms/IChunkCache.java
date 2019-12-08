@@ -10,9 +10,10 @@ import java.io.DataOutputStream;
 import java.io.File;
 
 public interface IChunkCache {
-    DataInputStream getInputStream(File folder, int x, int z);
 
-    DataOutputStream getOutputStream(File folder, int x, int z);
-    
-    void closeCacheFiles();
+	DataInputStream getInputStream(File folder, int x, int z);
+
+	DataOutputStream getOutputStream(File folder, int x, int z);
+
+	void closeCacheFiles();
 }

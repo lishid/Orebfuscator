@@ -17,49 +17,50 @@ import net.minecraft.server.v1_14_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_14_R1.NBTTagCompound;
 
 public class NBT implements INBT {
-    NBTTagCompound nbt = new NBTTagCompound();
 
-    public void reset() {
-        nbt = new NBTTagCompound();
-    }
+	NBTTagCompound nbt = new NBTTagCompound();
 
-    public void setInt(String tag, int value) {
-        nbt.setInt(tag, value);
-    }
+	public void reset() {
+		this.nbt = new NBTTagCompound();
+	}
 
-    public void setLong(String tag, long value) {
-        nbt.setLong(tag, value);
-    }
+	public void setInt(String tag, int value) {
+		this.nbt.setInt(tag, value);
+	}
 
-    public void setByteArray(String tag, byte[] value) {
-        nbt.setByteArray(tag, value);
-    }
+	public void setLong(String tag, long value) {
+		this.nbt.setLong(tag, value);
+	}
 
-    public void setIntArray(String tag, int[] value) {
-        nbt.setIntArray(tag, value);
-    }
+	public void setByteArray(String tag, byte[] value) {
+		this.nbt.setByteArray(tag, value);
+	}
 
-    public int getInt(String tag) {
-        return nbt.getInt(tag);
-    }
+	public void setIntArray(String tag, int[] value) {
+		this.nbt.setIntArray(tag, value);
+	}
 
-    public long getLong(String tag) {
-        return nbt.getLong(tag);
-    }
+	public int getInt(String tag) {
+		return this.nbt.getInt(tag);
+	}
 
-    public byte[] getByteArray(String tag) {
-        return nbt.getByteArray(tag);
-    }
+	public long getLong(String tag) {
+		return this.nbt.getLong(tag);
+	}
 
-    public int[] getIntArray(String tag) {
-        return nbt.getIntArray(tag);
-    }
+	public byte[] getByteArray(String tag) {
+		return this.nbt.getByteArray(tag);
+	}
 
-    public void Read(DataInput stream) throws IOException {
-        nbt = NBTCompressedStreamTools.a((DataInputStream) stream);
-    }
+	public int[] getIntArray(String tag) {
+		return this.nbt.getIntArray(tag);
+	}
 
-    public void Write(DataOutput stream) throws IOException {
-        NBTCompressedStreamTools.a(nbt, stream);
-    }
+	public void Read(DataInput stream) throws IOException {
+		this.nbt = NBTCompressedStreamTools.a((DataInputStream) stream);
+	}
+
+	public void Write(DataOutput stream) throws IOException {
+		NBTCompressedStreamTools.a(this.nbt, stream);
+	}
 }

@@ -14,7 +14,6 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.lishid.orebfuscator.DeprecatedMethods;
 import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.utils.Globals;
 import com.lishid.orebfuscator.utils.MaterialHelper;
@@ -262,11 +261,12 @@ public class ConfigManager {
 		return getBoolean(path, defaultData, true);
 	}
 
+	@SuppressWarnings("deprecation")
 	private byte[] generateTransparentBlocks(int engineMode) {
 		byte[] transparentBlocks = new byte[MaterialHelper.getMaxId() + 1];
 
 		Arrays.stream(Material.values())
-			.filter(material -> material.isBlock() && DeprecatedMethods.isTransparent(material))
+			.filter(material -> material.isBlock() && material.isTransparent())
 			.forEach(material -> NmsInstance.get().getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
 
 		Arrays.stream(NmsInstance.get().getExtraTransparentBlocks())

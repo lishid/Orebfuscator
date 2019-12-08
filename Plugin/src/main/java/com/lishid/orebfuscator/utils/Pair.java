@@ -5,7 +5,6 @@ import java.util.Map;
 public class Pair<K, V> implements Map.Entry<K, V> {
 
 	private final K key;
-
 	private V value;
 
 	public Pair(K key, V value) {

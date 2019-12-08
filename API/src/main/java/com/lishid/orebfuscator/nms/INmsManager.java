@@ -16,33 +16,34 @@ import com.lishid.orebfuscator.types.BlockCoord;
 import java.util.Set;
 
 public interface INmsManager {
-    ConfigDefaults getConfigDefaults();
 
-    Material[] getExtraTransparentBlocks();
+	ConfigDefaults getConfigDefaults();
 
-    void setMaxLoadedCacheFiles(int value);
-	
+	Material[] getExtraTransparentBlocks();
+
+	void setMaxLoadedCacheFiles(int value);
+
 	INBT createNBT();
-	
-	IChunkCache createChunkCache();
-	
-    void updateBlockTileEntity(BlockCoord blockCoord, Player player);
 
-    void notifyBlockChange(World world, IBlockInfo blockInfo);
-    
-    int getBlockLightLevel(World world, int x, int y, int z);
-    
+	IChunkCache createChunkCache();
+
+	void updateBlockTileEntity(BlockCoord blockCoord, Player player);
+
+	void notifyBlockChange(World world, IBlockInfo blockInfo);
+
+	int getBlockLightLevel(World world, int x, int y, int z);
+
 	IBlockInfo getBlockInfo(World world, int x, int y, int z);
 
 	int loadChunkAndGetBlockId(World world, int x, int y, int z);
-	
+
 	String getTextFromChatComponent(String json);
 
 	boolean isHoe(Material item);
 
 	boolean isSign(int combinedBlockId);
 
-    boolean isAir(int combinedBlockId);
+	boolean isAir(int combinedBlockId);
 
 	boolean isTileEntity(int combinedBlockId);
 
@@ -56,7 +57,11 @@ public interface INmsManager {
 
 	boolean sendBlockChange(Player player, Location blockLocation);
 
-    default boolean hasLightArray() { return true; }
-    
-    default boolean hasBlockCount() { return false; };
+	default boolean hasLightArray() {
+		return true;
+	}
+
+	default boolean hasBlockCount() {
+		return false;
+	};
 }

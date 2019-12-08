@@ -21,9 +21,11 @@ import java.io.DataOutputStream;
 import java.io.File;
 
 import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.logger.OFCLogger;
 import com.lishid.orebfuscator.nms.INBT;
 
 public class ObfuscatedCachedChunk {
+
 	File path;
 	int x;
 	int z;
@@ -51,48 +53,48 @@ public class ObfuscatedCachedChunk {
 	}
 
 	public void free() {
-		data = null;
-		proximityList = null;
-		removedEntityList = null;
+		this.data = null;
+		this.proximityList = null;
+		this.removedEntityList = null;
 	}
 
 	public long getHash() {
-		read();
+		this.read();
 
-		if (!loaded)
+		if (!this.loaded)
 			return 0L;
 
-		return hash;
+		return this.hash;
 	}
 
 	public void read() {
-		if (loaded)
+		if (this.loaded)
 			return;
 
 		try {
-			DataInputStream stream = ObfuscatedDataCache.getInputStream(path, x, z);
+			DataInputStream stream = ObfuscatedDataCache.getInputStream(this.path, this.x, this.z);
 			if (stream != null) {
 				INBT nbt = nbtAccessor.get();
 
 				nbt.Read(stream);
 
 				// Check if statuses makes sense
-				if (nbt.getInt("X") != x || nbt.getInt("Z") != z)
+				if (nbt.getInt("X") != this.x || nbt.getInt("Z") != this.z)
 					return;
 
 				// Get Hash
-				hash = nbt.getLong("Hash");
+				this.hash = nbt.getLong("Hash");
 
 				// Get Data
-				data = nbt.getByteArray("Data");
-				proximityList = nbt.getIntArray("ProximityList");
-				removedEntityList = nbt.getIntArray("RemovedEntityList");
-				loaded = true;
+				this.data = nbt.getByteArray("Data");
+				this.proximityList = nbt.getIntArray("ProximityList");
+				this.removedEntityList = nbt.getIntArray("RemovedEntityList");
+				this.loaded = true;
 			}
 		} catch (Exception e) {
-			// Orebfuscator.log("Error reading Cache: " + e.getMessage());
-			// e.printStackTrace();
-			loaded = false;
+			OFCLogger.log("Error reading Cache: " + e.getMessage());
+			e.printStackTrace();
+			this.loaded = false;
 		}
 	}
 
@@ -120,11 +122,11 @@ public class ObfuscatedCachedChunk {
 			try {
 				stream.close();
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 		} catch (Exception e) {
-			// Orebfuscator.log("Error reading Cache: " + e.getMessage());
-			// e.printStackTrace();
+			OFCLogger.log("Error reading Cache: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

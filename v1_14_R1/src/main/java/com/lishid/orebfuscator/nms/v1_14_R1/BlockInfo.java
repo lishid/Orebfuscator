@@ -11,30 +11,31 @@ import net.minecraft.server.v1_14_R1.Block;
 import net.minecraft.server.v1_14_R1.IBlockData;
 
 public class BlockInfo implements IBlockInfo {
+
 	private int x;
 	private int y;
 	private int z;
 	private IBlockData blockData;
-	
+
 	public BlockInfo(int x, int y, int z, IBlockData blockData) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.blockData = blockData;
 	}
-	
+
 	public int getX() {
 		return this.x;
 	}
-	
+
 	public int getY() {
 		return this.y;
-	}	
-	
+	}
+
 	public int getZ() {
 		return this.z;
 	}
-	
+
 	public int getCombinedId() {
 		return Block.getCombinedId(this.blockData);
 	}
@@ -49,7 +50,7 @@ public class BlockInfo implements IBlockInfo {
 			return false;
 		}
 		BlockInfo object = (BlockInfo) other;
-		
+
 		return this.x == object.x && this.y == object.y && this.z == object.z;
 	}
 
@@ -60,6 +61,6 @@ public class BlockInfo implements IBlockInfo {
 
 	@Override
 	public String toString() {
-		return this.x + " " + this.y + " " + this.z;
+		return String.format("%d %d %d", this.x, this.y, this.z);
 	}
 }

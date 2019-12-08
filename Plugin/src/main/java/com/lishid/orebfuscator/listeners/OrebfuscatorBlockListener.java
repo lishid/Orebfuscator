@@ -41,34 +41,22 @@ public class OrebfuscatorBlockListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockDamage(BlockDamageEvent event) {
-		if (!Orebfuscator.config.isUpdateOnDamage()) {
-			return;
+		if (Orebfuscator.config.isUpdateOnDamage() &&
+				BlockUpdate.needsUpdate(event.getBlock()) &&
+				BlockHitManager.hitBlock(event.getPlayer(), event.getBlock())) {
+			BlockUpdate.update(event.getBlock());
 		}
-
-		if (!BlockUpdate.needsUpdate(event.getBlock())) {
-			return;
-		}
-
-		if (!BlockHitManager.hitBlock(event.getPlayer(), event.getBlock())) {
-			return;
-		}
-
-		BlockUpdate.update(event.getBlock());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPhysics(BlockPhysicsEvent event) {
-		if (event.getBlock().getType() != Material.SAND && event.getBlock().getType() != Material.GRAVEL) {
-			return;
+		if (event.getBlock().getType() == Material.SAND && event.getBlock().getType() == Material.GRAVEL) {
+			Material blockMaterial = event.getBlock().getRelative(0, -1, 0).getType();
+
+			if (NmsInstance.get().canApplyPhysics(blockMaterial)) {
+				BlockUpdate.update(event.getBlock());
+			}
 		}
-
-		Material blockMaterial = event.getBlock().getRelative(0, -1, 0).getType();
-
-		if (!NmsInstance.get().canApplyPhysics(blockMaterial)) {
-			return;
-		}
-
-		BlockUpdate.update(event.getBlock());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

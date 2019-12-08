@@ -10,7 +10,7 @@ public class ChunkMapBuffer {
 	private static int _bitsPerBlock;
 
 	public static int getBitsPerBlock() {
-		return _bitsPerBlock;
+		return ChunkMapBuffer._bitsPerBlock;
 	}
 
 	private static final int BITS_PER_BLOCK_SIZE = 1;
@@ -24,14 +24,14 @@ public class ChunkMapBuffer {
 	private static int MAX_BYTES_PER_CHUNK;
 
 	public static void init(int bitsPerBlock) {
-		_bitsPerBlock = bitsPerBlock;
+		ChunkMapBuffer._bitsPerBlock = bitsPerBlock;
 
-		MAX_BYTES_PER_CHUNK = COLUMNS_PER_CHUNK * (
-				BITS_PER_BLOCK_SIZE
-				+ PALETTE_LENGTH_SIZE
-				+ DATA_ARRAY_LENGTH_SIZE
-				+ (BLOCKS_PER_CHUNK_SECTION * _bitsPerBlock / 8)
-				+ BLOCK_LIGHT_SIZE + SKY_LIGHT_SIZE
+		ChunkMapBuffer.MAX_BYTES_PER_CHUNK = ChunkMapBuffer.COLUMNS_PER_CHUNK * (
+				ChunkMapBuffer.BITS_PER_BLOCK_SIZE
+				+ ChunkMapBuffer.PALETTE_LENGTH_SIZE
+				+ ChunkMapBuffer.DATA_ARRAY_LENGTH_SIZE
+				+ (ChunkMapBuffer.BLOCKS_PER_CHUNK_SECTION * _bitsPerBlock / 8)
+				+ ChunkMapBuffer.BLOCK_LIGHT_SIZE + ChunkMapBuffer.SKY_LIGHT_SIZE
 			);
 	}
 

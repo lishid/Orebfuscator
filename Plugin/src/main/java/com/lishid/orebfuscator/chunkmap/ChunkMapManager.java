@@ -12,18 +12,19 @@ import java.util.Stack;
 import com.lishid.orebfuscator.NmsInstance;
 
 public class ChunkMapManager implements AutoCloseable {
+
 	private static final Object _lock = new Object();
 	private static final Stack<ChunkMapBuffer> _bufferStack = new Stack<>();
 
 	private static ChunkMapBuffer popBuffer() {
-		synchronized (_lock) {
-			return _bufferStack.isEmpty() ? new ChunkMapBuffer() : _bufferStack.pop();
+		synchronized (ChunkMapManager._lock) {
+			return ChunkMapManager._bufferStack.isEmpty() ? new ChunkMapBuffer() : ChunkMapManager._bufferStack.pop();
 		}
 	}
 
 	private static void pushBuffer(ChunkMapBuffer buffer) {
-		synchronized (_lock) {
-			_bufferStack.push(buffer);
+		synchronized (ChunkMapManager._lock) {
+			ChunkMapManager._bufferStack.push(buffer);
 		}
 	}
 
@@ -49,10 +50,6 @@ public class ChunkMapManager implements AutoCloseable {
 
 	public ChunkData getChunkData() {
 		return this.chunkData;
-	}
-
-	private ChunkMapManager() {
-
 	}
 
 	public static ChunkMapManager create(ChunkData chunkData) throws IOException {
@@ -86,14 +83,13 @@ public class ChunkMapManager implements AutoCloseable {
 		}
 
 		manager.buffer.clearLayers();
-
 		manager.moveToNextLayer();
 
 		return manager;
 	}
 
 	public void close() throws Exception {
-		pushBuffer(this.buffer);
+		ChunkMapManager.pushBuffer(this.buffer);
 	}
 
 	public boolean inputHasNonAirBlock() {
@@ -137,7 +133,6 @@ public class ChunkMapManager implements AutoCloseable {
 		this.buffer.outputPaletteMap[blockData] = (byte) this.buffer.outputPaletteLength;
 
 		this.buffer.outputPaletteLength++;
-
 		return true;
 	}
 
@@ -147,9 +142,9 @@ public class ChunkMapManager implements AutoCloseable {
 		this.buffer.writer.setBitsPerBlock(this.buffer.outputBitsPerBlock);
 
 		// Block count
-		if(NmsInstance.get().hasBlockCount())
-		    this.buffer.writer.writeShort((short) this.buffer.blockCount);
-		
+		if (NmsInstance.get().hasBlockCount())
+			this.buffer.writer.writeShort((short) this.buffer.blockCount);
+
 		// Bits Per Block
 		this.buffer.writer.writeByte((byte) this.buffer.outputBitsPerBlock);
 
@@ -175,7 +170,8 @@ public class ChunkMapManager implements AutoCloseable {
 		int lightArrayStartIndex = this.buffer.dataArrayStartIndex + (this.buffer.dataArrayLength << 3);
 		int outputLightArrayStartIndex = this.buffer.writer.getByteIndex() + (outputDataArrayLength << 3);
 
-		System.arraycopy(this.chunkData.data, lightArrayStartIndex, this.buffer.output, outputLightArrayStartIndex,
+		System.arraycopy(this.chunkData.data, lightArrayStartIndex,
+				this.buffer.output, outputLightArrayStartIndex,
 				this.buffer.lightArrayLength);
 	}
 
@@ -238,7 +234,7 @@ public class ChunkMapManager implements AutoCloseable {
 
 	public int readNextBlock() throws IOException {
 		if (this.blockIndex == 256) { // 16 * 16
-			if (!moveToNextLayer())
+			if (!this.moveToNextLayer())
 				return -1;
 		}
 
@@ -268,35 +264,34 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	private boolean moveToNextLayer() throws IOException {
-		if (!increaseY())
+		if (!this.increaseY())
 			return false;
 
-		shiftLayersDown();
+		this.shiftLayersDown();
 
 		if (!this.buffer.curLayer.hasData) {
-			readLayer(this.buffer.curLayer);
+			this.readLayer(this.buffer.curLayer);
 		}
 
 		if (((this.y + 1) >>> 4) > this.sectionIndex) {
 			int oldSectionIndex = this.sectionIndex;
 
-			moveToNextSection();
+			this.moveToNextSection();
 
 			if (this.sectionIndex < 16 && oldSectionIndex + 1 == this.sectionIndex) {
-				readLayer(this.buffer.nextLayer);
+				this.readLayer(this.buffer.nextLayer);
 			}
 		} else {
-			readLayer(this.buffer.nextLayer);
+			this.readLayer(this.buffer.nextLayer);
 		}
 
 		this.blockIndex = 0;
-
 		return true;
 	}
 
 	private boolean increaseY() throws IOException {
 		if (this.sectionIndex < 0) {
-			if (!moveToNextSection())
+			if (!this.moveToNextSection())
 				return false;
 
 			this.y = this.sectionIndex << 4;
@@ -313,7 +308,6 @@ public class ChunkMapManager implements AutoCloseable {
 				}
 			}
 		}
-
 		return true;
 	}
 
@@ -338,8 +332,7 @@ public class ChunkMapManager implements AutoCloseable {
 		if (this.sectionIndex >= 16)
 			return false;
 
-		readSectionHeader();
-
+		this.readSectionHeader();
 		return true;
 	}
 
@@ -348,8 +341,8 @@ public class ChunkMapManager implements AutoCloseable {
 			int blockData = this.reader.readBlockBits();
 
 			if (this.buffer.paletteLength > 0) {
-				blockData = blockData >= 0 && blockData < this.buffer.paletteLength ? this.buffer.palette[blockData]
-						: NmsInstance.get().getCaveAirBlockId();
+				blockData = blockData >= 0 && blockData < this.buffer.paletteLength
+						? this.buffer.palette[blockData] : NmsInstance.get().getCaveAirBlockId();
 			}
 
 			layer.map[i] = blockData;
@@ -359,8 +352,10 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	private void readSectionHeader() throws IOException {
-	    if(NmsInstance.get().hasBlockCount())
-	            this.buffer.blockCount = this.reader.readShort();
+		if (NmsInstance.get().hasBlockCount()) {
+			this.buffer.blockCount = this.reader.readShort();
+		}
+
 		this.buffer.bitsPerBlock = this.reader.readByte();
 		this.buffer.paletteLength = this.reader.readVarInt();
 
@@ -371,7 +366,6 @@ public class ChunkMapManager implements AutoCloseable {
 		}
 
 		this.buffer.dataArrayLength = this.reader.readVarInt();
-
 		this.buffer.dataArrayStartIndex = this.reader.getByteIndex();
 
 		this.reader.setBitsPerBlock(this.buffer.bitsPerBlock);

@@ -8,6 +8,7 @@ package com.lishid.orebfuscator.chunkmap;
 import java.io.IOException;
 
 public class ChunkWriter {
+
 	private byte[] data;
 	private int bitsPerBlock;
 	private int byteIndex;
@@ -33,7 +34,7 @@ public class ChunkWriter {
 	}
 
 	public void save() throws IOException {
-		writeLong();
+		this.writeLong();
 	}
 
 	public void skip(int count) {
@@ -53,7 +54,7 @@ public class ChunkWriter {
 
 	public void writeBlockBits(long bits) throws IOException {
 		if (this.bitIndex >= 64) {
-			writeLong();
+			this.writeLong();
 			this.bitIndex = 0;
 		}
 
@@ -64,10 +65,9 @@ public class ChunkWriter {
 		if (leftBits >= this.bitsPerBlock) {
 			this.bitIndex += this.bitsPerBlock;
 		} else {
-			writeLong();
+			this.writeLong();
 
 			this.buffer = bits >>> leftBits;
-
 			this.bitIndex = this.bitsPerBlock - leftBits;
 		}
 	}
@@ -91,11 +91,11 @@ public class ChunkWriter {
 
 	public void writeVarInt(int value) throws IOException {
 		while ((value & ~0x7F) != 0) {
-			writeByte((value & 0x7F) | 0x80);
+			this.writeByte((value & 0x7F) | 0x80);
 			value >>>= 7;
 		}
 
-		writeByte(value);
+		this.writeByte(value);
 	}
 
 	public void writeByte(int value) throws IOException {
@@ -106,12 +106,12 @@ public class ChunkWriter {
 		this.data[this.byteIndex++] = (byte) value;
 	}
 
-    public void writeShort(int blockCount) throws IOException {
-        if (this.byteIndex + 1 >= this.data.length) {
-            throw new IOException("No space to write.");
-        }
+	public void writeShort(int blockCount) throws IOException {
+		if (this.byteIndex + 1 >= this.data.length) {
+			throw new IOException("No space to write.");
+		}
 
-        this.data[this.byteIndex++] = (byte) (blockCount >> 8);
-        this.data[this.byteIndex++] = (byte) (blockCount >> 0);
-    }
+		this.data[this.byteIndex++] = (byte) (blockCount >> 8);
+		this.data[this.byteIndex++] = (byte) (blockCount >> 0);
+	}
 }

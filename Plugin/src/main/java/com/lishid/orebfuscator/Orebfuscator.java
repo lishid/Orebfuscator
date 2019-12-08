@@ -55,7 +55,7 @@ public class Orebfuscator extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		instance = this;
+		Orebfuscator.instance = this;
 
 		// Calling the class to initialize and returning with error message when no version is available
 		if (NmsInstance.get() == null)
@@ -64,9 +64,8 @@ public class Orebfuscator extends JavaPlugin {
 		ChunkMapBuffer.init(NmsInstance.get().getBitsPerBlock());
 
 		// Load configurations
-		loadOrebfuscatorConfig();
-
-		makeConfigExample();
+		this.loadOrebfuscatorConfig();
+		this.makeConfigExample();
 
 		PluginManager pluginManager = Bukkit.getPluginManager();
 		this.isProtocolLibFound = pluginManager.getPlugin("ProtocolLib") != null;
@@ -87,7 +86,7 @@ public class Orebfuscator extends JavaPlugin {
 		new ProtocolLibHook(this).register();
 
 		// Run CacheCleaner
-		getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0, config.getCacheCleanRate());
+		getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0, Orebfuscator.config.getCacheCleanRate());
 	}
 
 	@Override
@@ -108,16 +107,16 @@ public class Orebfuscator extends JavaPlugin {
 	}
 
 	public void loadOrebfuscatorConfig() {
-		if (config == null) {
-			config = new OrebfuscatorConfig();
-			configManager = new ConfigManager(this, OFCLogger.logger, config);
+		if (Orebfuscator.config == null) {
+			Orebfuscator.config = new OrebfuscatorConfig();
+			Orebfuscator.configManager = new ConfigManager(this, OFCLogger.logger, Orebfuscator.config);
 		}
 
-		configManager.load();
+		Orebfuscator.configManager.load();
 
 		ObfuscatedDataCache.resetCacheFolder();
 
-		NmsInstance.get().setMaxLoadedCacheFiles(config.getMaxLoadedCacheFiles());
+		NmsInstance.get().setMaxLoadedCacheFiles(Orebfuscator.config.getMaxLoadedCacheFiles());
 
 		// Make sure cache is cleared if config was changed since last start
 		try {
@@ -148,7 +147,7 @@ public class Orebfuscator extends JavaPlugin {
 	}
 
 	public void reloadOrebfuscatorConfig() {
-		reloadConfig();
-		loadOrebfuscatorConfig();
+		this.reloadConfig();
+		this.loadOrebfuscatorConfig();
 	}
 }

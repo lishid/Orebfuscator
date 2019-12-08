@@ -35,7 +35,7 @@ public class ReflectionHelper {
 	}
 
 	public static Object getPrivateField(Object object, String fieldName) {
-		return getPrivateField(object.getClass(), object, fieldName);
+		return ReflectionHelper.getPrivateField(object.getClass(), object, fieldName);
 	}
 
 	public static void setPrivateField(Class<? extends Object> c, Object object, String fieldName, Object value) {
@@ -49,7 +49,7 @@ public class ReflectionHelper {
 	}
 
 	public static void setPrivateField(Object object, String fieldName, Object value) {
-		setPrivateField(object.getClass(), object, fieldName, value);
+		ReflectionHelper.setPrivateField(object.getClass(), object, fieldName, value);
 	}
 
 	public static void setPrivateFinal(Object object, String fieldName, Object value) {

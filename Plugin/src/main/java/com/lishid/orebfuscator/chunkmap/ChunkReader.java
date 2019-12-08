@@ -38,7 +38,7 @@ public class ChunkReader {
 
 	public int readBlockBits() throws IOException {
 		if (this.bitIndex == 0 || this.bitIndex >= 64) {
-			readLong();
+			this.readLong();
 			this.bitIndex = 0;
 		}
 
@@ -48,7 +48,7 @@ public class ChunkReader {
 		if (leftBits >= this.bitsPerBlock) {
 			this.bitIndex += this.bitsPerBlock;
 		} else {
-			readLong();
+			this.readLong();
 
 			result |= this.buffer << leftBits;
 
@@ -63,15 +63,10 @@ public class ChunkReader {
 			throw new IOException("No data to read. byteIndex = " + this.byteIndex);
 		}
 
-		this.buffer =
-				((this.data[this.byteIndex] & 0xffL) << 56)
-				| ((this.data[this.byteIndex + 1] & 0xffL) << 48)
-				| ((this.data[this.byteIndex + 2] & 0xffL) << 40)
-				| ((this.data[this.byteIndex + 3] & 0xffL) << 32)
-				| ((this.data[this.byteIndex + 4] & 0xffL) << 24)
-				| ((this.data[this.byteIndex + 5] & 0xffL) << 16)
-				| ((this.data[this.byteIndex + 6] & 0xffL) << 8)
-				| (this.data[this.byteIndex + 7] & 0xffL);
+		this.buffer = ((this.data[this.byteIndex] & 0xffL) << 56) | ((this.data[this.byteIndex + 1] & 0xffL) << 48)
+				| ((this.data[this.byteIndex + 2] & 0xffL) << 40) | ((this.data[this.byteIndex + 3] & 0xffL) << 32)
+				| ((this.data[this.byteIndex + 4] & 0xffL) << 24) | ((this.data[this.byteIndex + 5] & 0xffL) << 16)
+				| ((this.data[this.byteIndex + 6] & 0xffL) << 8) | (this.data[this.byteIndex + 7] & 0xffL);
 
 		this.byteIndex += 8;
 	}
@@ -85,7 +80,7 @@ public class ChunkReader {
 			value |= (b & 0x7F) << (size++ * 7);
 
 			if (size > 5) {
-				throw new IOException("Invalid VarInt. byteIndex = " + this.byteIndex + ", value = " + value + ", size = " + size);
+				throw new IOException(String.format("Invalid VarInt. byteIndex = %d, value = %d, size = %d", this.byteIndex, value, size));
 			}
 		}
 
@@ -100,10 +95,10 @@ public class ChunkReader {
 		return this.data[this.byteIndex++] & 0xff;
 	}
 
-    public int readShort() throws IOException {
-        int b1 = readByte();
-        int b2 = readByte();
-        
-        return (b1 << 8) | b2;
-    }
+	public int readShort() throws IOException {
+		int b1 = this.readByte();
+		int b2 = this.readByte();
+
+		return (b1 << 8) | b2;
+	}
 }

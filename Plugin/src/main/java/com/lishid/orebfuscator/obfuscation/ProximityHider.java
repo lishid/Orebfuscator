@@ -45,18 +45,18 @@ public class ProximityHider extends Thread implements Runnable {
 	private static boolean running = false;
 
 	public static void Load() {
-		running = true;
-		if (thread == null || thread.isInterrupted() || !thread.isAlive()) {
-			thread = new ProximityHider();
-			thread.setName("Orebfuscator ProximityHider Thread");
-			thread.setPriority(Thread.MIN_PRIORITY);
-			thread.start();
+		ProximityHider.running = true;
+		if (ProximityHider.thread == null || ProximityHider.thread.isInterrupted() || !ProximityHider.thread.isAlive()) {
+			ProximityHider.thread = new ProximityHider();
+			ProximityHider.thread.setName("Orebfuscator ProximityHider Thread");
+			ProximityHider.thread.setPriority(Thread.MIN_PRIORITY);
+			ProximityHider.thread.start();
 		}
 	}
 
 	public static void terminate() {
-		if (thread != null) {
-			thread.kill.set(true);
+		if (ProximityHider.thread != null) {
+			ProximityHider.thread.kill.set(true);
 		}
 	}
 
@@ -83,7 +83,6 @@ public class ProximityHider extends Thread implements Runnable {
 				}
 
 				for (Player p : checkPlayers.keySet()) {
-
 					if (p == null) {
 						continue;
 					}
@@ -205,7 +204,7 @@ public class ProximityHider extends Thread implements Runnable {
 			}
 		}
 
-		running = false;
+		ProximityHider.running = false;
 	}
 
 	/**
@@ -251,8 +250,9 @@ public class ProximityHider extends Thread implements Runnable {
 		double absFz = Math.abs(fz);
 		double s = Math.max(absFx, Math.max(absFy, absFz));
 
-		if (s < 1)
+		if (s < 1) {
 			return true; // on top / inside
+		}
 
 		double lx, ly, lz;
 
@@ -281,11 +281,11 @@ public class ProximityHider extends Thread implements Runnable {
 	}
 
 	private static void restart() {
-		synchronized (thread) {
-			if (thread.isInterrupted() || !thread.isAlive())
-				running = false;
+		synchronized (ProximityHider.thread) {
+			if (thread.isInterrupted() || !ProximityHider.thread.isAlive())
+				ProximityHider.running = false;
 
-			if (!running && Orebfuscator.config.isProximityHiderEnabled()) {
+			if (!ProximityHider.running && Orebfuscator.config.isProximityHiderEnabled()) {
 				// Load ProximityHider
 				ProximityHider.Load();
 			}
@@ -299,14 +299,14 @@ public class ProximityHider extends Thread implements Runnable {
 		if (!proximityHider.isEnabled())
 			return;
 
-		restart();
+		ProximityHider.restart();
 
-		synchronized (proximityHiderTracker) {
-			ProximityHiderPlayer playerInfo = proximityHiderTracker.get(player);
+		synchronized (ProximityHider.proximityHiderTracker) {
+			ProximityHiderPlayer playerInfo = ProximityHider.proximityHiderTracker.get(player);
 			World world = player.getWorld();
 
 			if (playerInfo == null) {
-				proximityHiderTracker.put(player, playerInfo = new ProximityHiderPlayer(world));
+				ProximityHider.proximityHiderTracker.put(player, playerInfo = new ProximityHiderPlayer(world));
 			} else if (!playerInfo.getWorld().equals(world)) {
 				playerInfo.setWorld(world);
 				playerInfo.clearChunks();
@@ -321,32 +321,32 @@ public class ProximityHider extends Thread implements Runnable {
 
 		boolean isPlayerToReload;
 
-		synchronized (playersToReload) {
-			isPlayerToReload = playersToReload.remove(player);
+		synchronized (ProximityHider.playersToReload) {
+			isPlayerToReload = ProximityHider.playersToReload.remove(player);
 		}
 
 		if (isPlayerToReload) {
-			addPlayerToCheck(player, null);
+			ProximityHider.addPlayerToCheck(player, null);
 		}
 	}
 
 	public static void clearPlayer(Player player) {
-		synchronized (proximityHiderTracker) {
-			proximityHiderTracker.remove(player);
+		synchronized (ProximityHider.proximityHiderTracker) {
+			ProximityHider.proximityHiderTracker.remove(player);
 		}
 
 		synchronized (playersToCheck) {
-			playersToCheck.remove(player);
+			ProximityHider.playersToCheck.remove(player);
 		}
 
-		synchronized (playersToReload) {
-			playersToReload.remove(player);
+		synchronized (ProximityHider.playersToReload) {
+			ProximityHider.playersToReload.remove(player);
 		}
 	}
 
 	public static void clearBlocksForOldWorld(Player player) {
-		synchronized (proximityHiderTracker) {
-			ProximityHiderPlayer playerInfo = proximityHiderTracker.get(player);
+		synchronized (ProximityHider.proximityHiderTracker) {
+			ProximityHiderPlayer playerInfo = ProximityHider.proximityHiderTracker.get(player);
 
 			if (playerInfo != null) {
 				World world = player.getWorld();
@@ -360,8 +360,8 @@ public class ProximityHider extends Thread implements Runnable {
 	}
 
 	public static void addPlayerToCheck(Player player, Location location) {
-		synchronized (playersToCheck) {
-			if (!playersToCheck.containsKey(player)) {
+		synchronized (ProximityHider.playersToCheck) {
+			if (!ProximityHider.playersToCheck.containsKey(player)) {
 				playersToCheck.put(player, location);
 			}
 		}
@@ -371,8 +371,8 @@ public class ProximityHider extends Thread implements Runnable {
 		if (!Orebfuscator.config.isProximityHiderEnabled())
 			return;
 
-		synchronized (playersToReload) {
-			playersToReload.addAll(players);
+		synchronized (ProximityHider.playersToReload) {
+			ProximityHider.playersToReload.addAll(players);
 		}
 	}
 }

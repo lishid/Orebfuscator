@@ -2,7 +2,7 @@ name: ${project.name}
 main: com.lishid.orebfuscator.Orebfuscator
 version: ${project.version}
 author: lishid
-authors: [Aleksey-Terzi, ProgrammerDan]
+authors: [Aleksey-Terzi, ProgrammerDan, SydMontague, NgLoader]
 softdepend: [ProtocolLib]
 load: startup
 api-version: 1.13
