@@ -63,7 +63,7 @@ ProximityHider is a feature that hides chests that are far from players.
 4. Your jar will be builded under the folder "target"
 5. Finished
 
-### License:
+## License:
 
 Significantly reworked by Aleksey_Terzi to support v1.9 Minecraft; these portions as permissible:
 Copyright (C) 2016 by Aleksey_Terzi. All rights reserved.
