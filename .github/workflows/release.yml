@@ -22,9 +22,14 @@ jobs:
         mvn clean compile package -pl Plugin -B --also-make -Dorebfuscator-version=$RELEASE_VERSION
         mkdir dist
         mv Plugin/target/orebfuscator-*.jar ./dist
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "dist/*"
-        name: Release $RELEASE_VERSION
-        tag: $RELEASE_VERSION
+        name: Release ${{ $RELEASE_VERSION }}
+        tag: ${{ $RELEASE_VERSION }}
         token: ${{ secrets.GITHUB_TOKEN }}
