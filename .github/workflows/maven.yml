@@ -19,4 +19,11 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: Archive final artifacts
-        path: Plugin/target/*.jar
+        path: Plugin/target/
+    - name: Deploy to Github Package Registry
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        mkdir ~/.m2
+        echo "<settings><servers><server><id>github</id><username>TeamWuffy</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
+        mvn deploy
