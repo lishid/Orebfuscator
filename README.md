@@ -57,17 +57,17 @@ ProximityHider is a feature that hides chests that are far from players.
 5. Select the downloaded repo
 6. Finished
 
-## Release a new version
-1. git tag <version>
-2. git push origin <version>
-3. Finished
-
 ## Build
 1. Click right click on the Orebfuscator-repo folder and select "Run as" -> "Maven Build..."
 2. Put into Goals this "clean compile package -pl Plugin -Dorebfuscator-version=4.4.6 --also-make"
 3. Click Run
 4. Your jar will be builded under the folder "target"
 5. Finished
+
+## Release a new version
+1. git tag **version**
+2. git push origin **version**
+3. Finished
 
 ## License:
 
