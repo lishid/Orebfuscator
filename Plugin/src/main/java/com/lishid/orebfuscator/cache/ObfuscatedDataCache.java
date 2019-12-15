@@ -97,11 +97,11 @@ public class ObfuscatedDataCache {
 		Orebfuscator.instance.getConfig().save(cacheConfigFile);
 	}
 
-	public static DataInputStream getInputStream(File folder, int x, int z) {
+	public static DataInputStream getInputStream(File folder, int x, int z) throws IOException {
 		return getInternalCache().getInputStream(folder, x, z);
 	}
 
-	public static DataOutputStream getOutputStream(File folder, int x, int z) {
+	public static DataOutputStream getOutputStream(File folder, int x, int z) throws IOException {
 		return getInternalCache().getOutputStream(folder, x, z);
 	}
 

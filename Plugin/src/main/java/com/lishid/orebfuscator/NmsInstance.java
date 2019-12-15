@@ -19,6 +19,9 @@ public class NmsInstance {
 		INmsManager nmsManager = null;
 
 		switch (currentServerVersion) {
+		case "v1_15_R1":
+			nmsManager = new com.lishid.orebfuscator.nms.v1_15_R1.NmsManager();
+			break;
 		case "v1_14_R1":
 			nmsManager = new com.lishid.orebfuscator.nms.v1_14_R1.NmsManager();
 			break;

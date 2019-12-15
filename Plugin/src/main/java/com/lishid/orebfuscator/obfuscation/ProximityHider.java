@@ -16,19 +16,22 @@
 
 package com.lishid.orebfuscator.obfuscation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.nms.IBlockInfo;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.logger.OFCLogger;
+import com.lishid.orebfuscator.nms.IBlockInfo;
 import com.lishid.orebfuscator.types.BlockCoord;
 
 public class ProximityHider extends Thread implements Runnable {
@@ -82,21 +85,21 @@ public class ProximityHider extends Thread implements Runnable {
 					playersToCheck.clear();
 				}
 
-				for (Player p : checkPlayers.keySet()) {
-					if (p == null) {
+				for (Player player : checkPlayers.keySet()) {
+					if (player == null) {
 						continue;
 					}
 
 					synchronized (proximityHiderTracker) {
-						if (!proximityHiderTracker.containsKey(p)) {
+						if (!proximityHiderTracker.containsKey(player)) {
 							continue;
 						}
 					}
 
-					Location oldLocation = checkPlayers.get(p);
+					Location oldLocation = checkPlayers.get(player);
 
 					if (oldLocation != null) {
-						Location curLocation = p.getLocation();
+						Location curLocation = player.getLocation();
 
 						// Player didn't actually move
 						if (curLocation.getBlockX() == oldLocation.getBlockX()
@@ -106,14 +109,14 @@ public class ProximityHider extends Thread implements Runnable {
 						}
 					}
 
-					ProximityHiderPlayer localPlayerInfo = proximityHiderTrackerLocal.get(p);
+					ProximityHiderPlayer localPlayerInfo = proximityHiderTrackerLocal.get(player);
 
 					if (localPlayerInfo == null) {
-						proximityHiderTrackerLocal.put(p, localPlayerInfo = new ProximityHiderPlayer(p.getWorld()));
+						proximityHiderTrackerLocal.put(player, localPlayerInfo = new ProximityHiderPlayer(player.getWorld()));
 					}
 
 					synchronized (proximityHiderTracker) {
-						ProximityHiderPlayer playerInfo = proximityHiderTracker.get(p);
+						ProximityHiderPlayer playerInfo = proximityHiderTracker.get(player);
 
 						if (playerInfo != null) {
 							if (!localPlayerInfo.getWorld().equals(playerInfo.getWorld())) {
@@ -126,13 +129,12 @@ public class ProximityHider extends Thread implements Runnable {
 						}
 					}
 
-					if (localPlayerInfo.getWorld() == null || p.getWorld() == null
-							|| !p.getWorld().equals(localPlayerInfo.getWorld())) {
+					if (localPlayerInfo.getWorld() == null || player.getWorld() == null || !player.getWorld().equals(localPlayerInfo.getWorld())) {
 						localPlayerInfo.clearChunks();
 						continue;
 					}
 
-					WorldConfig worldConfig = Orebfuscator.configManager.getWorld(p.getWorld());
+					WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
 					ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
 
 					int checkRadius = proximityHider.getDistance() >> 4;
@@ -144,9 +146,9 @@ public class ProximityHider extends Thread implements Runnable {
 					int distanceSquared = proximityHider.getDistanceSquared();
 
 					ArrayList<BlockCoord> removedBlocks = new ArrayList<BlockCoord>();
-					Location playerLocation = p.getLocation();
+					Location playerLocation = player.getLocation();
 					// 4.3.1 -- GAZE CHECK
-					Location playerEyes = p.getEyeLocation();
+					Location playerEyes = player.getEyeLocation();
 					// 4.3.1 -- GAZE CHECK END
 					int minChunkX = (playerLocation.getBlockX() >> 4) - checkRadius;
 					int maxChunkX = minChunkX + (checkRadius << 1);
@@ -162,25 +164,21 @@ public class ProximityHider extends Thread implements Runnable {
 
 							removedBlocks.clear();
 
-							for (BlockCoord b : blocks) {
-								if (b == null) {
-									removedBlocks.add(b);
+							for (BlockCoord block : blocks) {
+								if (block == null) {
+									removedBlocks.add(block);
 									continue;
 								}
 
-								Location blockLocation = new Location(localPlayerInfo.getWorld(), b.x, b.y, b.z);
+								Location blockLocation = new Location(localPlayerInfo.getWorld(), block.x, block.y, block.z);
 
-								if (proximityHider.isObfuscateAboveY()
-										|| playerLocation.distanceSquared(blockLocation) < distanceSquared) {
+								if (proximityHider.isObfuscateAboveY() || playerLocation.distanceSquared(blockLocation) < distanceSquared) {
 									// 4.3.1 -- GAZE CHECK
-									if (!proximityHider.isUseFastGazeCheck()
-											|| doFastCheck(blockLocation, playerEyes, localPlayerInfo.getWorld())) {
+									if (!proximityHider.isUseFastGazeCheck() || doFastCheck(blockLocation, playerEyes, localPlayerInfo.getWorld())) {
 										// 4.3.1 -- GAZE CHECK END
-										removedBlocks.add(b);
+										removedBlocks.add(block);
 
-										if (NmsInstance.get().sendBlockChange(p, blockLocation)) {
-											final BlockCoord block = b;
-											final Player player = p;
+										if (NmsInstance.get().sendBlockChange(player, blockLocation)) {
 											Orebfuscator.instance.runTask(new Runnable() {
 												public void run() {
 													NmsInstance.get().updateBlockTileEntity(block, player);
