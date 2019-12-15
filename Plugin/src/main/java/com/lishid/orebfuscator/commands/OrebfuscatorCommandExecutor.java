@@ -17,14 +17,14 @@
 package com.lishid.orebfuscator.commands;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.config.WorldConfig;
-import com.lishid.orebfuscator.logger.OFCLogger;
-import com.lishid.orebfuscator.utils.Globals;
-import com.lishid.orebfuscator.utils.MaterialHelper;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,12 +33,56 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
+import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
+import com.lishid.orebfuscator.config.WorldConfig;
+import com.lishid.orebfuscator.logger.OFCLogger;
+import com.lishid.orebfuscator.utils.Globals;
+import com.lishid.orebfuscator.utils.MaterialHelper;
 
-public class OrebfuscatorCommandExecutor implements CommandExecutor {
+public class OrebfuscatorCommandExecutor implements CommandExecutor, TabCompleter {
+
+	private static final String HELP_MESSAGE = "\n§8[§aOFC§8]"
+			+ "\n§8[§aOFC§8] §7Usage§8:"
+			+ "\n§8[§aOFC§8]"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9engine §8<§a1§8, §a2§8>"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9initialradius §8<§anumber§8>"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9updateradius §8<§anumber§8>"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9airgen §8<§anumber§8>"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9reload"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9status"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9clearcache"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9use §8<§ablacklist§8, §awhitelist§8>"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9enable §8<§avalues§8, §aworldname§8>"
+			+ "\n§8[§aOFC§8] §8/§7ofc §9disable §8<§avalues§8, §aworldname§8>"
+			+ "\n§8[§aOFC§8]"
+			+ "\n§8[§aOFC§8] §7Values§8: §adarknesshide§8, §aop§8, §acache§8,"
+			+ "\n§8[§aOFC§8]           §apermissions§8, §aaxr§8, §anotification"
+			+ "\n§8[§aOFC§8]";
+
+	private static final List<String> TAB_COMPLETE_ARGUMENTS = Arrays.asList("engine", "initialradius", "updateradius", "airgen", "reload", "status", "clearcache", "use", "enable", "disable");
+	private static final Map<String, List<String>> TAB_COMPLETE_BY_ARGUMENTS = new HashMap<String, List<String>>();
+	private static final List<String> TAB_COMPLETE_ZERO_TO_NINE = Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+	private static final List<String> TAB_COMPLETE_EMPTY_LIST = Arrays.asList();
+
+	private static void loadTabComplete() {
+		OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.put("engine", Arrays.asList("1", "2"));
+		OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.put("use", Arrays.asList("blacklist", "whitelist"));
+
+		List<String> toggleValues = new ArrayList<String>();
+		Bukkit.getWorlds().forEach(world -> toggleValues.add(world.getName()));
+		toggleValues.addAll(Arrays.asList("darknesshide", "op", "cache", "permissions", "axr", "notification"));
+		OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.put("enable", toggleValues);
+		OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.put("disable", toggleValues);
+	}
+
+	public OrebfuscatorCommandExecutor() {
+		OrebfuscatorCommandExecutor.loadTabComplete();
+	}
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -48,13 +92,14 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 		}
 
 		if (args.length <= 0) {
-			return false;
+			sender.sendMessage(OrebfuscatorCommandExecutor.HELP_MESSAGE);
+			return true;
 		}
 
 		if (args[0].equalsIgnoreCase("engine") && args.length > 1) {
 			int engine = Orebfuscator.config.getEngineMode();
 			try {
-				engine = new Integer(args[1]);
+				engine = Integer.valueOf(args[1]);
 			} catch (NumberFormatException e) {
 				OFCLogger.message(sender, args[1] + " is not a number!");
 				return true;
@@ -70,7 +115,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 		} else if (args[0].equalsIgnoreCase("updateradius") && args.length > 1) {
 			int radius = Orebfuscator.config.getUpdateRadius();
 			try {
-				radius = new Integer(args[1]);
+				radius = Integer.valueOf(args[1]);
 			} catch (NumberFormatException e) {
 				OFCLogger.message(sender, args[1] + " is not a number!");
 				return true;
@@ -81,7 +126,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 		} else if (args[0].equalsIgnoreCase("initialradius") && args.length > 1) {
 			int radius = Orebfuscator.config.getInitialRadius();
 			try {
-				radius = new Integer(args[1]);
+				radius = Integer.valueOf(args[1]);
 			} catch (NumberFormatException e) {
 				OFCLogger.message(sender, args[1] + " is not a number!");
 				return true;
@@ -172,7 +217,8 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 			return true;
 		}
 
-		return false;
+		sender.sendMessage(OrebfuscatorCommandExecutor.HELP_MESSAGE);
+		return true;
 	}
 
 	private static void commandObfuscateBlocks(CommandSender sender, String[] args) {
@@ -332,5 +378,40 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor {
 		nonTransparentBlockNames.forEach(blockName -> blocks.append("\n - " + blockName));
 
 		OFCLogger.message(sender, blocks.toString());
+	}
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+		if (args.length > 1) {
+			String arg = args[0].toLowerCase();
+			switch (arg) {
+			case "initialradius":
+			case "updateradius":
+			case "airgen":
+				if (args.length > 1) {
+					return OrebfuscatorCommandExecutor.TAB_COMPLETE_ZERO_TO_NINE.stream().map(number -> args[1] + number).collect(Collectors.toList());
+				}
+
+				return OrebfuscatorCommandExecutor.TAB_COMPLETE_ZERO_TO_NINE;
+
+			default:
+				return OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.getOrDefault(arg, OrebfuscatorCommandExecutor.TAB_COMPLETE_EMPTY_LIST);
+			}
+		}
+
+		String arg = args.length > 0 ? args[0] : null;
+
+		if (arg == null) {
+			return OrebfuscatorCommandExecutor.TAB_COMPLETE_ARGUMENTS;
+		}
+
+		List<String> result = new ArrayList<String>();
+		for (String check : OrebfuscatorCommandExecutor.TAB_COMPLETE_ARGUMENTS) {
+			if (check.startsWith(arg)) {
+				result.add(check);
+			}
+		}
+
+		return result;
 	}
 }

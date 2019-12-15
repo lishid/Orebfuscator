@@ -113,6 +113,14 @@
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>com.lishid</groupId>
+      <artifactId>orebfuscator-v1_15_R1</artifactId>
+      <version>v1_15_R1</version>
+      <type>jar</type>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
 </dependencies>
 
   <build>

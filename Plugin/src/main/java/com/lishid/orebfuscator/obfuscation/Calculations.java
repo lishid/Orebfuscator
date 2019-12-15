@@ -167,8 +167,7 @@ public class Calculations {
 									// Do not interfere with PH
 									if (proximityHiderFlag && proximityHider.isEnabled()
 											&& proximityHider.isProximityObfuscated(y, blockData)) {
-										if (!Calculations.areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z,
-												1)) {
+										if (!Calculations.areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, 1)) {
 											obfuscate = true;
 										}
 									} else {
@@ -177,16 +176,14 @@ public class Calculations {
 									}
 								} else {
 									// Check if any nearby blocks are transparent
-									if (!Calculations.areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z,
-											initialRadius)) {
+									if (!Calculations.areAjacentBlocksTransparent(manager, player.getWorld(), false, x, y, z, initialRadius)) {
 										obfuscate = true;
 									}
 								}
 							}
 
 							// Check if the block should be obfuscated because of proximity check
-							if (!obfuscate && proximityHiderFlag && proximityHider.isEnabled()
-									&& proximityHider.isProximityObfuscated(y, blockData)) {
+							if (!obfuscate && proximityHiderFlag && proximityHider.isEnabled() && proximityHider.isProximityObfuscated(y, blockData)) {
 								BlockCoord block = new BlockCoord(x, y, z);
 								if (block != null) {
 									proximityBlocks.add(block);
@@ -199,8 +196,7 @@ public class Calculations {
 							}
 
 							// Check if the block is obfuscated
-							if (obfuscate && (!worldConfig.isBypassObfuscationForSignsWithText()
-									|| Calculations.canObfuscate(chunkData, x, y, z, blockData))) {
+							if (obfuscate && (!worldConfig.isBypassObfuscationForSignsWithText() || Calculations.canObfuscate(chunkData, x, y, z, blockData))) {
 								if (specialObfuscate) {
 									// Proximity hider
 									blockData = proximityHider.getSpecialBlockID();

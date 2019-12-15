@@ -39,6 +39,7 @@ import com.lishid.orebfuscator.listeners.OrebfuscatorBlockListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorEntityListener;
 import com.lishid.orebfuscator.listeners.OrebfuscatorPlayerListener;
 import com.lishid.orebfuscator.logger.OFCLogger;
+import com.lishid.orebfuscator.obfuscation.ProximityHider;
 
 /**
  * Orebfuscator Anti X-RAY
@@ -84,6 +85,7 @@ public class Orebfuscator extends JavaPlugin {
 		getCommand("ofc").setExecutor(new OrebfuscatorCommandExecutor());
 
 		new ProtocolLibHook(this).register();
+		ProximityHider.Load();
 
 		// Run CacheCleaner
 		getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0, Orebfuscator.config.getCacheCleanRate());
