@@ -31,6 +31,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 import com.lishid.orebfuscator.api.Orebfuscator;
@@ -38,6 +39,7 @@ import com.lishid.orebfuscator.api.chunk.ChunkData;
 import com.lishid.orebfuscator.api.config.IConfigManager;
 import com.lishid.orebfuscator.api.config.IOrebfuscatorConfig;
 import com.lishid.orebfuscator.api.config.IWorldConfig;
+import com.lishid.orebfuscator.api.hithack.IBlockHitHandler;
 import com.lishid.orebfuscator.api.hook.IProtocolLibHandler;
 import com.lishid.orebfuscator.api.logger.OFCLogger;
 import com.lishid.orebfuscator.api.types.BlockCoord;
@@ -51,7 +53,7 @@ public class ProtocolLibHandler extends CraftHandler implements IProtocolLibHand
 
 	private IOrebfuscatorConfig config;
 	private IConfigManager configManager;
-//	private IBlockHitHandler blockHitHandler;
+	private IBlockHitHandler blockHitHandler;
 	private ICalculations calculations;
 
 	private ProtocolManager manager;
@@ -62,7 +64,7 @@ public class ProtocolLibHandler extends CraftHandler implements IProtocolLibHand
 
 	@Override
 	public void onInit() {
-//		this.blockHitHandler = this.plugin.getBlockHitHandler();
+		this.blockHitHandler = this.plugin.getBlockHitHandler();
 		this.config = this.plugin.getConfigHandler().getConfig();
 		this.configManager = this.plugin.getConfigHandler().getConfigManager();
 		this.calculations = this.plugin.getCalculations();
@@ -149,21 +151,21 @@ public class ProtocolLibHandler extends CraftHandler implements IProtocolLibHand
 			}
 		});
 
-//		Error (New packet system in 1.14 or higher)
-//		this.packetListeners.add(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
-//
-//			@Override
-//			public void onPacketReceiving(PacketEvent event) {
-//				EnumWrappers.PlayerDigType status = event.getPacket().getPlayerDigTypes().read(0);
-//				if (status == EnumWrappers.PlayerDigType.ABORT_DESTROY_BLOCK) {
-//					System.out.println("TEST");
-//					if (!blockHitHandler.hitBlock(event.getPlayer(), null)) {
-//						System.out.println("STOP: ");
-//						event.setCancelled(true);
-//					}
-//				}
-//			}
-//		});
+		String serverVersion = this.plugin.getNmsManager().getServerVersion();
+		if (serverVersion != "v1_15_R1" && serverVersion != "v1_14_R1") { // TODO check and fix!
+			this.packetListeners.add(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
+
+				@Override
+				public void onPacketReceiving(PacketEvent event) {
+					EnumWrappers.PlayerDigType status = event.getPacket().getPlayerDigTypes().read(0);
+					if (status == EnumWrappers.PlayerDigType.ABORT_DESTROY_BLOCK) {
+						if (!blockHitHandler.hitBlock(event.getPlayer(), null)) {
+							event.setCancelled(true);
+						}
+					}
+				}
+			});
+		}
 	}
 
 	private List<NbtCompound> getBlockEntities(List<?> nmsTags) {

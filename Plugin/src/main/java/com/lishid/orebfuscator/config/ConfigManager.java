@@ -128,63 +128,62 @@ public class ConfigManager implements IConfigManager {
 		new WorldReader(this.plugin, this.logger, this.orebfuscatorConfig, this.materialReader).load();
 
 		this.orebfuscatorConfig.setProximityHiderEnabled();
-
 		this.logger.info(Globals.LogPrefix + "Proximity Hider is " + (this.orebfuscatorConfig.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
 
-		save();
+		this.save();
 	}
 
 	public void setEngineMode(int value) {
-		getConfig().set("Integers.EngineMode", value);
-		save();
+		this.getConfig().set("Integers.EngineMode", value);
+		this.save();
 		this.orebfuscatorConfig.setEngineMode(value);
 	}
 
 	public void setUpdateRadius(int value) {
-		getConfig().set("Integers.UpdateRadius", value);
-		save();
+		this.getConfig().set("Integers.UpdateRadius", value);
+		this.save();
 		this.orebfuscatorConfig.setUpdateRadius(value);
 	}
 
 	public void setInitialRadius(int value) {
-		getConfig().set("Integers.InitialRadius", value);
-		save();
+		this.getConfig().set("Integers.InitialRadius", value);
+		this.save();
 		this.orebfuscatorConfig.setInitialRadius(value);
 	}
 
 	public void setProximityHiderDistance(int value) {
-		getConfig().set("Integers.ProximityHiderDistance", value);
-		save();
+		this.getConfig().set("Integers.ProximityHiderDistance", value);
+		this.save();
 		this.orebfuscatorConfig.getDefaultWorld().getProximityHiderConfig().setDistance(value);
 	}
 
 	public void setNoObfuscationForOps(boolean value) {
-		getConfig().set("Booleans.NoObfuscationForOps", value);
-		save();
+		this.getConfig().set("Booleans.NoObfuscationForOps", value);
+		this.save();
 		this.orebfuscatorConfig.setNoObfuscationForOps(value);
 	}
 
 	public void setNoObfuscationForPermission(boolean value) {
-		getConfig().set("Booleans.NoObfuscationForPermission", value);
-		save();
+		this.getConfig().set("Booleans.NoObfuscationForPermission", value);
+		this.save();
 		this.orebfuscatorConfig.setNoObfuscationForPermission(value);
 	}
 
 	public void setLoginNotification(boolean value) {
-		getConfig().set("Booleans.LoginNotification", value);
-		save();
+		this.getConfig().set("Booleans.LoginNotification", value);
+		this.save();
 		this.orebfuscatorConfig.setLoginNotification(value);
 	}
 
 	public void setUseCache(boolean value) {
-		getConfig().set("Booleans.UseCache", value);
-		save();
+		this.getConfig().set("Booleans.UseCache", value);
+		this.save();
 		this.orebfuscatorConfig.setUseCache(value);
 	}
 
 	public void setEnabled(boolean value) {
-		getConfig().set("Booleans.Enabled", value);
-		save();
+		this.getConfig().set("Booleans.Enabled", value);
+		this.save();
 		this.orebfuscatorConfig.setEnabled(value);
 	}
 
@@ -197,15 +196,15 @@ public class ConfigManager implements IConfigManager {
 	}
 
 	private String getString(String path, String defaultData, boolean withSave) {
-		if (getConfig().get(path) == null) {
+		if (this.getConfig().get(path) == null) {
 			if (!withSave) {
 				return defaultData;
 			}
 
-			getConfig().set(path, defaultData);
+			this.getConfig().set(path, defaultData);
 		}
 
-		return getConfig().getString(path, defaultData);
+		return this.getConfig().getString(path, defaultData);
 	}
 
 	private String getString(String path, String defaultData) {
@@ -217,23 +216,23 @@ public class ConfigManager implements IConfigManager {
 	}
 
 	private int getInt(String path, int defaultData, boolean withSave) {
-		if (getConfig().get(path) == null) {
+		if (this.getConfig().get(path) == null) {
 			if (!withSave) {
 				return defaultData;
 			}
 
-			getConfig().set(path, defaultData);
+			this.getConfig().set(path, defaultData);
 		}
 
-		return getConfig().getInt(path, defaultData);
+		return this.getConfig().getInt(path, defaultData);
 	}
 
 	private int getInt(String path, int defaultData, int min, int max, boolean withSave) {
-		if (getConfig().get(path) == null && withSave) {
-			getConfig().set(path, defaultData);
+		if (this.getConfig().get(path) == null && withSave) {
+			this.getConfig().set(path, defaultData);
 		}
 
-		int value = getConfig().get(path) != null ? getConfig().getInt(path, defaultData) : defaultData;
+		int value = this.getConfig().get(path) != null ? this.getConfig().getInt(path, defaultData) : defaultData;
 
 		if (value < min) {
 			value = min;
@@ -249,15 +248,15 @@ public class ConfigManager implements IConfigManager {
 	}
 
 	private boolean getBoolean(String path, boolean defaultData, boolean withSave) {
-		if (getConfig().get(path) == null) {
+		if (this.getConfig().get(path) == null) {
 			if (!withSave) {
 				return defaultData;
 			}
 
-			getConfig().set(path, defaultData);
+			this.getConfig().set(path, defaultData);
 		}
 
-		return getConfig().getBoolean(path, defaultData);
+		return this.getConfig().getBoolean(path, defaultData);
 	}
 
 	private boolean getBoolean(String path, boolean defaultData) {

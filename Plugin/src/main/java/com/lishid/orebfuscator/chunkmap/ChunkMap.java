@@ -329,6 +329,8 @@ public class ChunkMap implements IChunkMap {
 
 		this.buffer.bitsPerBlock = this.reader.readByte();
 		this.buffer.paletteLength = this.reader.readVarInt();
+		Bukkit.broadcastMessage(this.buffer.paletteLength + " §6paletteLength");
+		Bukkit.broadcastMessage(this.buffer.palette.length + " §6palette");
 
 		for (int i = 0; i < this.buffer.paletteLength; i++) {
 			int paletteData = this.reader.readVarInt();

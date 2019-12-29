@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -154,7 +153,6 @@ public class Calculations extends CraftHandler implements ICalculations {
 		byte[] output;
 
 		try (IChunkMap manager = this.plugin.getChunkMapHandler().create(chunkData)) {
-			Bukkit.getConsoleSender().sendMessage("§4CREATED");
 			for (int i = 0; i < manager.getSectionCount(); i++) {
 				worldConfig.shuffleRandomBlocks();
 

@@ -14,11 +14,11 @@ public abstract class IChunkMapBuffer {
     public int blockCount;
 	public int bitsPerBlock;
 	public int paletteLength;
-	public int dataArrayLength; //
+	public int dataArrayLength;
 	public int lightArrayLength;
-	public int dataArrayStartIndex; //
+	public int dataArrayStartIndex;
 	public int outputPaletteLength;
 	public int outputBitsPerBlock;
 
-	public void clearLayers() { }
+	public abstract void clearLayers();
 }
