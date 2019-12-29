@@ -9,9 +9,9 @@
 	<name>Orebfuscator4 v1_14_R1</name>
 
 	<parent>
-		<groupId>com.lishid.parent</groupId>
-		<artifactId>orebfuscator-parent</artifactId>
-		<version>parent</version>
+		<groupId>com.lishid.repo</groupId>
+		<artifactId>orebfuscator-repo</artifactId>
+		<version>repo</version>
 	</parent>
 
 	<build>
@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>com.lishid</groupId>
 			<artifactId>orebfuscator-api</artifactId>
-			<version>API</version>
+			<version>api</version>
 			<type>jar</type>
 		</dependency>
 	</dependencies>

@@ -8,8 +8,6 @@ package com.lishid.orebfuscator.chunkmap;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.bukkit.Bukkit;
-
 import com.lishid.orebfuscator.api.Orebfuscator;
 import com.lishid.orebfuscator.api.chunk.ChunkData;
 import com.lishid.orebfuscator.api.chunk.ChunkLayer;
@@ -136,10 +134,6 @@ public class ChunkMap implements IChunkMap {
 		// Copy Block Light and Sky Light arrays
 		int lightArrayStartIndex = this.buffer.dataArrayStartIndex + (this.buffer.dataArrayLength << 3);
 		int outputLightArrayStartIndex = this.buffer.writer.getByteIndex() + (outputDataArrayLength << 3);
-
-		Bukkit.getConsoleSender().sendMessage("§a" + this.chunkData.data.length + " | " + lightArrayStartIndex + " | " + (this.chunkData.data.length + this.buffer.lightArrayLength > lightArrayStartIndex));
-		Bukkit.getConsoleSender().sendMessage("§c" + this.buffer.output.length + " | " + outputLightArrayStartIndex + " | " + (this.buffer.output.length + this.buffer.lightArrayLength > outputLightArrayStartIndex));
-		Bukkit.getConsoleSender().sendMessage("§b" + this.buffer.lightArrayLength);
 
 		System.arraycopy(this.chunkData.data, lightArrayStartIndex,
 				this.buffer.output, outputLightArrayStartIndex,
@@ -329,8 +323,6 @@ public class ChunkMap implements IChunkMap {
 
 		this.buffer.bitsPerBlock = this.reader.readByte();
 		this.buffer.paletteLength = this.reader.readVarInt();
-		Bukkit.broadcastMessage(this.buffer.paletteLength + " §6paletteLength");
-		Bukkit.broadcastMessage(this.buffer.palette.length + " §6palette");
 
 		for (int i = 0; i < this.buffer.paletteLength; i++) {
 			int paletteData = this.reader.readVarInt();

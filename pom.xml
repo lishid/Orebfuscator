@@ -1,56 +1,52 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.lishid.parent</groupId>
-  <artifactId>orebfuscator-parent</artifactId>
-  <version>parent</version>
-  <packaging>pom</packaging>
+	<groupId>com.lishid.repo</groupId>
+	<artifactId>orebfuscator-repo</artifactId>
+	<version>repo</version>
+	<packaging>pom</packaging>
 
-  <name>Orebfuscator4 Parent</name>
-  <url>http://dev.bukkit.org/server-mods/orebfuscator/</url>
+	<name>Orebfuscator4 Repo</name>
+	<url>http://dev.bukkit.org/server-mods/orebfuscator/</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
-  <repositories>
-    <repository>
-      <id>dmulloy2-repo</id>
-      <url>http://repo.dmulloy2.net/content/groups/public/</url>
-    </repository>
-    <repository>
-      <id>spigot-repo</id>
-      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-     </repository>
-     <repository>
-       <id>techcable-repo</id>
-       <url>https://repo.techcable.net/content/groups/public/</url>
-     </repository>
-  </repositories>
+	<repositories>
+		<repository>
+			<id>spigot-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>dmulloy2-repo</id>
+			<url>http://repo.dmulloy2.net/content/groups/public/</url>
+		</repository>
+	</repositories>
 
-  <modules>
-    <module>API</module>
-    <module>v1_9_R1</module>
-    <module>v1_9_R2</module>
-    <module>v1_10_R1</module>
-    <module>v1_11_R1</module>
-    <module>v1_12_R1</module>
-    <module>v1_13_R1</module>
-    <module>v1_13_R2</module>
-    <module>v1_14_R1</module>
-    <module>v1_15_R1</module>
-    <module>Plugin</module>
-  </modules>
+	<modules>
+		<module>api</module>
+		<module>plugin</module>
+		<module>v1_9_R1</module>
+		<module>v1_9_R2</module>
+		<module>v1_10_R1</module>
+		<module>v1_11_R1</module>
+		<module>v1_12_R1</module>
+		<module>v1_13_R1</module>
+		<module>v1_13_R2</module>
+		<module>v1_14_R1</module>
+		<module>v1_15_R1</module>
+	</modules>
 
-  <build>
-    <defaultGoal>clean install</defaultGoal>
-  </build>
+	<build>
+		<defaultGoal>clean install</defaultGoal>
+	</build>
 
-  <scm>
-    <connection>scm:git:git://github.com/lishid/Orebfuscator.git</connection>
-    <developerConnection>scm:git:git@github.com:lishid/Orebfuscator.git</developerConnection>
-    <url>https://github.com/lishid/Orebfuscator</url>
-  </scm>
-
+	<scm>
+		<connection>scm:git:git://github.com/lishid/Orebfuscator.git</connection>
+		<developerConnection>scm:git:git@github.com:lishid/Orebfuscator.git</developerConnection>
+		<url>https://github.com/lishid/Orebfuscator</url>
+	</scm>
 </project>
