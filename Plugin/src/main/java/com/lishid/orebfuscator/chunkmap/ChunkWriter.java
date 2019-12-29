@@ -7,7 +7,9 @@ package com.lishid.orebfuscator.chunkmap;
 
 import java.io.IOException;
 
-public class ChunkWriter {
+import com.lishid.orebfuscator.api.chunk.IChunkWriter;
+
+public class ChunkWriter implements IChunkWriter {
 
 	private byte[] data;
 	private int bitsPerBlock;

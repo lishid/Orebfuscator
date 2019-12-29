@@ -22,50 +22,68 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.utils.Globals;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.config.IConfigManager;
+import com.lishid.orebfuscator.api.config.IOrebfuscatorConfig;
+import com.lishid.orebfuscator.api.config.IWorldConfig;
+import com.lishid.orebfuscator.api.nms.IBlockInfo;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.types.ChunkCoord;
+import com.lishid.orebfuscator.api.utils.Globals;
+import com.lishid.orebfuscator.api.utils.IBlockUpdate;
 import com.lishid.orebfuscator.cache.ObfuscatedCachedChunk;
-import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.config.WorldConfig;
-import com.lishid.orebfuscator.nms.IBlockInfo;
-import com.lishid.orebfuscator.types.ChunkCoord;
+import com.lishid.orebfuscator.handler.CraftHandler;
 
-public class BlockUpdate {
+public class BlockUpdate extends CraftHandler implements IBlockUpdate {
 
-	public static boolean needsUpdate(Block block) {
-		int materialId = NmsInstance.get().getMaterialIds(block.getType()).iterator().next();
-		return !Orebfuscator.config.isBlockTransparent(materialId);
+	private INmsManager nmsManager;
+	private IOrebfuscatorConfig config;
+	private IConfigManager configManager;
+
+	public BlockUpdate(Orebfuscator plugin) {
+		super(plugin);
 	}
 
-	public static void update(Block block) {
-		if (!BlockUpdate.needsUpdate(block)) {
+	@Override
+	public void onInit() {
+		this.nmsManager = this.plugin.getNmsManager();
+		this.config = this.plugin.getConfigHandler().getConfig();
+		this.configManager = this.plugin.getConfigHandler().getConfigManager();
+	}
+
+	public boolean needsUpdate(Block block) {
+		int materialId = this.nmsManager.getMaterialIds(block.getType()).iterator().next();
+		return !this.config.isBlockTransparent(materialId);
+	}
+
+	public void update(Block block) {
+		if (!this.needsUpdate(block)) {
 			return;
 		}
 
-		BlockUpdate.update(Arrays.asList(new Block[] { block }));
+		this.update(Arrays.asList(new Block[] { block }));
 	}
 
-	public static void update(List<Block> blocks) {
+	public void update(List<Block> blocks) {
 		if (blocks.isEmpty()) {
 			return;
 		}
 
 		World world = blocks.get(0).getWorld();
-		WorldConfig worldConfig = Orebfuscator.configManager.getWorld(world);
+		IWorldConfig worldConfig = this.configManager.getWorld(world);
 		HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
 		HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
-		int updateRadius = Orebfuscator.config.getUpdateRadius();
+		int updateRadius = this.config.getUpdateRadius();
 
 		for (Block block : blocks) {
-			if (BlockUpdate.needsUpdate(block)) {
-				IBlockInfo blockInfo = NmsInstance.get().getBlockInfo(world, block.getX(), block.getY(), block.getZ());
+			if (this.needsUpdate(block)) {
+				IBlockInfo blockInfo = this.nmsManager.getBlockInfo(world, block.getX(), block.getY(), block.getZ());
 
-				BlockUpdate.getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
+				this.getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
 
 				if (blockInfo != null) {
 					if ((blockInfo.getX() & 0xf) == 0) {
@@ -81,26 +99,26 @@ public class BlockUpdate {
 			}
 		}
 
-		BlockUpdate.sendUpdates(world, updateBlocks);
-		BlockUpdate.invalidateCachedChunks(world, invalidChunks);
+		this.sendUpdates(world, updateBlocks);
+		this.invalidateCachedChunks(world, invalidChunks);
 	}
 
 	// This method is used in CastleGates plugin
-	public static void updateByLocations(List<Location> locations, int updateRadius) {
+	public void updateByLocations(List<Location> locations, int updateRadius) {
 		if (locations.isEmpty()) {
 			return;
 		}
 
 		World world = locations.get(0).getWorld();
-		WorldConfig worldConfig = Orebfuscator.configManager.getWorld(world);
+		IWorldConfig worldConfig = this.configManager.getWorld(world);
 		HashSet<IBlockInfo> updateBlocks = new HashSet<IBlockInfo>();
 		HashSet<ChunkCoord> invalidChunks = new HashSet<ChunkCoord>();
 
 		for (Location location : locations) {
-			IBlockInfo blockInfo = NmsInstance.get().getBlockInfo(world, location.getBlockX(), location.getBlockY(),
+			IBlockInfo blockInfo = this.nmsManager.getBlockInfo(world, location.getBlockX(), location.getBlockY(),
 					location.getBlockZ());
 
-			BlockUpdate.getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
+			this.getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
 
 			if (blockInfo != null) {
 				if ((blockInfo.getX() & 0xf) == 0) {
@@ -115,29 +133,29 @@ public class BlockUpdate {
 			}
 		}
 
-		BlockUpdate.sendUpdates(world, updateBlocks);
-		BlockUpdate.invalidateCachedChunks(world, invalidChunks);
+		this.sendUpdates(world, updateBlocks);
+		this.invalidateCachedChunks(world, invalidChunks);
 	}
 
-	private static void sendUpdates(World world, Set<IBlockInfo> blocks) {
+	private void sendUpdates(World world, Set<IBlockInfo> blocks) {
 		for (IBlockInfo blockInfo : blocks) {
-			NmsInstance.get().notifyBlockChange(world, blockInfo);
+			this.nmsManager.notifyBlockChange(world, blockInfo);
 		}
 	}
 
-	private static void invalidateCachedChunks(World world, Set<ChunkCoord> invalidChunks) {
-		if (invalidChunks.isEmpty() || !Orebfuscator.config.isUseCache())
+	private void invalidateCachedChunks(World world, Set<ChunkCoord> invalidChunks) {
+		if (invalidChunks.isEmpty() || !this.config.isUseCache())
 			return;
 
-		File cacheFolder = new File(ObfuscatedDataCache.getCacheFolder(), world.getName());
+		File cacheFolder = new File(this.plugin.getObfuscatedDataCacheHandler().getCacheFolder(), world.getName());
 
 		for (ChunkCoord chunk : invalidChunks) {
-			ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(cacheFolder, chunk.x, chunk.z);
+			ObfuscatedCachedChunk cache = new ObfuscatedCachedChunk(this.plugin, cacheFolder, chunk.x, chunk.z);
 			cache.invalidate();
 		}
 	}
 
-	private static void getAdjacentBlocks(HashSet<IBlockInfo> allBlocks, World world, WorldConfig worldConfig, IBlockInfo blockInfo, int countdown) {
+	private void getAdjacentBlocks(HashSet<IBlockInfo> allBlocks, World world, IWorldConfig worldConfig, IBlockInfo blockInfo, int countdown) {
 		if (blockInfo == null)
 			return;
 
@@ -149,23 +167,23 @@ public class BlockUpdate {
 
 		if (countdown > 0) {
 			countdown--;
-			BlockUpdate.getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()),
+			this.getAdjacentBlocks(allBlocks, world, worldConfig,
+					this.nmsManager.getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()),
 					countdown);
-			BlockUpdate.getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()),
+			this.getAdjacentBlocks(allBlocks, world, worldConfig,
+					this.nmsManager.getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()),
 					countdown);
-			BlockUpdate.getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()),
+			this.getAdjacentBlocks(allBlocks, world, worldConfig,
+					this.nmsManager.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()),
 					countdown);
-			BlockUpdate.getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()),
+			this.getAdjacentBlocks(allBlocks, world, worldConfig,
+					this.nmsManager.getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()),
 					countdown);
-			BlockUpdate.getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1),
+			this.getAdjacentBlocks(allBlocks, world, worldConfig,
+					this.nmsManager.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1),
 					countdown);
-			BlockUpdate.getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1),
+			this.getAdjacentBlocks(allBlocks, world, worldConfig,
+					this.nmsManager.getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1),
 					countdown);
 		}
 	}

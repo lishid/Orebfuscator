@@ -19,7 +19,7 @@ package com.lishid.orebfuscator.utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import com.lishid.orebfuscator.logger.OFCLogger;
+import com.lishid.orebfuscator.api.logger.OFCLogger;
 
 public class ReflectionHelper {
 

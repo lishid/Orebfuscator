@@ -9,9 +9,11 @@ import java.util.Map;
 
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.logger.OFCLogger;
+import com.lishid.orebfuscator.api.config.IOrebfuscatorConfig;
+import com.lishid.orebfuscator.api.config.IWorldConfig;
+import com.lishid.orebfuscator.api.logger.OFCLogger;
 
-public class OrebfuscatorConfig {
+public class OrebfuscatorConfig implements IOrebfuscatorConfig {
 	// Caching
 	private boolean useCache;
 	private int maxLoadedCacheFiles;
@@ -32,11 +34,11 @@ public class OrebfuscatorConfig {
 
 	private byte[] transparentBlocks;
 
-	private WorldConfig defaultWorld;
-	private WorldConfig normalWorld;
-	private WorldConfig endWorld;
-	private WorldConfig netherWorld;
-	private Map<String, WorldConfig> worlds;
+	private IWorldConfig defaultWorld;
+	private IWorldConfig normalWorld;
+	private IWorldConfig endWorld;
+	private IWorldConfig netherWorld;
+	private Map<String, IWorldConfig> worlds;
 
 	private boolean proximityHiderEnabled;
 
@@ -161,42 +163,42 @@ public class OrebfuscatorConfig {
 		this.transparentBlocks = transparentBlocks;
 	}
 
-	public WorldConfig getDefaultWorld() {
+	public IWorldConfig getDefaultWorld() {
 		return this.defaultWorld;
 	}
 
-	public void setDefaultWorld(WorldConfig value) {
+	public void setDefaultWorld(IWorldConfig value) {
 		this.defaultWorld = value;
 	}
 
-	public WorldConfig getNormalWorld() {
+	public IWorldConfig getNormalWorld() {
 		return this.normalWorld;
 	}
 
-	public void setNormalWorld(WorldConfig value) {
+	public void setNormalWorld(IWorldConfig value) {
 		this.normalWorld = value;
 	}
 
-	public WorldConfig getEndWorld() {
+	public IWorldConfig getEndWorld() {
 		return this.endWorld;
 	}
 
-	public void setEndWorld(WorldConfig value) {
+	public void setEndWorld(IWorldConfig value) {
 		this.endWorld = value;
 	}
 
-	public WorldConfig getNetherWorld() {
+	public IWorldConfig getNetherWorld() {
 		return this.netherWorld;
 	}
 
-	public void setNetherWorld(WorldConfig value) {
+	public void setNetherWorld(IWorldConfig value) {
 		this.netherWorld = value;
 	}
 
 	public String getWorldNames() {
 		String worldNames = "";
 
-		for (WorldConfig world : this.worlds.values()) {
+		for (IWorldConfig world : this.worlds.values()) {
 			if (worldNames.length() > 0) {
 				worldNames += ", ";
 			}
@@ -207,11 +209,11 @@ public class OrebfuscatorConfig {
 		return worldNames;
 	}
 
-	public WorldConfig getWorld(String name) {
+	public IWorldConfig getWorld(String name) {
 		return this.worlds.get(name.toLowerCase());
 	}
 
-	public void setWorlds(Map<String, WorldConfig> value) {
+	public void setWorlds(Map<String, IWorldConfig> value) {
 		this.worlds = value;
 	}
 
@@ -225,7 +227,7 @@ public class OrebfuscatorConfig {
 				|| this.netherWorld.getProximityHiderConfig().isEnabled();
 
 		if (!this.proximityHiderEnabled) {
-			for (WorldConfig world : this.worlds.values()) {
+			for (IWorldConfig world : this.worlds.values()) {
 				if (world.getProximityHiderConfig().isEnabled() != null && world.getProximityHiderConfig().isEnabled()) {
 					this.proximityHiderEnabled = true;
 					break;

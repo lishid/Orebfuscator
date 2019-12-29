@@ -36,13 +36,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.cache.ObfuscatedDataCache;
-import com.lishid.orebfuscator.config.WorldConfig;
-import com.lishid.orebfuscator.logger.OFCLogger;
-import com.lishid.orebfuscator.utils.Globals;
-import com.lishid.orebfuscator.utils.MaterialHelper;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.config.IConfigHandler;
+import com.lishid.orebfuscator.api.config.IConfigManager;
+import com.lishid.orebfuscator.api.config.IOrebfuscatorConfig;
+import com.lishid.orebfuscator.api.config.IWorldConfig;
+import com.lishid.orebfuscator.api.logger.OFCLogger;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.Globals;
 
 public class OrebfuscatorCommandExecutor implements CommandExecutor, TabCompleter {
 
@@ -74,13 +75,26 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 		OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.put("use", Arrays.asList("blacklist", "whitelist"));
 
 		List<String> toggleValues = new ArrayList<String>();
-		Bukkit.getWorlds().forEach(world -> toggleValues.add(world.getName()));
 		toggleValues.addAll(Arrays.asList("darknesshide", "op", "cache", "permissions", "axr", "notification"));
+		Bukkit.getWorlds().forEach(world -> toggleValues.add(world.getName()));
+
 		OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.put("enable", toggleValues);
 		OrebfuscatorCommandExecutor.TAB_COMPLETE_BY_ARGUMENTS.put("disable", toggleValues);
 	}
 
-	public OrebfuscatorCommandExecutor() {
+	private final Orebfuscator plugin;
+	private final INmsManager nmsManager;
+	private final IConfigHandler configHandler;
+	private final IConfigManager configManager;
+	private final IOrebfuscatorConfig config;
+
+	public OrebfuscatorCommandExecutor(Orebfuscator plugin) {
+		this.plugin = plugin;
+		this.nmsManager = this.plugin.getNmsManager();
+		this.configHandler = this.plugin.getConfigHandler();
+		this.configManager = this.configHandler.getConfigManager();
+		this.config = this.configHandler.getConfig();
+
 		OrebfuscatorCommandExecutor.loadTabComplete();
 	}
 
@@ -97,7 +111,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 		}
 
 		if (args[0].equalsIgnoreCase("engine") && args.length > 1) {
-			int engine = Orebfuscator.config.getEngineMode();
+			int engine = this.config.getEngineMode();
 			try {
 				engine = Integer.valueOf(args[1]);
 			} catch (NumberFormatException e) {
@@ -108,95 +122,95 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 				OFCLogger.message(sender, args[1] + " is not a valid EngineMode!");
 				return true;
 			} else {
-				Orebfuscator.configManager.setEngineMode(engine);
+				this.config.setEngineMode(engine);
 				OFCLogger.message(sender, "Engine set to: " + engine);
 				return true;
 			}
 		} else if (args[0].equalsIgnoreCase("updateradius") && args.length > 1) {
-			int radius = Orebfuscator.config.getUpdateRadius();
+			int radius = this.config.getUpdateRadius();
 			try {
 				radius = Integer.valueOf(args[1]);
 			} catch (NumberFormatException e) {
 				OFCLogger.message(sender, args[1] + " is not a number!");
 				return true;
 			}
-			Orebfuscator.configManager.setUpdateRadius(radius);
-			OFCLogger.message(sender, "UpdateRadius set to: " + Orebfuscator.config.getUpdateRadius());
+			this.configManager.setUpdateRadius(radius);
+			OFCLogger.message(sender, "UpdateRadius set to: " + this.config.getUpdateRadius());
 			return true;
 		} else if (args[0].equalsIgnoreCase("initialradius") && args.length > 1) {
-			int radius = Orebfuscator.config.getInitialRadius();
+			int radius = this.config.getInitialRadius();
 			try {
 				radius = Integer.valueOf(args[1]);
 			} catch (NumberFormatException e) {
 				OFCLogger.message(sender, args[1] + " is not a number!");
 				return true;
 			}
-			Orebfuscator.configManager.setInitialRadius(radius);
+			this.configManager.setInitialRadius(radius);
 			OFCLogger.message(sender, "InitialRadius set to: " + radius);
 			return true;
 		} else if (args[0].equalsIgnoreCase("enable") || args[0].equalsIgnoreCase("disable")) {
 			boolean data = args[0].equalsIgnoreCase("enable");
 
 			if (args[0].equalsIgnoreCase("enable") && args.length == 1) {
-				Orebfuscator.configManager.setEnabled(true);
+				this.configManager.setEnabled(true);
 				OFCLogger.message(sender, "Enabled.");
 				return true;
 			} else if (args[0].equalsIgnoreCase("disable") && args.length == 1) {
-				Orebfuscator.configManager.setEnabled(false);
+				this.configManager.setEnabled(false);
 				OFCLogger.message(sender, "Disabled.");
 				return true;
 			} else if (args.length > 1) {
 				if (args[1].equalsIgnoreCase("op")) {
-					Orebfuscator.configManager.setNoObfuscationForOps(data);
+					this.configManager.setNoObfuscationForOps(data);
 					OFCLogger.message(sender, "Ops No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
 					return true;
 				} else if (args[1].equalsIgnoreCase("perms") || args[1].equalsIgnoreCase("permissions")) {
-					Orebfuscator.configManager.setNoObfuscationForPermission(data);
+					this.configManager.setNoObfuscationForPermission(data);
 					OFCLogger.message(sender, "Permissions No-Obfuscation " + (data ? "enabled" : "disabled") + ".");
 					return true;
 				} else if (args[1].equalsIgnoreCase("cache")) {
-					Orebfuscator.configManager.setUseCache(data);
+					this.configManager.setUseCache(data);
 					OFCLogger.message(sender, "Cache " + (data ? "enabled" : "disabled") + ".");
 					return true;
 				} else if (args[1].equalsIgnoreCase("notification")) {
-					Orebfuscator.configManager.setLoginNotification(data);
+					this.configManager.setLoginNotification(data);
 					OFCLogger.message(sender, "Login Notification " + (data ? "enabled" : "disabled") + ".");
 					return true;
 				}
 			}
 		} else if (args[0].equalsIgnoreCase("reload")) {
-			Orebfuscator.instance.reloadOrebfuscatorConfig();
+			this.plugin.reloadConfig();
 			OFCLogger.message(sender, "Reload complete.");
 			return true;
 		} else if (args[0].equalsIgnoreCase("status")) {
-			String status = Orebfuscator.instance.getIsProtocolLibFound()
-					? (Orebfuscator.config.isEnabled() ? "Enabled" : "Disabled")
+			String status = this.nmsManager.wasNmsFound()
+					? (this.config.isEnabled() ? "Enabled" : "Disabled")
 					: "ProtocolLib is not found! Plugin cannot be enabled.";
 
 			OFCLogger.message(sender,
-					"Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + status);
-			OFCLogger.message(sender, "Engine Mode: " + Orebfuscator.config.getEngineMode());
+					"Orebfuscator " + this.plugin.getDescription().getVersion() + " is: " + status);
+			OFCLogger.message(sender, "Engine Mode: " + this.config.getEngineMode());
 
-			OFCLogger.message(sender, "Caching: " + (Orebfuscator.config.isUseCache() ? "Enabled" : "Disabled"));
+			OFCLogger.message(sender, "Caching: " + (this.config.isUseCache() ? "Enabled" : "Disabled"));
 			OFCLogger.message(sender,
-					"ProximityHider: " + (Orebfuscator.config.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
+					"ProximityHider: " + (this.config.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
 			OFCLogger.message(sender, "DarknessHideBlocks: "
-					+ (Orebfuscator.config.getDefaultWorld().isDarknessHideBlocks() ? "Enabled" : "Disabled"));
+					+ (this.config.getDefaultWorld().isDarknessHideBlocks() ? "Enabled" : "Disabled"));
 
-			OFCLogger.message(sender, "Initial Obfuscation Radius: " + Orebfuscator.config.getInitialRadius());
-			OFCLogger.message(sender, "Update Radius: " + Orebfuscator.config.getUpdateRadius());
+			OFCLogger.message(sender, "Initial Obfuscation Radius: " + this.config.getInitialRadius());
+			OFCLogger.message(sender, "Update Radius: " + this.config.getUpdateRadius());
 
 			OFCLogger.message(sender, "World by Default: "
-					+ (Orebfuscator.config.getDefaultWorld().isEnabled() ? "Enabled" : "Disabled"));
+					+ (this.config.getDefaultWorld().isEnabled() ? "Enabled" : "Disabled"));
 
-			String worldNames = Orebfuscator.config.getWorldNames();
+			String worldNames = this.config.getWorldNames();
 
 			OFCLogger.message(sender, "Worlds in List: " + (worldNames.equals("") ? "None" : worldNames));
 
 			return true;
 		} else if (args[0].equalsIgnoreCase("clearcache")) {
 			try {
-				ObfuscatedDataCache.clearCache();
+				this.plugin.getObfuscatedDataCacheHandler().clearCache();
 				OFCLogger.message(sender, "Cache cleared.");
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -204,16 +218,16 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 
 			return true;
 		} else if (args[0].equalsIgnoreCase("obfuscateblocks")) {
-			commandObfuscateBlocks(sender, args);
+			this.commandObfuscateBlocks(sender, args);
 			return true;
 		} else if (args[0].equalsIgnoreCase("ph")) {
-			commandProximityHider(sender, args);
+			this.commandProximityHider(sender, args);
 			return true;
 		} else if (args[0].equalsIgnoreCase("lm")) {
-			commandListMaterials(sender, args);
+			this.commandListMaterials(sender, args);
 			return true;
 		} else if (args[0].equalsIgnoreCase("tp")) {
-			commandTransparentBlocks(sender, args);
+			this.commandTransparentBlocks(sender, args);
 			return true;
 		}
 
@@ -221,7 +235,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 		return true;
 	}
 
-	private static void commandObfuscateBlocks(CommandSender sender, String[] args) {
+	private void commandObfuscateBlocks(CommandSender sender, String[] args) {
 		if (args.length == 1) {
 			OFCLogger.message(sender, ChatColor.RED + "World is required parameter.");
 			return;
@@ -241,9 +255,9 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 			if (material == null) {
 				OFCLogger.message(sender, ChatColor.RED + "Specified material is not found.");
 			} else {
-				int materialId = NmsInstance.get().getMaterialIds(material).iterator().next();
+				int materialId = this.nmsManager.getMaterialIds(material).iterator().next();
 
-				if ((Orebfuscator.configManager.getWorld(world).getObfuscatedBits(materialId) & Globals.MASK_OBFUSCATE) != 0)
+				if ((this.configManager.getWorld(world).getObfuscatedBits(materialId) & Globals.MASK_OBFUSCATE) != 0)
 					OFCLogger.message(sender, material.name() + ": " + ChatColor.GREEN + "obfuscate");
 				else
 					OFCLogger.message(sender, material.name() + ": " + ChatColor.RED + "not obfuscate");
@@ -257,8 +271,8 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 
 		for (Material material : materials) {
 			if (material.isBlock()) {
-				int blockId = NmsInstance.get().getMaterialIds(material).iterator().next();
-				int bits = Orebfuscator.configManager.getWorld(world).getObfuscatedBits(blockId);
+				int blockId = this.nmsManager.getMaterialIds(material).iterator().next();
+				int bits = this.configManager.getWorld(world).getObfuscatedBits(blockId);
 
 				if (bits != 0) {
 					blockNames.add(material.name() + " " + ChatColor.WHITE + bits);
@@ -282,28 +296,28 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 		OFCLogger.message(sender, blocks.toString());
 	}
 
-	private static void commandProximityHider(CommandSender sender, String[] args) {
+	private void commandProximityHider(CommandSender sender, String[] args) {
 		if (args.length == 1) {
 			OFCLogger.message(sender, ChatColor.RED + "World is required parameter.");
 			return;
 		}
 
-		WorldConfig worldConfig = null;
+		IWorldConfig worldConfig = null;
 		String worldName = args[1];
 
 		if (worldName.startsWith(":")) {
 			if (worldName.equalsIgnoreCase(":default")) {
-				worldConfig = Orebfuscator.config.getDefaultWorld();
+				worldConfig = this.config.getDefaultWorld();
 			} else if (worldName.equalsIgnoreCase(":normal")) {
-				worldConfig = Orebfuscator.config.getNormalWorld();
+				worldConfig = this.config.getNormalWorld();
 			} else if (worldName.equalsIgnoreCase(":nether")) {
-				worldConfig = Orebfuscator.config.getNetherWorld();
+				worldConfig = this.config.getNetherWorld();
 			} else if (worldName.equalsIgnoreCase(":end")) {
-				worldConfig = Orebfuscator.config.getEndWorld();
+				worldConfig = this.config.getEndWorld();
 			}
 		} else {
 			World world = Bukkit.getWorld(worldName);
-			worldConfig = Orebfuscator.configManager.getWorld(world);
+			worldConfig = this.configManager.getWorld(world);
 		}
 
 		if (worldConfig == null) {
@@ -322,7 +336,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 			ArrayList<String> blockNames = new ArrayList<>();
 
 			for (int id : blockIds) {
-				blockNames.add(MaterialHelper.getById(id).name());
+				blockNames.add(this.plugin.getMaterialHelper().getById(id).name());
 			}
 
 			Collections.sort(blockNames);
@@ -335,20 +349,20 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 		OFCLogger.message(sender, blocks.toString());
 	}
 
-	private static void commandListMaterials(CommandSender sender, String[] args) {
+	private void commandListMaterials(CommandSender sender, String[] args) {
 		Material[] materials = Material.values();
 
 		List<String> blockNames = new ArrayList<>();
 
 		for (Material material : materials) {
 			if (material.isBlock())
-				NmsInstance.get().getMaterialIds(material).stream().sorted().forEach(id -> blockNames.add(material.name() + " = " + id));
+				this.nmsManager.getMaterialIds(material).stream().sorted().forEach(id -> blockNames.add(material.name() + " = " + id));
 		}
 
 		OFCLogger.message(sender, blockNames.isEmpty() ? "" : (" - " + blockNames.stream().sorted().collect(Collectors.joining("\n - "))));
 	}
 
-	private static void commandTransparentBlocks(CommandSender sender, String[] args) {
+	private void commandTransparentBlocks(CommandSender sender, String[] args) {
 		Material[] materials = Material.values();
 
 		List<String> transparentBlockNames = new ArrayList<>();
@@ -356,8 +370,8 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 
 		for (Material material : materials) {
 			if (material.isBlock()) {
-				int blockId = NmsInstance.get().getMaterialIds(material).iterator().next();
-				boolean isTransparent = Orebfuscator.config.isBlockTransparent(blockId);
+				int blockId = this.nmsManager.getMaterialIds(material).iterator().next();
+				boolean isTransparent = this.config.isBlockTransparent(blockId);
 
 				if (isTransparent) {
 					transparentBlockNames.add(material.name());

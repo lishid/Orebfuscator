@@ -16,72 +16,90 @@
 
 package com.lishid.orebfuscator.hithack;
 
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.logger.OFCLogger;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.event.OFCPlayerKickEvent;
+import com.lishid.orebfuscator.api.event.OFCPlayerKickEvent.KickReason;
+import com.lishid.orebfuscator.api.hithack.IPlayerBlockTracking;
+import com.lishid.orebfuscator.api.logger.OFCLogger;
 
-public class PlayerBlockTracking {
-    private Block block;
-    private int hackingIndicator;
-    private Player player;
-    private long lastTime = System.currentTimeMillis();
+public class PlayerBlockTracking implements IPlayerBlockTracking {
 
-    public PlayerBlockTracking(Player player) {
-        this.player = player;
-    }
+	private final Orebfuscator plugin;
+	private final Player player;
 
-    public Player getPlayer() {
-        return this.player;
-    }
+	private Block block;
+	private int hackingIndicator;
+	private long lastTime = System.currentTimeMillis();
 
-    public int getHackingIndicator() {
-        return hackingIndicator;
-    }
+	public PlayerBlockTracking(Orebfuscator plugin, Player player) {
+		this.plugin = plugin;
+		this.player = player;
+	}
 
-    public Block getBlock() {
-        return block;
-    }
+	public Player getPlayer() {
+		return this.player;
+	}
 
-    public boolean isBlock(Block block) {
-        if (block == null || this.block == null)
-            return false;
-        return block.equals(this.block);
-    }
+	public int getHackingIndicator() {
+		return hackingIndicator;
+	}
 
-    public void setBlock(Block block) {
-        this.block = block;
-    }
+	public Block getBlock() {
+		return block;
+	}
 
-    public void incrementHackingIndicator(int value) {
-        hackingIndicator += value;
-        if (hackingIndicator >= (1 << 14)) {
-            Orebfuscator.instance.runTask(new Runnable() {
-                public void run() {
-                    String name = player.getName();
-                    OFCLogger.log("Player \"" + name + "\" tried to hack with packet spamming.");
-                    player.kickPlayer("End of Stream");
-                }
-            });
-        }
-    }
+	public boolean isBlock(Block block) {
+		if (block == null || this.block == null)
+			return false;
+		return block.equals(this.block);
+	}
 
-    public void incrementHackingIndicator() {
-        incrementHackingIndicator(1);
-    }
+	public void setBlock(Block block) {
+		this.block = block;
+	}
 
-    public void decrementHackingIndicator(int value) {
-        hackingIndicator -= value;
-        if (hackingIndicator < 0)
-            hackingIndicator = 0;
-    }
+	public void incrementHackingIndicator(int value) {
+		hackingIndicator += value;
+		if (hackingIndicator >= (1 << 14)) {
+			Bukkit.getServer().getScheduler().runTask(this.plugin, new Runnable() {
 
-    public void updateTime() {
-        lastTime = System.currentTimeMillis();
-    }
+				public void run() {
+					String name = player.getName();
+					OFCLogger.log("Player \"" + name + "\" tried to hack with packet spamming.");
 
-    public long getTimeDifference() {
-        return System.currentTimeMillis() - lastTime;
-    }
+					OFCPlayerKickEvent event = new OFCPlayerKickEvent(player, KickReason.PACKET_SPAMMING, "End of Stream");
+					Bukkit.getServer().getPluginManager().callEvent(event);
+
+					if (!event.isCancelled()) {
+						player.kickPlayer(event.getMessage());
+					}
+				}
+			});
+		}
+	}
+
+	public void incrementHackingIndicator() {
+		incrementHackingIndicator(1);
+	}
+
+	public void decrementHackingIndicator(int value) {
+		System.out.println("hacking old: " + this.hackingIndicator);
+		this.hackingIndicator -= value;
+		if (this.hackingIndicator < 0) {
+			this.hackingIndicator = 0;
+		}
+		System.out.println("hacking new: " + this.hackingIndicator);
+	}
+
+	public void updateTime() {
+		this.lastTime = System.currentTimeMillis();
+	}
+
+	public long getTimeDifference() {
+		return System.currentTimeMillis() - this.lastTime;
+	}
 }

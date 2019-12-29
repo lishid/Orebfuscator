@@ -11,11 +11,18 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.utils.Globals;
-import com.lishid.orebfuscator.utils.MaterialHelper;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.config.IWorldConfig;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.Globals;
+import com.lishid.orebfuscator.api.utils.IMaterialHelper;
 
-public class WorldConfig {
+public class WorldConfig implements IWorldConfig {
+
+	private final Orebfuscator plugin;
+	private final INmsManager nmsManager;
+	private final IMaterialHelper materialHelper;
+
 	private String name;
 	private Boolean enabled;
 	private Boolean darknessHideBlocks;
@@ -32,8 +39,12 @@ public class WorldConfig {
 	private ProximityHiderConfig proximityHiderConfig;
 	private boolean initialized;
 
-	public WorldConfig() {
-		this.proximityHiderConfig = new ProximityHiderConfig();
+	public WorldConfig(Orebfuscator plugin) {
+		this.plugin = plugin;
+		this.nmsManager = this.plugin.getNmsManager();
+
+		this.proximityHiderConfig = new ProximityHiderConfig(this.plugin);
+		this.materialHelper = this.plugin.getMaterialHelper();
 	}
 
 	public void setDefaults() {
@@ -45,76 +56,76 @@ public class WorldConfig {
 		this.obfuscateBlocks = new HashSet<>();
 
 		this.darknessBlocks = new HashSet<>();
-		for (int blockId : NmsInstance.get().getConfigDefaults().defaultDarknessBlockIds) {
+		for (int blockId : this.nmsManager.getConfigDefaults().defaultDarknessBlockIds) {
 			this.darknessBlocks.add(blockId);
 		}
 
 		this.randomBlocks = new Integer[0];
 		this.randomBlocks2 = this.randomBlocks;
 
-		this.mode1BlockId = NmsInstance.get().getConfigDefaults().defaultMode1BlockId;
+		this.mode1BlockId = this.nmsManager.getConfigDefaults().defaultMode1BlockId;
 		this.paletteBlocks = null;
 
 		this.proximityHiderConfig.setDefaults();
 	}
 
-	public void init(WorldConfig baseWorld) {
+	public void init(IWorldConfig baseWorld) {
 		if (this.initialized) {
 			return;
 		}
 
 		if (baseWorld != null) {
 			if (this.enabled == null) {
-				this.enabled = baseWorld.enabled;
+				this.enabled = baseWorld.isEnabled();
 			}
 
 			if (this.darknessHideBlocks == null) {
-				this.darknessHideBlocks = baseWorld.darknessHideBlocks;
+				this.darknessHideBlocks = baseWorld.isDarknessHideBlocks();
 			}
 
 			if (this.antiTexturePackAndFreecam == null) {
-				this.antiTexturePackAndFreecam = baseWorld.antiTexturePackAndFreecam;
+				this.antiTexturePackAndFreecam = baseWorld.isAntiTexturePackAndFreecam();
 			}
 
 			if (this.bypassObfuscationForSignsWithText == null) {
-				this.bypassObfuscationForSignsWithText = baseWorld.bypassObfuscationForSignsWithText;
+				this.bypassObfuscationForSignsWithText = baseWorld.isBypassObfuscationForSignsWithText();
 			}
 
 			if (this.airGeneratorMaxChance == null) {
-				this.airGeneratorMaxChance = baseWorld.airGeneratorMaxChance;
+				this.airGeneratorMaxChance = baseWorld.getAirGeneratorMaxChance();
 			}
 
 			if (this.obfuscateBlocks == null) {
-				this.obfuscateBlocks = baseWorld.obfuscateBlocks != null
-						?  baseWorld.obfuscateBlocks.stream().collect(Collectors.toCollection(HashSet::new))
+				this.obfuscateBlocks = baseWorld.getObfuscateBlocks() != null
+						?  baseWorld.getObfuscateBlocks().stream().collect(Collectors.toCollection(HashSet::new))
 						: null;
 			}
 
 			if (this.darknessBlocks == null) {
-				this.darknessBlocks = baseWorld.darknessBlocks != null
-						? baseWorld.darknessBlocks.stream().collect(Collectors.toCollection(HashSet::new))
+				this.darknessBlocks = baseWorld.getDarknessBlocks() != null
+						? baseWorld.getDarknessBlocks().stream().collect(Collectors.toCollection(HashSet::new))
 						: null;
 			}
 
 			if (this.randomBlocks == null) {
-				this.randomBlocks = baseWorld.randomBlocks != null ? baseWorld.randomBlocks.clone() : null;
-				this.randomBlocks2 = baseWorld.randomBlocks2 != null ? baseWorld.randomBlocks2.clone() : null;
+				this.randomBlocks = baseWorld.getRandomBlocks() != null ? baseWorld.getRandomBlocks().clone() : null;
+				this.randomBlocks2 = baseWorld.getRandomBlocks2() != null ? baseWorld.getRandomBlocks2().clone() : null;
 			}
 
 			if (this.mode1BlockId == null) {
-				this.mode1BlockId = baseWorld.mode1BlockId;
+				this.mode1BlockId = baseWorld.getMode1BlockId();
 			}
 
-			this.proximityHiderConfig.init(baseWorld.proximityHiderConfig);
-			setObfuscateAndProximityBlocks();
+			this.proximityHiderConfig.init(baseWorld.getProximityHiderConfig());
+			this.setObfuscateAndProximityBlocks();
 		}
 
-		setPaletteBlocks();
+		this.setPaletteBlocks();
 
 		this.initialized = true;
 	}
 
-	public boolean isInitialized() {
+	public Boolean isInitialized() {
 		return this.initialized;
 	}
 
@@ -183,7 +194,7 @@ public class WorldConfig {
 	}
 
 	private void setObfuscateAndProximityBlocks() {
-		this.obfuscateAndProximityBlocks = new byte[MaterialHelper.getMaxId() + 1];
+		this.obfuscateAndProximityBlocks = new byte[this.materialHelper.getMaxId() + 1];
 
 		setObfuscateMask(this.obfuscateBlocks, false, false);
 
@@ -204,7 +215,7 @@ public class WorldConfig {
 			if (isProximityHider)
 				bits |= Globals.MASK_PROXIMITYHIDER;
 
-			if (NmsInstance.get().isTileEntity(blockId))
+			if (this.nmsManager.isTileEntity(blockId))
 				bits |= Globals.MASK_TILEENTITY;
 
 			this.obfuscateAndProximityBlocks[blockId] = (byte) bits;
@@ -225,6 +236,10 @@ public class WorldConfig {
 
 	public Integer[] getRandomBlocks() {
 		return this.randomBlocks;
+	}
+
+	public Integer[] getRandomBlocks2() {
+		return this.randomBlocks2;
 	}
 
 	public void setRandomBlocks(Integer[] values) {
@@ -257,7 +272,7 @@ public class WorldConfig {
 
 		HashSet<Integer> map = new HashSet<Integer>();
 
-		map.add(NmsInstance.get().getCaveAirBlockId());
+		map.add(this.nmsManager.getCaveAirBlockId());
 		map.add(this.mode1BlockId);
 
 		if (this.proximityHiderConfig.isUseSpecialBlock())
@@ -291,5 +306,13 @@ public class WorldConfig {
 
 	public int getRandomBlock(int index, boolean alternate) {
 		return alternate ? this.randomBlocks2[index] : this.randomBlocks[index];
+	}
+
+	public Orebfuscator getPlugin() {
+		return this.plugin;
+	}
+
+	public INmsManager getNmsManager() {
+		return this.nmsManager;
 	}
 }

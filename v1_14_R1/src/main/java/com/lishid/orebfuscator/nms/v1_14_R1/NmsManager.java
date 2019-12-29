@@ -20,12 +20,12 @@ import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_14_R1.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.nms.IBlockInfo;
-import com.lishid.orebfuscator.nms.IChunkCache;
-import com.lishid.orebfuscator.nms.INBT;
-import com.lishid.orebfuscator.nms.INmsManager;
-import com.lishid.orebfuscator.types.BlockCoord;
-import com.lishid.orebfuscator.types.ConfigDefaults;
+import com.lishid.orebfuscator.api.nms.IBlockInfo;
+import com.lishid.orebfuscator.api.nms.IChunkCache;
+import com.lishid.orebfuscator.api.nms.INBT;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.types.BlockCoord;
+import com.lishid.orebfuscator.api.types.ConfigDefaults;
 
 import net.minecraft.server.v1_14_R1.Block;
 import net.minecraft.server.v1_14_R1.BlockPosition;
@@ -370,4 +370,13 @@ public class NmsManager implements INmsManager {
 		return true;
 	}
 
+	@Override
+	public boolean wasNmsFound() {
+		return false;
+	}
+
+	@Override
+	public String getServerVersion() {
+		return null;
+	}
 }

@@ -7,7 +7,9 @@ package com.lishid.orebfuscator.chunkmap;
 
 import java.io.IOException;
 
-public class ChunkReader {
+import com.lishid.orebfuscator.api.chunk.IChunkReader;
+
+public class ChunkReader implements IChunkReader {
 
 	private byte[] data;
 	private int bitsPerBlock;

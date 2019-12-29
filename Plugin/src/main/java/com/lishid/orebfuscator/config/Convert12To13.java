@@ -10,15 +10,15 @@ import java.util.List;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
 public class Convert12To13 {
 	private static final int CONFIG_VERSION = 13;
 	
-    private JavaPlugin plugin;
+    private Plugin plugin;
     private FileConfiguration config;
     
-    public Convert12To13(JavaPlugin plugin) {
+    public Convert12To13(Plugin plugin) {
     	this.plugin = plugin;
     }
 

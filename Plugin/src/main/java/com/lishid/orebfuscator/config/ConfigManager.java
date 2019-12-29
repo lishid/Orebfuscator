@@ -12,33 +12,38 @@ import java.util.logging.Logger;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.utils.Globals;
-import com.lishid.orebfuscator.utils.MaterialHelper;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.config.IConfigManager;
+import com.lishid.orebfuscator.api.config.IWorldConfig;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.Globals;
+import com.lishid.orebfuscator.api.utils.IMaterialHelper;
 
-public class ConfigManager {
+public class ConfigManager implements IConfigManager {
 	private static final int CONFIG_VERSION = 13;
 
-	private JavaPlugin plugin;
+	private Orebfuscator plugin;
 	private Logger logger;
 	private OrebfuscatorConfig orebfuscatorConfig;
 	private MaterialReader materialReader;
+	private IMaterialHelper materialHelper;
 
-	public ConfigManager(JavaPlugin plugin, Logger logger, OrebfuscatorConfig orebfuscatorConfig) {
+	public ConfigManager(Orebfuscator plugin, Logger logger, OrebfuscatorConfig orebfuscatorConfig) {
 		this.plugin = plugin;
 		this.logger = logger;
 		this.orebfuscatorConfig = orebfuscatorConfig;
+
 		this.materialReader = new MaterialReader(this.plugin, this.logger);
+		this.materialHelper = this.plugin.getMaterialHelper();
 	}
 
-	public WorldConfig getWorld(World world) {
+	public IWorldConfig getWorld(World world) {
 		if (world == null) {
 			return null;
 		}
 
-		WorldConfig baseCfg;
+		IWorldConfig baseCfg;
 
 		switch (world.getEnvironment()) {
 		case THE_END:
@@ -52,7 +57,7 @@ public class ConfigManager {
 			break;
 		}
 
-		WorldConfig cfg = this.orebfuscatorConfig.getWorld(world.getName());
+		IWorldConfig cfg = this.orebfuscatorConfig.getWorld(world.getName());
 
 		if (cfg == null) {
 			return baseCfg;
@@ -74,36 +79,35 @@ public class ConfigManager {
 				new Convert12To13(this.plugin).convert();
 				logger.info(Globals.LogPrefix + "Configuration file have been converted to new version.");
 			} else {
-				getConfig().set("ConfigVersion", CONFIG_VERSION);
+				this.getConfig().set("ConfigVersion", CONFIG_VERSION);
 			}
 		}
 
-		boolean useCache = getBoolean("Booleans.UseCache", true);
-		int maxLoadedCacheFiles = getInt("Integers.MaxLoadedCacheFiles", 64, 16, 128);
-		String cacheLocation = getString("Strings.CacheLocation", "orebfuscator_cache");
-		int deleteCacheFilesAfterDays = getInt("Integers.DeleteCacheFilesAfterDays", 0);
-		boolean enabled = getBoolean("Booleans.Enabled", true);
-		boolean updateOnDamage = getBoolean("Booleans.UpdateOnDamage", true);
+		boolean useCache = this.getBoolean("Booleans.UseCache", true);
+		int maxLoadedCacheFiles = this.getInt("Integers.MaxLoadedCacheFiles", 64, 16, 128);
+		String cacheLocation = this.getString("Strings.CacheLocation", "orebfuscator_cache");
+		int deleteCacheFilesAfterDays = this.getInt("Integers.DeleteCacheFilesAfterDays", 0);
+		boolean enabled = this.getBoolean("Booleans.Enabled", true);
+		boolean updateOnDamage = this.getBoolean("Booleans.UpdateOnDamage", true);
 
-		int engineMode = getInt("Integers.EngineMode", 2);
+		int engineMode = this.getInt("Integers.EngineMode", 2);
 		if (engineMode != 1 && engineMode != 2) {
 			engineMode = 2;
 			logger.info(Globals.LogPrefix + "EngineMode must be 1 or 2.");
 		}
 
-		int initialRadius = getInt("Integers.InitialRadius", 1, 0, 2);
+		int initialRadius = this.getInt("Integers.InitialRadius", 1, 0, 2);
 		if (initialRadius == 0) {
-			logger.info(Globals.LogPrefix
-					+ "Warning, InitialRadius is 0. This will cause all exposed blocks to be obfuscated.");
+			logger.info(Globals.LogPrefix + "Warning, InitialRadius is 0. This will cause all exposed blocks to be obfuscated.");
 		}
 
-		int updateRadius = getInt("Integers.UpdateRadius", 2, 1, 5);
-		boolean noObfuscationForMetadata = getBoolean("Booleans.NoObfuscationForMetadata", true);
-		String noObfuscationForMetadataTagName = getString("Strings.NoObfuscationForMetadataTagName", "NPC");
-		boolean noObfuscationForOps = getBoolean("Booleans.NoObfuscationForOps", false);
-		boolean noObfuscationForPermission = getBoolean("Booleans.NoObfuscationForPermission", false);
-		boolean loginNotification = getBoolean("Booleans.LoginNotification", true);
-		byte[] transparentBlocks = generateTransparentBlocks(engineMode);
+		int updateRadius = this.getInt("Integers.UpdateRadius", 2, 1, 5);
+		boolean noObfuscationForMetadata = this.getBoolean("Booleans.NoObfuscationForMetadata", true);
+		String noObfuscationForMetadataTagName = this.getString("Strings.NoObfuscationForMetadataTagName", "NPC");
+		boolean noObfuscationForOps = this.getBoolean("Booleans.NoObfuscationForOps", false);
+		boolean noObfuscationForPermission = this.getBoolean("Booleans.NoObfuscationForPermission", false);
+		boolean loginNotification = this.getBoolean("Booleans.LoginNotification", true);
+		byte[] transparentBlocks = this.generateTransparentBlocks(engineMode);
 
 		this.orebfuscatorConfig.setUseCache(useCache);
 		this.orebfuscatorConfig.setMaxLoadedCacheFiles(maxLoadedCacheFiles);
@@ -125,8 +129,7 @@ public class ConfigManager {
 
 		this.orebfuscatorConfig.setProximityHiderEnabled();
 
-		this.logger.info(Globals.LogPrefix + "Proximity Hider is "
-				+ (this.orebfuscatorConfig.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
+		this.logger.info(Globals.LogPrefix + "Proximity Hider is " + (this.orebfuscatorConfig.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
 
 		save();
 	}
@@ -263,17 +266,18 @@ public class ConfigManager {
 
 	@SuppressWarnings("deprecation")
 	private byte[] generateTransparentBlocks(int engineMode) {
-		byte[] transparentBlocks = new byte[MaterialHelper.getMaxId() + 1];
+		byte[] transparentBlocks = new byte[this.materialHelper.getMaxId() + 1];
+		INmsManager nmsManager = this.plugin.getNmsManager();
 
 		Arrays.stream(Material.values())
 			.filter(material -> material.isBlock() && material.isTransparent())
-			.forEach(material -> NmsInstance.get().getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
+			.forEach(material -> nmsManager.getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
 
-		Arrays.stream(NmsInstance.get().getExtraTransparentBlocks())
-			.forEach(material -> NmsInstance.get().getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
+		Arrays.stream(nmsManager.getExtraTransparentBlocks())
+			.forEach(material -> nmsManager.getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
 
 		byte status = (byte) (engineMode == 1 ? 0 : 1);
-		NmsInstance.get().getMaterialIds(Material.LAVA).stream().forEach(id -> transparentBlocks[id] = status);
+		nmsManager.getMaterialIds(Material.LAVA).stream().forEach(id -> transparentBlocks[id] = status);
 
 		return transparentBlocks;
 	}

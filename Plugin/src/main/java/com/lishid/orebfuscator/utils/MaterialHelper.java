@@ -11,27 +11,44 @@ import java.util.Map;
 
 import org.bukkit.Material;
 
-import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.IMaterialHelper;
+import com.lishid.orebfuscator.handler.CraftHandler;
 
-public class MaterialHelper {
+public class MaterialHelper extends CraftHandler implements IMaterialHelper {
 
-	private static final Map<Integer, Material> blocks = MaterialHelper.getAllMaterials();
-	private static final int highestBlockId = MaterialHelper.getHighestBlockId();
+	private INmsManager nmsManager;
 
-	private static Map<Integer, Material> getAllMaterials() {
+	private Map<Integer, Material> blocks;
+	private int highestBlockId;
+
+	public MaterialHelper(Orebfuscator plugin) {
+		super(plugin);
+	}
+
+	@Override
+	public void onInit() {
+		this.nmsManager = this.plugin.getNmsManager();
+
+		this.blocks = this.getAllMaterials();
+		this.highestBlockId = this.getHighestBlockId();
+	}
+
+	private Map<Integer, Material> getAllMaterials() {
 		Map<Integer, Material> blocks = new HashMap<Integer, Material>();
 
 		Arrays.stream(Material.values())
 			.filter(material -> material.isBlock())
-			.forEach(material -> NmsInstance.get().getMaterialIds(material).forEach(id -> blocks.put(id, material)));
+			.forEach(material -> this.nmsManager.getMaterialIds(material).forEach(id -> blocks.put(id, material)));
 
 		return blocks;
 	}
 
-	private static int getHighestBlockId() {
+	private int getHighestBlockId() {
 		int maxId = -1;
 
-		for (int id : MaterialHelper.blocks.keySet()) {
+		for (int id : this.blocks.keySet()) {
 			if (id > maxId)
 				maxId = id;
 		}
@@ -39,11 +56,11 @@ public class MaterialHelper {
 		return maxId;
 	}
 
-	public static Material getById(int combinedBlockId) {
-		return MaterialHelper.blocks.get(combinedBlockId);
+	public Material getById(int combinedBlockId) {
+		return this.blocks.get(combinedBlockId);
 	}
 
-	public static int getMaxId() {
-		return MaterialHelper.highestBlockId;
+	public int getMaxId() {
+		return this.highestBlockId;
 	}
 }

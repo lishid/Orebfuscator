@@ -20,31 +20,36 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 
-import com.lishid.orebfuscator.NmsInstance;
-import com.lishid.orebfuscator.logger.OFCLogger;
-import com.lishid.orebfuscator.nms.INBT;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.cache.IObfuscatedDataCacheHandler;
+import com.lishid.orebfuscator.api.logger.OFCLogger;
+import com.lishid.orebfuscator.api.nms.INBT;
+import com.lishid.orebfuscator.api.nms.INmsManager;
 
 public class ObfuscatedCachedChunk {
 
-	File path;
-	int x;
-	int z;
+	private final Orebfuscator plugin;
+	private final INmsManager nmsManager;
+	private final IObfuscatedDataCacheHandler obfuscatedDataCacheHandler;
+
+	private File path;
+	private int x;
+	private int z;
 	public byte[] data;
 	public int[] proximityList;
 	public int[] removedEntityList;
 	public long hash = 0L;
 	private boolean loaded = false;
 
-	private static final ThreadLocal<INBT> nbtAccessor = new ThreadLocal<INBT>() {
-		protected INBT initialValue() {
-			return NmsInstance.get().createNBT();
-		}
-	};
-
-	public ObfuscatedCachedChunk(File file, int x, int z) {
+	public ObfuscatedCachedChunk(Orebfuscator plugin, File file, int x, int z) {
+		this.plugin = plugin;
 		this.x = x;
 		this.z = z;
 		this.path = new File(file, "data");
+
+		this.nmsManager = this.plugin.getNmsManager();
+		this.obfuscatedDataCacheHandler = this.plugin.getObfuscatedDataCacheHandler();
+
 		path.mkdirs();
 	}
 
@@ -72,9 +77,9 @@ public class ObfuscatedCachedChunk {
 			return;
 
 		try {
-			DataInputStream stream = ObfuscatedDataCache.getInputStream(this.path, this.x, this.z);
+			DataInputStream stream = this.obfuscatedDataCacheHandler.getInputStream(this.path, this.x, this.z);
 			if (stream != null) {
-				INBT nbt = nbtAccessor.get();
+				INBT nbt = this.nmsManager.createNBT();
 
 				nbt.Read(stream);
 
@@ -100,7 +105,7 @@ public class ObfuscatedCachedChunk {
 
 	public void write(long hash, byte[] data, int[] proximityList, int[] removedEntityList) {
 		try {
-			INBT nbt = nbtAccessor.get();
+			INBT nbt = this.nmsManager.createNBT();
 			nbt.reset();
 
 			// Set status indicator
@@ -115,7 +120,7 @@ public class ObfuscatedCachedChunk {
 			nbt.setIntArray("ProximityList", proximityList);
 			nbt.setIntArray("RemovedEntityList", removedEntityList);
 
-			DataOutputStream stream = ObfuscatedDataCache.getOutputStream(path, x, z);
+			DataOutputStream stream = this.obfuscatedDataCacheHandler.getOutputStream(path, x, z);
 
 			nbt.Write(stream);
 

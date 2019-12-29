@@ -5,18 +5,22 @@
 
 package com.lishid.orebfuscator.config;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.lishid.orebfuscator.NmsInstance;
-
-import com.lishid.orebfuscator.utils.MaterialHelper;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import com.lishid.orebfuscator.utils.Globals;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.Globals;
+import com.lishid.orebfuscator.api.utils.IMaterialHelper;
 
 public class MaterialReader {
 
@@ -30,12 +34,17 @@ public class MaterialReader {
 		}
 	}
 
-	private JavaPlugin plugin;
-	private Logger logger;
+	private final Orebfuscator plugin;
+	private final INmsManager nmsManager;
+	private final IMaterialHelper materialHelper;
+	private final Logger logger;
 
-	public MaterialReader(JavaPlugin plugin, Logger logger) {
+	public MaterialReader(Orebfuscator plugin, Logger logger) {
 		this.plugin = plugin;
 		this.logger = logger;
+
+		this.nmsManager = this.plugin.getNmsManager();
+		this.materialHelper = this.plugin.getMaterialHelper();
 	}
 
 	private FileConfiguration getConfig() {
@@ -71,7 +80,7 @@ public class MaterialReader {
 			withSave = true;
 		} else {
 			if (defaultMaterials != null) {
-				list = Arrays.stream(defaultMaterials).map(id -> MaterialHelper.getById(id).name()).collect(Collectors.toList());
+				list = Arrays.stream(defaultMaterials).map(id -> this.materialHelper.getById(id).name()).collect(Collectors.toList());
 			} else {
 				return null;
 			}
@@ -102,7 +111,7 @@ public class MaterialReader {
 
 	private MaterialResult getMaterial(String inputMaterialName, Integer defaultMaterialId) {
 		Set<Integer> materialIds = null;
-		String defaultMaterialName = defaultMaterialId != null ? MaterialHelper.getById(defaultMaterialId).name()
+		String defaultMaterialName = defaultMaterialId != null ? this.materialHelper.getById(defaultMaterialId).name()
 				: null;
 		String materialName = inputMaterialName;
 
@@ -110,7 +119,7 @@ public class MaterialReader {
 			if (Character.isDigit(materialName.charAt(0))) {
 				int id = Integer.parseInt(materialName);
 
-				Material obj = MaterialHelper.getById(id);
+				Material obj = this.materialHelper.getById(id);
 
 				if (obj != null) {
 					materialName = obj.name();
@@ -132,7 +141,7 @@ public class MaterialReader {
 				Material obj = Material.getMaterial(materialName.toUpperCase());
 
 				if (obj != null) {
-					materialIds = NmsInstance.get().getMaterialIds(obj);
+					materialIds = this.nmsManager.getMaterialIds(obj);
 				} else {
 					if (defaultMaterialId != null) {
 						this.logger.info(String.format("%sMaterial %s is not found. Will be used default material: %s", Globals.LogPrefix, materialName, defaultMaterialName));

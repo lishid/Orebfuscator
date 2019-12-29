@@ -5,16 +5,25 @@
 
 package com.lishid.orebfuscator.config;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.lishid.orebfuscator.NmsInstance;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import com.lishid.orebfuscator.utils.Globals;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.config.IProximityHiderConfig;
+import com.lishid.orebfuscator.api.config.IProximityHiderConfig.IBlockSetting;
+import com.lishid.orebfuscator.api.config.IWorldConfig;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.Globals;
+import com.lishid.orebfuscator.config.ProximityHiderConfig.BlockSetting;
 
 public class WorldReader {
 	private enum WorldType {
@@ -25,18 +34,22 @@ public class WorldReader {
 	private WorldConfig normalWorld;
 	private WorldConfig endWorld;
 	private WorldConfig netherWorld;
-	private Map<String, WorldConfig> worlds;
+	private Map<String, IWorldConfig> worlds;
 
-	private JavaPlugin plugin;
-	private Logger logger;
+	private final Orebfuscator plugin;
+	private final INmsManager nmsManager;
+	private final Logger logger;
+
 	private OrebfuscatorConfig orebfuscatorConfig;
 	private MaterialReader materialReader;
 
-	public WorldReader(JavaPlugin plugin, Logger logger, OrebfuscatorConfig orebfuscatorConfig, MaterialReader materialReader) {
+	public WorldReader(Orebfuscator plugin, Logger logger, OrebfuscatorConfig orebfuscatorConfig, MaterialReader materialReader) {
 		this.plugin = plugin;
 		this.logger = logger;
 		this.orebfuscatorConfig = orebfuscatorConfig;
 		this.materialReader = materialReader;
+
+		this.nmsManager = this.plugin.getNmsManager();
 	}
 
 	public void load() {
@@ -48,7 +61,7 @@ public class WorldReader {
 		this.endWorld = readWorldByType(keys, WorldType.TheEnd, this.defaultWorld);
 		this.netherWorld = readWorldByType(keys, WorldType.Nether, this.defaultWorld);
 
-		this.worlds = new HashMap<String, WorldConfig>();
+		this.worlds = new HashMap<String, IWorldConfig>();
 
 		keys.forEach(key -> this.readWorldsByName("Worlds." + key));
 
@@ -83,7 +96,7 @@ public class WorldReader {
 
 			if (types != null && types.size() > 0 && parseWorldTypes(types).contains(worldType)) {
 				if (worldType == WorldType.Default) {
-					world = new WorldConfig();
+					world = new WorldConfig(this.plugin);
 					world.setDefaults();
 				}
 
@@ -166,7 +179,7 @@ public class WorldReader {
 
 	private WorldConfig readWorld(String worldPath, WorldConfig cfg, WorldType worldType, boolean withSave) {
 		if (cfg == null) {
-			cfg = new WorldConfig();
+			cfg = new WorldConfig(this.plugin);
 		}
 
 		Boolean enabled = getBoolean(worldPath + ".Enabled", cfg.isEnabled(), withSave);
@@ -191,13 +204,13 @@ public class WorldReader {
 
 		switch (worldType) {
 		case Normal:
-			requiredObfuscateBlockIds = NmsInstance.get().getConfigDefaults().normalWorldRequiredObfuscateBlockIds;
+			requiredObfuscateBlockIds = this.nmsManager.getConfigDefaults().normalWorldRequiredObfuscateBlockIds;
 			break;
 		case TheEnd:
-			requiredObfuscateBlockIds = NmsInstance.get().getConfigDefaults().endWorldRequiredObfuscateBlockIds;
+			requiredObfuscateBlockIds = this.nmsManager.getConfigDefaults().endWorldRequiredObfuscateBlockIds;
 			break;
 		case Nether:
-			requiredObfuscateBlockIds = NmsInstance.get().getConfigDefaults().netherWorldRequiredObfuscateBlockIds;
+			requiredObfuscateBlockIds = this.nmsManager.getConfigDefaults().netherWorldRequiredObfuscateBlockIds;
 			break;
 		default:
 			requiredObfuscateBlockIds = null;
@@ -239,7 +252,7 @@ public class WorldReader {
 		Boolean useSpecialBlock = getBoolean(sectionPath + ".UseSpecialBlock", cfg.isUseSpecialBlock(), withSave);
 		Boolean useYLocationProximity = getBoolean(sectionPath + ".ObfuscateAboveY", cfg.isObfuscateAboveY(), withSave);
 		Integer[] proximityHiderBlockIds = this.materialReader.getMaterialIdsByPath(sectionPath + ".ProximityHiderBlocks", defaultProximityHiderBlockIds, withSave);
-		ProximityHiderConfig.BlockSetting[] proximityHiderBlockSettings = readProximityHiderBlockSettings(sectionPath + ".ProximityHiderBlockSettings", cfg.getProximityHiderBlockSettings());
+		IBlockSetting[] proximityHiderBlockSettings = this.readProximityHiderBlockSettings(sectionPath + ".ProximityHiderBlockSettings", cfg.getProximityHiderBlockSettings());
 		Boolean useFastGazeCheck = getBoolean(sectionPath + ".UseFastGazeCheck", cfg.isUseFastGazeCheck(), withSave);
 
 		cfg.setEnabled(enabled);
@@ -253,7 +266,7 @@ public class WorldReader {
 		cfg.setUseFastGazeCheck(useFastGazeCheck);
 	}
 
-	private ProximityHiderConfig.BlockSetting[] readProximityHiderBlockSettings(String configKey, ProximityHiderConfig.BlockSetting[] defaultBlocks) {
+	private IProximityHiderConfig.IBlockSetting[] readProximityHiderBlockSettings(String configKey, IProximityHiderConfig.IBlockSetting[] defaultBlocks) {
 		ConfigurationSection section = getConfig().getConfigurationSection(configKey);
 
 		if (section == null) {
@@ -276,12 +289,7 @@ public class WorldReader {
 			boolean blockObfuscateAboveY = getConfig().getBoolean(blockPath + ".ObfuscateAboveY", false);
 
 			for (int blockId : blockIds) {
-				ProximityHiderConfig.BlockSetting block = new ProximityHiderConfig.BlockSetting();
-				block.blockId = blockId;
-				block.y = blockY;
-				block.obfuscateAboveY = blockObfuscateAboveY;
-
-				list.add(block);
+				list.add(new BlockSetting(blockId, blockY, blockObfuscateAboveY));
 			}
 		}
 
@@ -323,27 +331,27 @@ public class WorldReader {
 	private WorldConfig createDefaultWorld(String worldPath) {
 		getConfig().set(worldPath + ".Types", new String[] { "DEFAULT" });
 
-		WorldConfig world = new WorldConfig();
+		WorldConfig world = new WorldConfig(this.plugin);
 		world.setDefaults();
 
 		return readWorld(worldPath, world, WorldType.Default, true);
 	}
 
 	private WorldConfig createNormalWorld(String worldPath) {
-		Integer[] randomBlocks = cloneIntArray(NmsInstance.get().getConfigDefaults().normalWorldRandomBlockIds);
+		Integer[] randomBlocks = cloneIntArray(this.nmsManager.getConfigDefaults().normalWorldRandomBlockIds);
 		Integer[] obfuscateBlockIds = mergeIntArrays(
-				NmsInstance.get().getConfigDefaults().normalWorldObfuscateBlockIds,
-				NmsInstance.get().getConfigDefaults().normalWorldRequiredObfuscateBlockIds);
+				this.nmsManager.getConfigDefaults().normalWorldObfuscateBlockIds,
+				this.nmsManager.getConfigDefaults().normalWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "NORMAL" });
 
-		int mode1BlockId = NmsInstance.get().getConfigDefaults().normalWorldMode1BlockId;
+		int mode1BlockId = this.nmsManager.getConfigDefaults().normalWorldMode1BlockId;
 
 		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".ObfuscateBlocks", obfuscateBlockIds, true);
 
-		WorldConfig cfg = new WorldConfig();
+		WorldConfig cfg = new WorldConfig(this.plugin);
 		cfg.setObfuscateBlocks(obfuscateBlockIds);
 		cfg.setRandomBlocks(randomBlocks);
 		cfg.setMode1BlockId(mode1BlockId);
@@ -352,19 +360,19 @@ public class WorldReader {
 	}
 
 	private WorldConfig createEndWorld(String worldPath) {
-		Integer[] randomBlocks = cloneIntArray(NmsInstance.get().getConfigDefaults().endWorldRandomBlockIds);
-		Integer[] obfuscateBlockIds = mergeIntArrays(NmsInstance.get().getConfigDefaults().endWorldObfuscateBlockIds,
-				NmsInstance.get().getConfigDefaults().endWorldRequiredObfuscateBlockIds);
+		Integer[] randomBlocks = cloneIntArray(this.nmsManager.getConfigDefaults().endWorldRandomBlockIds);
+		Integer[] obfuscateBlockIds = mergeIntArrays(this.nmsManager.getConfigDefaults().endWorldObfuscateBlockIds,
+				this.nmsManager.getConfigDefaults().endWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "THE_END" });
 
-		int mode1BlockId = NmsInstance.get().getConfigDefaults().endWorldMode1BlockId;
+		int mode1BlockId = this.nmsManager.getConfigDefaults().endWorldMode1BlockId;
 
 		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".ObfuscateBlocks", obfuscateBlockIds, true);
 
-		WorldConfig cfg = new WorldConfig();
+		WorldConfig cfg = new WorldConfig(this.plugin);
 		cfg.setRandomBlocks(randomBlocks);
 		cfg.setObfuscateBlocks(obfuscateBlockIds);
 		cfg.setMode1BlockId(mode1BlockId);
@@ -373,20 +381,20 @@ public class WorldReader {
 	}
 
 	private WorldConfig createNetherWorld(String worldPath) {
-		Integer[] randomBlocks = cloneIntArray(NmsInstance.get().getConfigDefaults().netherWorldRandomBlockIds);
+		Integer[] randomBlocks = cloneIntArray(this.nmsManager.getConfigDefaults().netherWorldRandomBlockIds);
 		Integer[] obfuscateBlockIds = mergeIntArrays(
-				NmsInstance.get().getConfigDefaults().netherWorldObfuscateBlockIds,
-				NmsInstance.get().getConfigDefaults().netherWorldRequiredObfuscateBlockIds);
+				this.nmsManager.getConfigDefaults().netherWorldObfuscateBlockIds,
+				this.nmsManager.getConfigDefaults().netherWorldRequiredObfuscateBlockIds);
 
 		getConfig().set(worldPath + ".Types", new String[] { "NETHER" });
 
-		int mode1BlockId = NmsInstance.get().getConfigDefaults().netherWorldMode1BlockId;
+		int mode1BlockId = this.nmsManager.getConfigDefaults().netherWorldMode1BlockId;
 
 		this.materialReader.getMaterialIdByPath(worldPath + ".Mode1Block", mode1BlockId, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".RandomBlocks", randomBlocks, true);
 		this.materialReader.getMaterialIdsByPath(worldPath + ".ObfuscateBlocks", obfuscateBlockIds, true);
 
-		WorldConfig cfg = new WorldConfig();
+		WorldConfig cfg = new WorldConfig(this.plugin);
 		cfg.setRandomBlocks(randomBlocks);
 		cfg.setObfuscateBlocks(obfuscateBlockIds);
 		cfg.setMode1BlockId(mode1BlockId);

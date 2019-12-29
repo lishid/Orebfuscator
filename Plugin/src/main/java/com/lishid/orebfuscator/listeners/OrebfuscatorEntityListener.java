@@ -19,18 +19,30 @@ package com.lishid.orebfuscator.listeners;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 
-import com.lishid.orebfuscator.obfuscation.BlockUpdate;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.utils.IBlockUpdate;
 
 public class OrebfuscatorEntityListener implements Listener {
+
+	private final Orebfuscator plugin;
+	private final IBlockUpdate blockUpdate;
+
+	public OrebfuscatorEntityListener(Orebfuscator plugin) {
+		this.plugin = plugin;
+
+		this.blockUpdate = this.plugin.getBlockUpdate();
+	}
+
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onEntityExplode(EntityExplodeEvent event) {
-		BlockUpdate.update(event.blockList());
+		this.blockUpdate.update(event.blockList());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-		BlockUpdate.update(event.getBlock());
+		this.blockUpdate.update(event.getBlock());
 	}
 }

@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.listeners;
 
-import com.lishid.orebfuscator.NmsInstance;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,24 +26,39 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.obfuscation.BlockUpdate;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.config.IOrebfuscatorConfig;
+import com.lishid.orebfuscator.api.hithack.IBlockHitHandler;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.IBlockUpdate;
 
 public class OrebfuscatorBlockListener implements Listener {
 
+	private final Orebfuscator plugin;
+	private final IBlockUpdate blockUpdate;
+	private final IBlockHitHandler blockHitHandler;
+	private final INmsManager nmsManager;
+	private final IOrebfuscatorConfig config;
+
+	public OrebfuscatorBlockListener(Orebfuscator plugin) {
+		this.plugin = plugin;
+
+		this.blockUpdate = this.plugin.getBlockUpdate();
+		this.blockHitHandler = this.plugin.getBlockHitHandler();
+		this.nmsManager = this.plugin.getNmsManager();
+		this.config = this.plugin.getConfigHandler().getConfig();
+	}
+
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		BlockUpdate.update(event.getBlock());
-		BlockHitManager.breakBlock(event.getPlayer(), event.getBlock());
+		this.blockUpdate.update(event.getBlock());
+		this.blockHitHandler.breakBlock(event.getPlayer(), event.getBlock());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockDamage(BlockDamageEvent event) {
-		if (Orebfuscator.config.isUpdateOnDamage() &&
-				BlockUpdate.needsUpdate(event.getBlock()) &&
-				BlockHitManager.hitBlock(event.getPlayer(), event.getBlock())) {
-			BlockUpdate.update(event.getBlock());
+		if (this.config.isUpdateOnDamage() && this.blockUpdate.needsUpdate(event.getBlock()) && this.blockHitHandler.hitBlock(event.getPlayer(), event.getBlock())) {
+			this.blockUpdate.update(event.getBlock());
 		}
 	}
 
@@ -53,19 +67,19 @@ public class OrebfuscatorBlockListener implements Listener {
 		if (event.getBlock().getType() == Material.SAND && event.getBlock().getType() == Material.GRAVEL) {
 			Material blockMaterial = event.getBlock().getRelative(0, -1, 0).getType();
 
-			if (NmsInstance.get().canApplyPhysics(blockMaterial)) {
-				BlockUpdate.update(event.getBlock());
+			if (this.nmsManager.canApplyPhysics(blockMaterial)) {
+				this.blockUpdate.update(event.getBlock());
 			}
 		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPistonExtend(BlockPistonExtendEvent event) {
-		BlockUpdate.update(event.getBlocks());
+		this.blockUpdate.update(event.getBlocks());
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPistonRetract(BlockPistonRetractEvent event) {
-		BlockUpdate.update(event.getBlock());
+		this.blockUpdate.update(event.getBlock());
 	}
 }

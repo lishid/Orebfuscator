@@ -6,30 +6,36 @@
 
 package com.lishid.orebfuscator.nms.v1_13_R2;
 
-import com.lishid.orebfuscator.types.ConfigDefaults;
-import net.minecraft.server.v1_13_R2.*;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_13_R2.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_13_R2.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.nms.IBlockInfo;
-import com.lishid.orebfuscator.nms.IChunkCache;
-import com.lishid.orebfuscator.nms.INBT;
-import com.lishid.orebfuscator.nms.INmsManager;
-import com.lishid.orebfuscator.types.BlockCoord;
+import com.lishid.orebfuscator.api.nms.IBlockInfo;
+import com.lishid.orebfuscator.api.nms.IChunkCache;
+import com.lishid.orebfuscator.api.nms.INBT;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.types.BlockCoord;
+import com.lishid.orebfuscator.api.types.ConfigDefaults;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import net.minecraft.server.v1_13_R2.Block;
+import net.minecraft.server.v1_13_R2.BlockPosition;
+import net.minecraft.server.v1_13_R2.Chunk;
+import net.minecraft.server.v1_13_R2.ChunkProviderServer;
+import net.minecraft.server.v1_13_R2.IBlockData;
+import net.minecraft.server.v1_13_R2.IChatBaseComponent;
+import net.minecraft.server.v1_13_R2.Packet;
+import net.minecraft.server.v1_13_R2.TileEntity;
+import net.minecraft.server.v1_13_R2.WorldServer;
 
 public class NmsManager implements INmsManager {
 	private static final int BITS_PER_BLOCK = 14;
@@ -584,5 +590,15 @@ public class NmsManager implements INmsManager {
 		}
 
 		return result;
+	}
+
+	@Override
+	public boolean wasNmsFound() {
+		return false;
+	}
+
+	@Override
+	public String getServerVersion() {
+		return null;
 	}
 }

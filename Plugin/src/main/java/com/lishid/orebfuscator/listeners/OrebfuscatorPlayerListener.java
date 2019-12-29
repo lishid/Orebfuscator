@@ -16,7 +16,6 @@
 
 package com.lishid.orebfuscator.listeners;
 
-import com.lishid.orebfuscator.NmsInstance;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -32,35 +31,55 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.logger.OFCLogger;
-import com.lishid.orebfuscator.obfuscation.BlockUpdate;
-import com.lishid.orebfuscator.obfuscation.ProximityHider;
+import com.lishid.orebfuscator.api.IProximityHiderHandler;
+import com.lishid.orebfuscator.api.Orebfuscator;
+import com.lishid.orebfuscator.api.config.IOrebfuscatorConfig;
+import com.lishid.orebfuscator.api.hithack.IBlockHitHandler;
+import com.lishid.orebfuscator.api.logger.OFCLogger;
+import com.lishid.orebfuscator.api.nms.INmsManager;
+import com.lishid.orebfuscator.api.utils.IBlockUpdate;
 
 public class OrebfuscatorPlayerListener implements Listener {
+
+	private final Orebfuscator plugin;
+	private final IProximityHiderHandler proximityHiderHandler;
+	private final IBlockHitHandler blockHitHandler;
+	private final IBlockUpdate blockUpdate;
+	private final INmsManager nmsManager;
+	private final IOrebfuscatorConfig config;
+
+	public OrebfuscatorPlayerListener(Orebfuscator plugin) {
+		this.plugin = plugin;
+
+		this.proximityHiderHandler = this.plugin.getProximityHiderHandler();
+		this.blockHitHandler = this.plugin.getBlockHitHandler();
+		this.blockUpdate = this.plugin.getBlockUpdate();
+		this.nmsManager = this.plugin.getNmsManager();
+		this.config = this.plugin.getConfigHandler().getConfig();
+	}
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 
-		if (Orebfuscator.config.isLoginNotification()) {
-			if (Orebfuscator.config.playerBypassOp(player)) {
+		if (this.config.isLoginNotification()) {
+			if (this.config.playerBypassOp(player)) {
 				OFCLogger.message(player, "Orebfuscator bypassed because you are OP.");
-			} else if (Orebfuscator.config.playerBypassPerms(player)) {
+			} else if (this.config.playerBypassPerms(player)) {
 				OFCLogger.message(player, "Orebfuscator bypassed because you have permission.");
 			}
 		}
 
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
-			ProximityHider.addPlayerToCheck(event.getPlayer(), null);
+		if (this.config.isProximityHiderEnabled()) {
+			this.proximityHiderHandler.addPlayerToCheck(event.getPlayer(), null);
 		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerQuit(PlayerQuitEvent event) {
-		BlockHitManager.clearHistory(event.getPlayer());
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
-			ProximityHider.clearPlayer(event.getPlayer());
+		this.blockHitHandler.clearHistory(event.getPlayer());
+		if (this.config.isProximityHiderEnabled()) {
+			this.proximityHiderHandler.clearPlayer(event.getPlayer());
 		}
 	}
 
@@ -69,35 +88,35 @@ public class OrebfuscatorPlayerListener implements Listener {
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.useInteractedBlock() != Result.DENY) {
 			if (event.getItem() != null && event.getItem().getType() != null
 					&& (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS)
-					&& NmsInstance.get().isHoe(event.getItem().getType())) {
-				BlockUpdate.update(event.getClickedBlock());
+					&& this.nmsManager.isHoe(event.getItem().getType())) {
+				this.blockUpdate.update(event.getClickedBlock());
 			}
 		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-		BlockHitManager.clearHistory(event.getPlayer());
+		this.blockHitHandler.clearHistory(event.getPlayer());
 
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
-			ProximityHider.clearBlocksForOldWorld(event.getPlayer());
-			ProximityHider.addPlayerToCheck(event.getPlayer(), null);
+		if (this.config.isProximityHiderEnabled()) {
+			this.proximityHiderHandler.clearBlocksForOldWorld(event.getPlayer());
+			this.proximityHiderHandler.addPlayerToCheck(event.getPlayer(), null);
 		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerTeleport(PlayerTeleportEvent event) {
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
+		if (this.config.isProximityHiderEnabled()) {
 			if (event.getCause() != TeleportCause.END_PORTAL && event.getCause() != TeleportCause.NETHER_PORTAL) {
-				ProximityHider.addPlayerToCheck(event.getPlayer(), null);
+				this.proximityHiderHandler.addPlayerToCheck(event.getPlayer(), null);
 			}
 		}
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerMove(PlayerMoveEvent event) {
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
-			ProximityHider.addPlayerToCheck(event.getPlayer(), event.getFrom());
+		if (this.config.isProximityHiderEnabled()) {
+			this.proximityHiderHandler.addPlayerToCheck(event.getPlayer(), event.getFrom());
 		}
 	}
 }

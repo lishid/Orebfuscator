@@ -1,9 +1,10 @@
 name: ${project.name}
-main: com.lishid.orebfuscator.Orebfuscator
+main: com.lishid.orebfuscator.CraftOrebfuscator
 version: ${project.version}
 author: lishid
 authors: [Aleksey-Terzi, ProgrammerDan, SydMontague, NgLoader]
-softdepend: [ProtocolLib]
+depend: [ProtocolLib]
+loadbefore: [ProtocolLib]
 load: startup
 api-version: 1.13
 description: 'The most powerful and efficient Anti Xray plugin compatible with any CraftBukkit fork!'
