@@ -263,16 +263,12 @@ public class ConfigManager implements IConfigManager {
 		return getBoolean(path, defaultData, true);
 	}
 
-	@SuppressWarnings("deprecation")
 	private byte[] generateTransparentBlocks(int engineMode) {
 		byte[] transparentBlocks = new byte[this.materialHelper.getMaxId() + 1];
 		INmsManager nmsManager = this.plugin.getNmsManager();
-
+		
 		Arrays.stream(Material.values())
-			.filter(material -> material.isBlock() && material.isTransparent())
-			.forEach(material -> nmsManager.getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
-
-		Arrays.stream(nmsManager.getExtraTransparentBlocks())
+			.filter(material -> material.isBlock() && material.isOccluding())
 			.forEach(material -> nmsManager.getMaterialIds(material).forEach(id -> transparentBlocks[id] = 1));
 
 		byte status = (byte) (engineMode == 1 ? 0 : 1);

@@ -87,12 +87,10 @@ public class PlayerBlockTracking implements IPlayerBlockTracking {
 	}
 
 	public void decrementHackingIndicator(int value) {
-		System.out.println("hacking old: " + this.hackingIndicator);
 		this.hackingIndicator -= value;
 		if (this.hackingIndicator < 0) {
 			this.hackingIndicator = 0;
 		}
-		System.out.println("hacking new: " + this.hackingIndicator);
 	}
 
 	public void updateTime() {

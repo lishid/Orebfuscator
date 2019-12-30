@@ -1,6 +1,8 @@
 package com.lishid.orebfuscator.api;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 import com.lishid.orebfuscator.api.cache.IObfuscatedDataCacheHandler;
 import com.lishid.orebfuscator.api.chunk.IChunkMapHandler;
@@ -13,6 +15,11 @@ import com.lishid.orebfuscator.api.utils.ICalculations;
 import com.lishid.orebfuscator.api.utils.IMaterialHelper;
 
 public interface Orebfuscator extends Plugin {
+
+	public static Orebfuscator getProvider() {
+		RegisteredServiceProvider<Orebfuscator> provider = Bukkit.getServicesManager().getRegistration(Orebfuscator.class);
+		return provider != null ? provider.getProvider() : null;
+	}
 
 	public INmsManager getNmsManager();
 

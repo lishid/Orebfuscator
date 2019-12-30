@@ -152,7 +152,7 @@ public class ProtocolLibHandler extends CraftHandler implements IProtocolLibHand
 		});
 
 		String serverVersion = this.plugin.getNmsManager().getServerVersion();
-		if (serverVersion != "v1_15_R1" && serverVersion != "v1_14_R1") { // TODO check and fix!
+		if (!serverVersion.equals("v1_15_R1") && !serverVersion.equals("v1_14_R1")) { // TODO check and fix!
 			this.packetListeners.add(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
 
 				@Override

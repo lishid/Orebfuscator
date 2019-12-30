@@ -85,11 +85,6 @@ public class NmsHandler extends CraftHandler implements INmsManager {
 	}
 
 	@Override
-	public Material[] getExtraTransparentBlocks() {
-		return this.nmsWrapper.getExtraTransparentBlocks();
-	}
-
-	@Override
 	public void setMaxLoadedCacheFiles(int value) {
 		this.nmsWrapper.setMaxLoadedCacheFiles(value);
 	}
@@ -177,6 +172,16 @@ public class NmsHandler extends CraftHandler implements INmsManager {
 	@Override
 	public boolean sendBlockChange(Player player, Location blockLocation) {
 		return this.nmsWrapper.sendBlockChange(player, blockLocation);
+	}
+
+	@Override
+	public boolean hasLightArray() {
+		return this.nmsWrapper.hasLightArray();
+	}
+
+	@Override
+	public boolean hasBlockCount() {
+		return this.nmsWrapper.hasBlockCount();
 	}
 
 	@Override

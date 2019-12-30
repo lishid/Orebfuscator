@@ -64,7 +64,6 @@ public class BlockHitHandler extends CraftHandler implements IBlockHitHandler {
 		playerBlockTracking.updateTime();
 
 		int decrement = (int) (time / this.config.getAntiHitHackDecrementFactor());
-		System.out.println(decrement);
 		playerBlockTracking.decrementHackingIndicator(decrement);
 
 		if (playerBlockTracking.getHackingIndicator() == this.config.getAntiHitHackMaxViolation()) {

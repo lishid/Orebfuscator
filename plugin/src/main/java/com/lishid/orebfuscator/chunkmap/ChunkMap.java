@@ -206,6 +206,7 @@ public class ChunkMap implements IChunkMap {
 		return this.buffer.curLayer.map[this.blockIndex++];
 	}
 
+	@Override
 	public int get(int x, int y, int z) throws IOException {
 		if (x < minX || x > maxX || z < minZ || z > maxZ || y > 255 || y < this.y - 1 || y > this.y + 1) {
 			return -1;

@@ -19,8 +19,6 @@ public interface INmsManager {
 
 	ConfigDefaults getConfigDefaults();
 
-	Material[] getExtraTransparentBlocks();
-
 	void setMaxLoadedCacheFiles(int value);
 
 	INBT createNBT();
@@ -57,13 +55,9 @@ public interface INmsManager {
 
 	boolean sendBlockChange(Player player, Location blockLocation);
 
-	default boolean hasLightArray() {
-		return true;
-	}
+	boolean hasLightArray();
 
-	default boolean hasBlockCount() {
-		return false;
-	}
+	boolean hasBlockCount();
 
 	boolean wasNmsFound();
 

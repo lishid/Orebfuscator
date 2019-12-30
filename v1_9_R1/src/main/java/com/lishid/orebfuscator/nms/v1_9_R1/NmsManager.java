@@ -37,7 +37,6 @@ import java.util.Set;
 
 public class NmsManager implements INmsManager {
 	private ConfigDefaults configDefaults;
-	private Material[] extraTransparentBlocks;
 	private int maxLoadedCacheFiles;
 
 	public NmsManager() {
@@ -144,99 +143,10 @@ public class NmsManager implements INmsManager {
 		this.configDefaults.normalWorldRequiredObfuscateBlockIds = convertMaterialsToIds(new Material[] {
 				Material.STONE
 		});
-
-		// Extra transparent blocks
-
-		this.extraTransparentBlocks = new Material[] {
-				Material.ACACIA_DOOR,
-				Material.ACACIA_FENCE,
-				Material.ACACIA_FENCE_GATE,
-				Material.ACACIA_STAIRS,
-				Material.ANVIL,
-				Material.BEACON,
-				Material.BED_BLOCK,
-				Material.BIRCH_DOOR,
-				Material.BIRCH_FENCE,
-				Material.BIRCH_FENCE_GATE,
-				Material.BIRCH_WOOD_STAIRS,
-				Material.BREWING_STAND,
-				Material.BRICK_STAIRS,
-				Material.CACTUS,
-				Material.CAKE_BLOCK,
-				Material.CAULDRON,
-				Material.COBBLESTONE_STAIRS,
-				Material.COBBLE_WALL,
-				Material.DARK_OAK_DOOR,
-				Material.DARK_OAK_FENCE,
-				Material.DARK_OAK_FENCE_GATE,
-				Material.DARK_OAK_STAIRS,
-				Material.DAYLIGHT_DETECTOR,
-				Material.DAYLIGHT_DETECTOR_INVERTED,
-				Material.DRAGON_EGG,
-				Material.ENCHANTMENT_TABLE,
-				Material.FENCE,
-				Material.FENCE_GATE,
-				Material.GLASS,
-				Material.HOPPER,
-				Material.ICE,
-				Material.IRON_DOOR_BLOCK,
-				Material.IRON_FENCE,
-				Material.IRON_PLATE,
-				Material.IRON_TRAPDOOR,
-				Material.JUNGLE_DOOR,
-				Material.JUNGLE_FENCE,
-				Material.JUNGLE_FENCE_GATE,
-				Material.JUNGLE_WOOD_STAIRS,
-				Material.LAVA,
-				Material.LEAVES,
-				Material.LEAVES_2,
-				Material.MOB_SPAWNER,
-				Material.NETHER_BRICK_STAIRS,
-				Material.NETHER_FENCE,
-				Material.PACKED_ICE,
-				Material.PISTON_BASE,
-				Material.PISTON_EXTENSION,
-				Material.PISTON_MOVING_PIECE,
-				Material.PISTON_STICKY_BASE,
-				Material.PURPUR_SLAB,
-				Material.PURPUR_STAIRS,
-				Material.QUARTZ_STAIRS,
-				Material.RED_SANDSTONE_STAIRS,
-				Material.SANDSTONE_STAIRS,
-				Material.SIGN_POST,
-				Material.SLIME_BLOCK,
-				Material.SMOOTH_STAIRS,
-				Material.SPRUCE_DOOR,
-				Material.SPRUCE_FENCE,
-				Material.SPRUCE_FENCE_GATE,
-				Material.SPRUCE_WOOD_STAIRS,
-				Material.STAINED_GLASS,
-				Material.STAINED_GLASS_PANE,
-				Material.STANDING_BANNER,
-				Material.STATIONARY_LAVA,
-				Material.STATIONARY_WATER,
-				Material.STEP,
-				Material.STONE_PLATE,
-				Material.STONE_SLAB2,
-				Material.THIN_GLASS,
-				Material.TRAP_DOOR,
-				Material.WALL_BANNER,
-				Material.WALL_SIGN,
-				Material.WATER,
-				Material.WEB,
-				Material.WOODEN_DOOR,
-				Material.WOOD_PLATE,
-				Material.WOOD_STAIRS,
-				Material.WOOD_STEP
-		};
 	}
 
 	public ConfigDefaults getConfigDefaults() {
 		return this.configDefaults;
-	}
-
-	public Material[] getExtraTransparentBlocks() {
-		return this.extraTransparentBlocks;
 	}
 
 	public void setMaxLoadedCacheFiles(int value) {
@@ -400,6 +310,16 @@ public class NmsManager implements INmsManager {
 		}
 
 		return result;
+	}
+
+	@Override
+	public boolean hasLightArray() {
+		return true;
+	}
+
+	@Override
+	public boolean hasBlockCount() {
+		return false;
 	}
 
 	@Override
