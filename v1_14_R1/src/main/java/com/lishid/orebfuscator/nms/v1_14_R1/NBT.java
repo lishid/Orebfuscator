@@ -11,7 +11,7 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import com.lishid.orebfuscator.nms.INBT;
+import com.lishid.orebfuscator.api.nms.INBT;
 
 import net.minecraft.server.v1_14_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_14_R1.NBTTagCompound;

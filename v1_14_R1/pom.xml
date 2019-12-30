@@ -9,9 +9,9 @@
 	<name>Orebfuscator4 v1_14_R1</name>
 
 	<parent>
-		<groupId>com.lishid.parent</groupId>
-		<artifactId>orebfuscator-parent</artifactId>
-		<version>parent</version>
+		<groupId>com.lishid.repo</groupId>
+		<artifactId>orebfuscator-repo</artifactId>
+		<version>repo</version>
 	</parent>
 
 	<build>
@@ -30,16 +30,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot</artifactId>
-			<version>1.14.4-R0.1-SNAPSHOT</version>
+			<groupId>org.bukkit</groupId>
+			<artifactId>craftbukkit</artifactId>
+			<version>1.14-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.lishid</groupId>
 			<artifactId>orebfuscator-api</artifactId>
-			<version>API</version>
+			<version>api</version>
 			<type>jar</type>
 		</dependency>
 	</dependencies>

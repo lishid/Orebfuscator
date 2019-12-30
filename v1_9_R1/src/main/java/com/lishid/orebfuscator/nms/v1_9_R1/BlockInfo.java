@@ -5,10 +5,10 @@
 
 package com.lishid.orebfuscator.nms.v1_9_R1;
 
+import com.lishid.orebfuscator.api.nms.IBlockInfo;
+
 import net.minecraft.server.v1_9_R1.Block;
 import net.minecraft.server.v1_9_R1.IBlockData;
-
-import com.lishid.orebfuscator.nms.IBlockInfo;
 
 public class BlockInfo implements IBlockInfo {
 	private int x;

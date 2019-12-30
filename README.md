@@ -21,6 +21,7 @@ ProximityHider is a feature that hides chests that are far from players.
 - Hide hidden chests and furnaces until a player can see it.
 
 ### Changelog:
+- Updated to support 1.15 - 1.15.1
 - Updated to support 1.14 - 1.14.4 (Thanks SydMontague and NgLoader)
 - Updated to support 1.13
 - Updated to support 1.12 - 1.12.2
@@ -48,6 +49,15 @@ ProximityHider is a feature that hides chests that are far from players.
 4. That was it.
 
 ## Developer
+
+### API
+```java
+Bukkit.getServicesManager().getRegistration(Orebfuscator.class).getProvider();
+```
+or use
+```java
+Orebfuscator.getProvider();
+```
 
 ### Clone
 1. Clone this repo "git clone https://github.com/TeamWuffy/Orebfuscator.git"

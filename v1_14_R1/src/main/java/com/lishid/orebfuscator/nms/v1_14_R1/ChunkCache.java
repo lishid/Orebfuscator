@@ -11,7 +11,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.util.HashMap;
 
-import com.lishid.orebfuscator.nms.IChunkCache;
+import com.lishid.orebfuscator.api.nms.IChunkCache;
 
 import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_14_R1.RegionFile;
