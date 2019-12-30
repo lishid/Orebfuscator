@@ -180,6 +180,7 @@ public class OrebfuscatorCommandExecutor implements CommandExecutor, TabComplete
 			}
 		} else if (args[0].equalsIgnoreCase("reload")) {
 			this.plugin.reloadConfig();
+			this.configHandler.reloadOrebfuscatorConfig();
 			OFCLogger.message(sender, "Reload complete.");
 			return true;
 		} else if (args[0].equalsIgnoreCase("status")) {

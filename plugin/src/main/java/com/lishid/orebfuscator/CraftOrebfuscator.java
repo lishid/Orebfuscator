@@ -57,9 +57,9 @@ import com.lishid.orebfuscator.utils.MaterialHelper;
 public class CraftOrebfuscator extends JavaPlugin implements Orebfuscator {
 
 	private final NmsHandler nmsHandler;
+	private final ObfuscatedDataCacheHandler obfuscatedDataCacheHandler;
 	private final ConfigHandler configHandler;
 	private final ChunkMapHandler chunkMapHandler;
-	private final ObfuscatedDataCacheHandler obfuscatedDataCacheHandler;
 	private final BlockHitHandler blockHitHandler;
 	private final ProximityHiderHandler proximityHiderHandler;
 	private final ProtocolLibHandler protocolLibHandler;
@@ -70,6 +70,7 @@ public class CraftOrebfuscator extends JavaPlugin implements Orebfuscator {
 
 	public CraftOrebfuscator() {
 		this.nmsHandler = new NmsHandler(this);
+		this.obfuscatedDataCacheHandler = new ObfuscatedDataCacheHandler(this);
 
 		this.materialHelper = new MaterialHelper(this);
 
@@ -79,7 +80,6 @@ public class CraftOrebfuscator extends JavaPlugin implements Orebfuscator {
 		this.blockUpdate = new BlockUpdate(this);
 
 		this.chunkMapHandler = new ChunkMapHandler(this);
-		this.obfuscatedDataCacheHandler = new ObfuscatedDataCacheHandler(this);
 		this.blockHitHandler = new BlockHitHandler(this);
 		this.proximityHiderHandler = new ProximityHiderHandler(this);
 		this.protocolLibHandler = new ProtocolLibHandler(this);

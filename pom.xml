@@ -24,6 +24,10 @@
 			<id>dmulloy2-repo</id>
 			<url>http://repo.dmulloy2.net/content/groups/public/</url>
 		</repository>
+		<repository>
+			<id>elmakers-repo</id>
+			<url>http://maven.elmakers.com/repository</url>
+		</repository>
 	</repositories>
 
 	<modules>
