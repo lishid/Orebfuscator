@@ -19,7 +19,7 @@ jobs:
         java-version: 1.8
     - name: Build
       run: |
-        mvn clean compile package -pl Plugin -B --also-make -Dorebfuscator-version=$RELEASE_VERSION
+        mvn clean compile package -pl plugin -B --also-make -Dorebfuscator-version=$RELEASE_VERSION
         mkdir dist
         mv plugin/target/orebfuscator-*.jar ./dist
         mv api/target/orebfuscator-*.jar ./dist
