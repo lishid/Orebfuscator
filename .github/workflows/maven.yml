@@ -15,7 +15,7 @@ jobs:
         java-version: 1.8
     - name: Build
       run: |
-        mvn clean compile package -pl plugin -B --also-make "-Dorebfuscator-version=$(git describe --tags `git rev-list --tags --max-count=1`)"
+        mvn clean compile package -pl plugin -B --also-make "-Dorebfuscator.version=$(git describe --tags `git rev-list --tags --max-count=1`)"
         mkdir dist
         mv plugin/target/orebfuscator-*.jar ./dist
         mv api/target/orebfuscator-*.jar ./dist
