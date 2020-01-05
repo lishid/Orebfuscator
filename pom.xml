@@ -1,54 +1,41 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.lishid.parent</groupId>
-  <artifactId>orebfuscator-parent</artifactId>
-  <version>parent</version>
-  <packaging>pom</packaging>
+	<groupId>net.imprex</groupId>
+	<artifactId>orebfuscator</artifactId>
+	<version>${orebfuscator.version}</version>
+	<packaging>pom</packaging>
 
-  <name>Orebfuscator4 Parent</name>
-  <url>http://dev.bukkit.org/server-mods/orebfuscator/</url>
+	<properties>
+		<orebfuscator.version>5.0.0</orebfuscator.version>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+		<dependency.bukkit.version>1.15.1-R0.1-SNAPSHOT</dependency.bukkit.version>
 
-  <repositories>
-    <repository>
-      <id>dmulloy2-repo</id>
-      <url>http://repo.dmulloy2.net/content/groups/public/</url>
-    </repository>
-    <repository>
-      <id>spigot-repo</id>
-      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-     </repository>
-     <repository>
-       <id>techcable-repo</id>
-       <url>https://repo.techcable.net/content/groups/public/</url>
-     </repository>
-  </repositories>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 
-  <modules>
-    <module>API</module>
-    <module>v1_9_R1</module>
-    <module>v1_9_R2</module>
-    <module>v1_10_R1</module>
-    <module>v1_11_R1</module>
-    <module>v1_12_R1</module>
-    <module>v1_13_R1</module>
-    <module>v1_13_R2</module>
-    <module>Plugin</module>
-  </modules>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
-  <build>
-    <defaultGoal>clean install</defaultGoal>
-  </build>
+	<repositories>
+		<repository>
+			<id>spigot-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>dmulloy2-repo</id>
+			<url>http://repo.dmulloy2.net/nexus/repository/public/</url>
+		</repository>
+	</repositories>
 
-  <scm>
-    <connection>scm:git:git://github.com/lishid/Orebfuscator.git</connection>
-    <developerConnection>scm:git:git@github.com:lishid/Orebfuscator.git</developerConnection>
-    <url>https://github.com/lishid/Orebfuscator</url>
-  </scm>
+	<build>
+		<defaultGoal>clean package -pl orebfuscator-plugin --also-make</defaultGoal>
+	</build>
 
+	<modules>
+		<module>orebfuscator-plugin</module>
+		<module>orebfuscator-nms</module>
+	</modules>
 </project>
