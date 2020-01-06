@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>net.imprex</groupId>
+		<artifactId>orebfuscator</artifactId>
+		<version>${orebfuscator.version}</version>
+	</parent>
+
+	<artifactId>orebfuscator-nms</artifactId>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>orebfuscator-nms-api</module>
+		<module>orebfuscator-nms-v1_8_R3</module>
+		<module>orebfuscator-nms-v1_9_R1</module>
+		<module>orebfuscator-nms-v1_9_R2</module>
+		<module>orebfuscator-nms-v1_10_R1</module>
+		<module>orebfuscator-nms-v1_11_R1</module>
+		<module>orebfuscator-nms-v1_12_R1</module>
+		<module>orebfuscator-nms-v1_13_R1</module>
+		<module>orebfuscator-nms-v1_13_R2</module>
+		<module>orebfuscator-nms-v1_14_R1</module>
+		<module>orebfuscator-nms-v1_15_R1</module>
+	</modules>
+</project>
