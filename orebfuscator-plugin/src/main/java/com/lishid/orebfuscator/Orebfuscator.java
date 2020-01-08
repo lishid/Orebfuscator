@@ -65,12 +65,6 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 	public static OrebfuscatorConfig config;
 	public static ConfigManager configManager;
 
-	private boolean isProtocolLibFound;
-
-	public boolean getIsProtocolLibFound() {
-		return this.isProtocolLibFound;
-	}
-
 	public Orebfuscator() {
 		Orebfuscator.instance = this;
 	}
@@ -87,9 +81,7 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 			this.loadOrebfuscatorConfig();
 
 			PluginManager pm = this.getServer().getPluginManager();
-			this.isProtocolLibFound = pm.getPlugin("ProtocolLib") != null;
-
-			if (!this.isProtocolLibFound) {
+			if (pm.getPlugin("ProtocolLib") == null) {
 				Orebfuscator.log("ProtocolLib is not found! Plugin cannot be enabled.");
 				return;
 			}

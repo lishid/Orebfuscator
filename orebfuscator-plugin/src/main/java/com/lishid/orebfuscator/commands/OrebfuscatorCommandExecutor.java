@@ -136,12 +136,8 @@ public class OrebfuscatorCommandExecutor {
 		}
 
 		else if (args[0].equalsIgnoreCase("status")) {
-			String status = Orebfuscator.instance.getIsProtocolLibFound()
-					? Orebfuscator.config.isEnabled() ? "Enabled" : "Disabled"
-					: "ProtocolLib is not found! Plugin cannot be enabled.";
-
 			Orebfuscator.message(sender,
-					"Orebfuscator " + Orebfuscator.instance.getDescription().getVersion() + " is: " + status);
+					"Orebfuscator " + Orebfuscator.instance.getDescription().getVersion());
 			Orebfuscator.message(sender, "Engine Mode: " + Orebfuscator.config.getEngineMode());
 
 			Orebfuscator.message(sender, "Caching: " + (Orebfuscator.config.isUseCache() ? "Enabled" : "Disabled"));
