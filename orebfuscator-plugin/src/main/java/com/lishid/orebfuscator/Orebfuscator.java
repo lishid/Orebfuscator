@@ -16,17 +16,22 @@
 
 package com.lishid.orebfuscator;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -50,9 +55,12 @@ import com.lishid.orebfuscator.utils.MaterialHelper;
  *
  * @author lishid
  */
-public class Orebfuscator extends JavaPlugin {
+public class Orebfuscator extends JavaPlugin implements Listener {
 
-	public static final Logger logger = Logger.getLogger("Minecraft.OFC");
+	private static final String SERVER_VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+	private static final Pattern NMS_PATTERN = Pattern.compile("v(\\d+)_(\\d+)_R\\d", Pattern.DOTALL);
+
+	public static final Logger LOGGER = Logger.getLogger("Minecraft.OFC");
 	public static Orebfuscator instance;
 	public static OrebfuscatorConfig config;
 	public static ConfigManager configManager;
@@ -63,46 +71,80 @@ public class Orebfuscator extends JavaPlugin {
 		return this.isProtocolLibFound;
 	}
 
+	public Orebfuscator() {
+		Orebfuscator.instance = this;
+	}
+
 	@Override
 	public void onEnable() {
-		// Get plugin manager
-		PluginManager pm = this.getServer().getPluginManager();
+		try {
+			NmsInstance.current = Orebfuscator.createNmsManager();
 
-		instance = this;
+			MaterialHelper.init();
+			ChunkMapBuffer.init(NmsInstance.current.getBitsPerBlock());
 
-		NmsInstance.current = createNmsManager();
+			// Load configurations
+			this.loadOrebfuscatorConfig();
 
-		MaterialHelper.init();
-		ChunkMapBuffer.init(NmsInstance.current.getBitsPerBlock());
+			PluginManager pm = this.getServer().getPluginManager();
+			this.isProtocolLibFound = pm.getPlugin("ProtocolLib") != null;
 
-		// Load configurations
-		this.loadOrebfuscatorConfig();
+			if (!this.isProtocolLibFound) {
+				Orebfuscator.log("ProtocolLib is not found! Plugin cannot be enabled.");
+				return;
+			}
 
-		this.makeConfigExample();
+			// Orebfuscator events
+			pm.registerEvents(new OrebfuscatorPlayerListener(), this);
+			pm.registerEvents(new OrebfuscatorEntityListener(), this);
+			pm.registerEvents(new OrebfuscatorBlockListener(), this);
 
-		this.isProtocolLibFound = pm.getPlugin("ProtocolLib") != null;
+			new ProtocolLibHook().register(this);
 
-		if (!this.isProtocolLibFound) {
-			Orebfuscator.log("ProtocolLib is not found! Plugin cannot be enabled.");
-			return;
+			// Run CacheCleaner
+			this.getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0,
+					config.getCacheCleanRate());
+		} catch(Exception e) {
+			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, "An error occurred by enabling plugin");
+
+			this.getServer().getPluginManager().registerEvent(PluginEnableEvent.class, this, EventPriority.NORMAL, (listener, event) -> {
+				PluginEnableEvent enableEvent = (PluginEnableEvent) event;
+
+				if (enableEvent.getPlugin() == this) {
+					HandlerList.unregisterAll(listener);
+					Bukkit.getPluginManager().disablePlugin(this);
+				}
+			}, this);
 		}
+	}
 
-		// Orebfuscator events
-		pm.registerEvents(new OrebfuscatorPlayerListener(), this);
-		pm.registerEvents(new OrebfuscatorEntityListener(), this);
-		pm.registerEvents(new OrebfuscatorBlockListener(), this);
+	public void createConfigIfNotExist() {
+		Path path = this.getDataFolder().toPath().resolve("config.yml");
 
-		new ProtocolLibHook().register(this);
+		if (Files.notExists(path)) {
+			try {
+				Matcher matcher = Orebfuscator.NMS_PATTERN.matcher(Orebfuscator.SERVER_VERSION);
 
-		// Run CacheCleaner
-		this.getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(), 0,
-				config.getCacheCleanRate());
+				if (!matcher.find()) {
+					throw new RuntimeException("WTF is this version!?");
+				}
+
+				String configVersion = matcher.group(1) + "." + matcher.group(2);
+
+				Files.copy(Orebfuscator.class.getResourceAsStream("/resources/config-" + configVersion + ".yml"), path);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void loadOrebfuscatorConfig() {
+		this.createConfigIfNotExist();
+
 		if (config == null) {
 			config = new OrebfuscatorConfig();
-			configManager = new ConfigManager(this, logger, config);
+			configManager = new ConfigManager(this, LOGGER, config);
 		}
 
 		configManager.load();
@@ -119,53 +161,32 @@ public class Orebfuscator extends JavaPlugin {
 		}
 	}
 
-	private void makeConfigExample() {
-		File outputFile = new File(this.getDataFolder(), "config.example_enabledworlds.yml");
-
-		if (outputFile.exists()) {
-			return;
-		}
-
-		InputStream configStream = Orebfuscator.class
-				.getResourceAsStream("/resources/config.example_enabledworlds.yml");
-
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(configStream));
-				PrintWriter writer = new PrintWriter(outputFile)) {
-			String line;
-
-			while ((line = reader.readLine()) != null) {
-				writer.println(line);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public void reloadOrebfuscatorConfig() {
+		this.createConfigIfNotExist();
 		this.reloadConfig();
 		this.loadOrebfuscatorConfig();
 	}
 
 	private static INmsManager createNmsManager() {
-		String serverVersion = org.bukkit.Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-
-		if (serverVersion.equals("v1_15_R1")) {
+		if (SERVER_VERSION.equals("v1_15_R1")) {
 			return new net.imprex.orebfuscator.nms.v1_15_R1.NmsManager();
-		} else if (serverVersion.equals("v1_13_R2")) {
+		} else if (SERVER_VERSION.equals("v1_14_R1")) {
+			return new net.imprex.orebfuscator.nms.v1_14_R1.NmsManager();
+		} else if (SERVER_VERSION.equals("v1_13_R2")) {
 			return new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager();
-		} else if (serverVersion.equals("v1_13_R1")) {
+		} else if (SERVER_VERSION.equals("v1_13_R1")) {
 			return new com.lishid.orebfuscator.nms.v1_13_R1.NmsManager();
-		} else if (serverVersion.equals("v1_12_R1")) {
+		} else if (SERVER_VERSION.equals("v1_12_R1")) {
 			return new com.lishid.orebfuscator.nms.v1_12_R1.NmsManager();
-		} else if (serverVersion.equals("v1_11_R1")) {
+		} else if (SERVER_VERSION.equals("v1_11_R1")) {
 			return new com.lishid.orebfuscator.nms.v1_11_R1.NmsManager();
-		} else if (serverVersion.equals("v1_10_R1")) {
+		} else if (SERVER_VERSION.equals("v1_10_R1")) {
 			return new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager();
-		} else if (serverVersion.equals("v1_9_R2")) {
+		} else if (SERVER_VERSION.equals("v1_9_R2")) {
 			return new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager();
-		} else if (serverVersion.equals("v1_9_R1")) {
+		} else if (SERVER_VERSION.equals("v1_9_R1")) {
 			return new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager();
-		} else if (serverVersion.equals("v1_8_R3")) {
+		} else if (SERVER_VERSION.equals("v1_8_R3")) {
 			return new com.lishid.orebfuscator.nms.v1_8_R3.NmsManager();
 		}
 
@@ -194,14 +215,14 @@ public class Orebfuscator extends JavaPlugin {
 	 * Log an information
 	 */
 	public static void log(String text) {
-		logger.info(Globals.LogPrefix + text);
+		LOGGER.info(Globals.LogPrefix + text);
 	}
 
 	/**
 	 * Log an error
 	 */
 	public static void log(Throwable e) {
-		logger.severe(Globals.LogPrefix + e.toString());
+		LOGGER.severe(Globals.LogPrefix + e.toString());
 		e.printStackTrace();
 	}
 
