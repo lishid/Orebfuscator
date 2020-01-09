@@ -86,9 +86,9 @@ public class WorldReader {
 
 					this.worlds.put(worldName, world);
 
-					this.logger.log(Level.INFO, Globals.LogPrefix + "World name '" + worldName + "' has been loaded.");
+					this.logger.log(Level.INFO, Globals.LOG_PREFIX + "World name '" + worldName + "' has been loaded.");
 				} catch(Exception e) {
-					this.logger.log(Level.WARNING, Globals.LogPrefix + "World name '" + worldName + "' couldn't been loaded.");
+					this.logger.log(Level.WARNING, Globals.LOG_PREFIX + "World name '" + worldName + "' couldn't been loaded.");
 					e.printStackTrace();
 				}
 			}

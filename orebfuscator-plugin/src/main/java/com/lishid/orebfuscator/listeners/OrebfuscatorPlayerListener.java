@@ -33,24 +33,33 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
 import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 import com.lishid.orebfuscator.obfuscation.ProximityHider;
+import com.lishid.orebfuscator.utils.CommandSenderUtil;
 
 public class OrebfuscatorPlayerListener implements Listener {
+
+	private final ConfigManager configManager;
+
+	public OrebfuscatorPlayerListener(Orebfuscator orebfuscator) {
+		this.configManager = orebfuscator.getConfigManager();
+	}
+
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 
-		if (Orebfuscator.config.isLoginNotification()) {
-			if (Orebfuscator.config.playerBypassOp(player)) {
-				Orebfuscator.message(player, "Orebfuscator bypassed because you are OP.");
-			} else if (Orebfuscator.config.playerBypassPerms(player)) {
-				Orebfuscator.message(player, "Orebfuscator bypassed because you have permission.");
+		if (this.configManager.getConfig().isLoginNotification()) {
+			if (this.configManager.getConfig().playerBypassOp(player)) {
+				CommandSenderUtil.sendMessage(player, "Orebfuscator bypassed because you are OP.");
+			} else if (this.configManager.getConfig().playerBypassPerms(player)) {
+				CommandSenderUtil.sendMessage(player, "Orebfuscator bypassed because you have permission.");
 			}
 		}
 
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
+		if (this.configManager.getConfig().isProximityHiderEnabled()) {
 			ProximityHider.addPlayerToCheck(event.getPlayer(), null);
 		}
 	}
@@ -58,7 +67,7 @@ public class OrebfuscatorPlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		BlockHitManager.clearHistory(event.getPlayer());
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
+		if (this.configManager.getConfig().isProximityHiderEnabled()) {
 			ProximityHider.clearPlayer(event.getPlayer());
 		}
 	}
@@ -72,7 +81,7 @@ public class OrebfuscatorPlayerListener implements Listener {
 		// For using a hoe for farming
 		if (event.getItem() != null && event.getItem().getType() != null
 				&& (event.getMaterial() == Material.DIRT || event.getMaterial() == Material.GRASS)
-				&& NmsInstance.current.isHoe(event.getItem().getType())) {
+				&& NmsInstance.get().isHoe(event.getItem().getType())) {
 			BlockUpdate.update(event.getClickedBlock());
 		}
 	}
@@ -81,7 +90,7 @@ public class OrebfuscatorPlayerListener implements Listener {
 	public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
 		BlockHitManager.clearHistory(event.getPlayer());
 
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
+		if (this.configManager.getConfig().isProximityHiderEnabled()) {
 			ProximityHider.clearBlocksForOldWorld(event.getPlayer());
 			ProximityHider.addPlayerToCheck(event.getPlayer(), null);
 		}
@@ -89,7 +98,7 @@ public class OrebfuscatorPlayerListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerTeleport(PlayerTeleportEvent event) {
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
+		if (this.configManager.getConfig().isProximityHiderEnabled()) {
 			if (event.getCause() != TeleportCause.END_PORTAL && event.getCause() != TeleportCause.NETHER_PORTAL) {
 				ProximityHider.addPlayerToCheck(event.getPlayer(), null);
 			}
@@ -98,7 +107,7 @@ public class OrebfuscatorPlayerListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerMove(PlayerMoveEvent event) {
-		if (Orebfuscator.config.isProximityHiderEnabled()) {
+		if (this.configManager.getConfig().isProximityHiderEnabled()) {
 			ProximityHider.addPlayerToCheck(event.getPlayer(), event.getFrom());
 		}
 	}

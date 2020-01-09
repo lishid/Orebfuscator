@@ -16,7 +16,7 @@ import net.imprex.orebfuscator.util.ChunkPosition;
 
 public class ChunkCacheSerializer implements HybridCacheSerializer<ChunkPosition, ChunkCacheEntry> {
 
-	private static final IChunkCache REGION_CHUNK_CACHE = NmsInstance.current.createChunkCache();
+	private static final IChunkCache REGION_CHUNK_CACHE = NmsInstance.get().createChunkCache();
 
 	private static DataInputStream getInputStream(ChunkPosition key) throws IOException {
 		return REGION_CHUNK_CACHE.getInputStream(new File(ObfuscatedDataCache.getCacheFolder(), key.getWorld()),

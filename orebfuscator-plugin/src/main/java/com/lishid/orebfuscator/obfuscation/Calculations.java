@@ -33,6 +33,7 @@ import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
+import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.utils.Globals;
@@ -49,7 +50,13 @@ public class Calculations {
 		public List<BlockCoords> removedEntities;
 	}
 
-	private static Random random = new Random();
+	private static final Random RANDOM = new Random();
+
+	private static ConfigManager configManager;
+
+	public static void initialize(Orebfuscator orebfuscator) {
+		Calculations.configManager = orebfuscator.getConfigManager();
+	}
 
 	public static ChunkCacheEntry obfuscateChunk(ChunkData chunkData, Player player, WorldConfig worldConfig) {
 		List<BlockCoords> proximityBlocks = new ArrayList<>();
@@ -109,14 +116,14 @@ public class Calculations {
 	private static byte[] obfuscate(WorldConfig worldConfig, ChunkData chunkData, Player player,
 			List<BlockCoords> proximityBlocks, List<BlockCoords> removedEntities) throws IOException {
 		ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
-		int initialRadius = Orebfuscator.config.getInitialRadius();
+		int initialRadius = Calculations.configManager.getConfig().getInitialRadius();
 
 		// Track of pseudo-randomly assigned randomBlock
 		int randomIncrement = 0;
 		int randomIncrement2 = 0;
 		int randomCave = 0;
 
-		int engineMode = Orebfuscator.config.getEngineMode();
+		int engineMode = Calculations.configManager.getConfig().getEngineMode();
 		int maxChance = worldConfig.getAirGeneratorMaxChance();
 
 		int randomBlocksLength = worldConfig.getRandomBlocks().length;
@@ -218,7 +225,7 @@ public class Calculations {
 										}
 
 										if (randomCave > 0) {
-											blockData = NmsInstance.current.getCaveAirBlockId();
+											blockData = NmsInstance.get().getCaveAirBlockId();
 											randomCave--;
 										}
 									}
@@ -229,7 +236,7 @@ public class Calculations {
 							if (!obfuscate && darknessBlockFlag && worldConfig.isDarknessHideBlocks()) {
 								if (!areAjacentBlocksBright(player.getWorld(), x, y, z, 1)) {
 									// Hide block, setting it to air
-									blockData = NmsInstance.current.getCaveAirBlockId();
+									blockData = NmsInstance.get().getCaveAirBlockId();
 									obfuscate = true;
 								}
 							}
@@ -265,7 +272,7 @@ public class Calculations {
 	}
 
 	private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, int blockData) {
-		if (!NmsInstance.current.isSign(blockData)) {
+		if (!NmsInstance.get().isSign(blockData)) {
 			return true;
 		}
 
@@ -288,7 +295,7 @@ public class Calculations {
 			return true;
 		}
 
-		String text = NmsInstance.current.getTextFromChatComponent(json);
+		String text = NmsInstance.get().getTextFromChatComponent(json);
 
 		return text == null || text.isEmpty();
 	}
@@ -324,14 +331,14 @@ public class Calculations {
 			int blockData = manager.get(x, y, z);
 
 			if (blockData < 0) {
-				blockData = NmsInstance.current.loadChunkAndGetBlockId(world, x, y, z);
+				blockData = NmsInstance.get().loadChunkAndGetBlockId(world, x, y, z);
 
 				if (blockData < 0) {
 					chunkData.useCache = false;
 				}
 			}
 
-			if (blockData >= 0 && Orebfuscator.config.isBlockTransparent(blockData)) {
+			if (blockData >= 0 && Calculations.configManager.getConfig().isBlockTransparent(blockData)) {
 				return true;
 			}
 		}
@@ -363,7 +370,7 @@ public class Calculations {
 	}
 
 	public static boolean areAjacentBlocksBright(World world, int x, int y, int z, int countdown) {
-		if (NmsInstance.current.getBlockLightLevel(world, x, y, z) > 0) {
+		if (NmsInstance.get().getBlockLightLevel(world, x, y, z) > 0) {
 			return true;
 		}
 
@@ -394,6 +401,6 @@ public class Calculations {
 	}
 
 	private static int random(int max) {
-		return random.nextInt(max);
+		return RANDOM.nextInt(max);
 	}
 }

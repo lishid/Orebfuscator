@@ -23,9 +23,18 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.config.ConfigManager;
 
 public class BlockHitManager {
+
 	private static HashMap<Player, PlayerBlockTracking> playersBlockTrackingStatus = new HashMap<>();
+	private static Orebfuscator orebfuscator;
+	private static ConfigManager configManager;
+
+	public static void initialize(Orebfuscator orebfuscator) {
+		BlockHitManager.orebfuscator = orebfuscator;
+		BlockHitManager.configManager = orebfuscator.getConfigManager();
+	}
 
 	public static boolean hitBlock(Player player, Block block) {
 		if (player.getGameMode() == GameMode.CREATIVE) {
@@ -43,14 +52,14 @@ public class BlockHitManager {
 		playerBlockTracking.setBlock(block);
 		playerBlockTracking.updateTime();
 
-		int decrement = (int) (time / Orebfuscator.config.getAntiHitHackDecrementFactor());
+		int decrement = (int) (time / BlockHitManager.configManager.getConfig().getAntiHitHackDecrementFactor());
 		playerBlockTracking.decrementHackingIndicator(decrement);
 
-		if (playerBlockTracking.getHackingIndicator() == Orebfuscator.config.getAntiHitHackMaxViolation()) {
-			playerBlockTracking.incrementHackingIndicator(Orebfuscator.config.getAntiHitHackMaxViolation());
+		if (playerBlockTracking.getHackingIndicator() == BlockHitManager.configManager.getConfig().getAntiHitHackMaxViolation()) {
+			playerBlockTracking.incrementHackingIndicator(BlockHitManager.configManager.getConfig().getAntiHitHackMaxViolation());
 		}
 
-		if (playerBlockTracking.getHackingIndicator() > Orebfuscator.config.getAntiHitHackMaxViolation()) {
+		if (playerBlockTracking.getHackingIndicator() > BlockHitManager.configManager.getConfig().getAntiHitHackMaxViolation()) {
 			return false;
 		}
 
@@ -60,7 +69,7 @@ public class BlockHitManager {
 	public static boolean canFakeHit(Player player) {
 		PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
 
-		if (playerBlockTracking.getHackingIndicator() > Orebfuscator.config.getAntiHitHackMaxViolation()) {
+		if (playerBlockTracking.getHackingIndicator() > BlockHitManager.configManager.getConfig().getAntiHitHackMaxViolation()) {
 			return false;
 		}
 
@@ -71,7 +80,7 @@ public class BlockHitManager {
 		PlayerBlockTracking playerBlockTracking = getPlayerBlockTracking(player);
 		playerBlockTracking.incrementHackingIndicator();
 
-		if (playerBlockTracking.getHackingIndicator() > Orebfuscator.config.getAntiHitHackMaxViolation()) {
+		if (playerBlockTracking.getHackingIndicator() > BlockHitManager.configManager.getConfig().getAntiHitHackMaxViolation()) {
 			return false;
 		}
 
@@ -91,7 +100,7 @@ public class BlockHitManager {
 
 	private static PlayerBlockTracking getPlayerBlockTracking(Player player) {
 		if (!playersBlockTrackingStatus.containsKey(player)) {
-			playersBlockTrackingStatus.put(player, new PlayerBlockTracking(player));
+			playersBlockTrackingStatus.put(player, new PlayerBlockTracking(BlockHitManager.orebfuscator, player));
 		}
 		return playersBlockTrackingStatus.get(player);
 	}

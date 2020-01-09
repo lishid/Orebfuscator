@@ -6,12 +6,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.config.ConfigManager;
 
 public class CacheCleaner implements Runnable {
 
+	private final ConfigManager configManager;
+
+	public CacheCleaner(ConfigManager configManager) {
+		this.configManager = configManager;
+	}
+
 	@Override
 	public void run() {
-		if (!Orebfuscator.config.isEnabled() || Orebfuscator.config.getDeleteCacheFilesAfterDays() <= 0) {
+		if (!this.configManager.getConfig().isEnabled() || this.configManager.getConfig().getDeleteCacheFilesAfterDays() <= 0) {
 			return;
 		}
 
@@ -19,7 +26,7 @@ public class CacheCleaner implements Runnable {
 
 		for (World world : Bukkit.getWorlds()) {
 			File cacheFolder = new File(ObfuscatedDataCache.getCacheFolder(), world.getName());
-			count += ObfuscatedDataCache.deleteFiles(cacheFolder, Orebfuscator.config.getDeleteCacheFilesAfterDays());
+			count += ObfuscatedDataCache.deleteFiles(cacheFolder, this.configManager.getConfig().getDeleteCacheFilesAfterDays());
 		}
 
 		Orebfuscator.log("Cache cleaner completed, deleted files: " + count);

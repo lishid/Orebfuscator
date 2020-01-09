@@ -10,13 +10,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.lishid.orebfuscator.NmsInstance;
+import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.Globals;
 import com.lishid.orebfuscator.utils.MaterialHelper;
 
@@ -33,11 +33,9 @@ public class MaterialReader {
 	}
 
 	private JavaPlugin plugin;
-	private Logger logger;
 
-	public MaterialReader(JavaPlugin plugin, Logger logger) {
+	public MaterialReader(JavaPlugin plugin) {
 		this.plugin = plugin;
-		this.logger = logger;
 	}
 
 	private FileConfiguration getConfig() {
@@ -125,44 +123,44 @@ public class MaterialReader {
 					materialIds.add(id);
 				} else {
 					if (defaultMaterialId != null) {
-						this.logger.info(Globals.LogPrefix + "Material with ID = " + id
+						Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Material with ID = " + id
 								+ " is not found. Will be used default material: " + defaultMaterialName);
 						materialName = defaultMaterialName;
 
 						materialIds = new HashSet<>();
 						materialIds.add(defaultMaterialId);
 					} else {
-						this.logger.info(Globals.LogPrefix + "Material with ID = " + id + " is not found. Skipped.");
+						Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Material with ID = " + id + " is not found. Skipped.");
 					}
 				}
 			} else {
 				Material obj = Material.getMaterial(materialName.toUpperCase());
 
 				if (obj != null) {
-					materialIds = NmsInstance.current.getMaterialIds(obj);
+					materialIds = NmsInstance.get().getMaterialIds(obj);
 				} else {
 					if (defaultMaterialId != null) {
-						this.logger.info(Globals.LogPrefix + "Material " + materialName
+						Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Material " + materialName
 								+ " is not found. Will be used default material: " + defaultMaterialName);
 						materialName = defaultMaterialName;
 
 						materialIds = new HashSet<>();
 						materialIds.add(defaultMaterialId);
 					} else {
-						this.logger.info(Globals.LogPrefix + "Material " + materialName + " is not found. Skipped.");
+						Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Material " + materialName + " is not found. Skipped.");
 					}
 				}
 			}
 		} catch (Exception e) {
 			if (defaultMaterialId != null) {
-				this.logger.info(Globals.LogPrefix + "Invalid material ID or name: " + materialName
+				Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Invalid material ID or name: " + materialName
 						+ ".  Will be used default material: " + defaultMaterialName);
 				materialName = defaultMaterialName;
 
 				materialIds = new HashSet<>();
 				materialIds.add(defaultMaterialId);
 			} else {
-				this.logger.info(Globals.LogPrefix + "Invalid material ID or name: " + materialName + ". Skipped.");
+				Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Invalid material ID or name: " + materialName + ". Skipped.");
 			}
 		}
 

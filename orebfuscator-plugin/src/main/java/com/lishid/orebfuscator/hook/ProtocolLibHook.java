@@ -22,7 +22,6 @@ import java.util.logging.Level;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -36,6 +35,7 @@ import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
+import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
@@ -43,13 +43,21 @@ import com.lishid.orebfuscator.obfuscation.Calculations;
 import net.imprex.orebfuscator.util.BlockCoords;
 
 public class ProtocolLibHook {
-	private ProtocolManager manager;
+
+	private final Orebfuscator orebfuscator;
+	private final ConfigManager configManager;
+	private final ProtocolManager manager;
+
+	public ProtocolLibHook(Orebfuscator orebfuscator) {
+		this.orebfuscator = orebfuscator;
+		this.configManager = orebfuscator.getConfigManager();
+		
+		this.manager = ProtocolLibrary.getProtocolManager();
+	}
 
 	@SuppressWarnings("rawtypes")
-	public void register(Plugin plugin) {
-		this.manager = ProtocolLibrary.getProtocolManager();
-
-		this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
+	public void register() {
+		this.manager.addPacketListener(new PacketAdapter(this.orebfuscator, PacketType.Play.Server.MAP_CHUNK) {
 			@Override
 			public void onPacketSending(PacketEvent event) {
 				ChunkData chunkData = null;
@@ -57,11 +65,11 @@ public class ProtocolLibHook {
 				try {
 					Player player = event.getPlayer();
 
-					if (!Orebfuscator.config.isEnabled() || !Orebfuscator.config.obfuscateForPlayer(player)) {
+					if (!configManager.getConfig().isEnabled() || !configManager.getConfig().obfuscateForPlayer(player)) {
 						return;
 					}
 
-					WorldConfig worldConfig = Orebfuscator.configManager.getWorld(player.getWorld());
+					WorldConfig worldConfig = configManager.getWorld(player.getWorld());
 
 					if (worldConfig == null || !worldConfig.isEnabled()) {
 						return;
@@ -106,7 +114,7 @@ public class ProtocolLibHook {
 			}
 		});
 
-		this.manager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Client.BLOCK_DIG) {
+		this.manager.addPacketListener(new PacketAdapter(this.orebfuscator, PacketType.Play.Client.BLOCK_DIG) {
 			@Override
 			public void onPacketReceiving(PacketEvent event) {
 				EnumWrappers.PlayerDigType status = event.getPacket().getPlayerDigTypes().read(0);
