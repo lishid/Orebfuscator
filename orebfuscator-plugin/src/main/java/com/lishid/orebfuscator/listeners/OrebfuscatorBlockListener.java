@@ -28,10 +28,17 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 
 import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 
 public class OrebfuscatorBlockListener implements Listener {
+
+	private final ConfigManager configManager;
+
+	public OrebfuscatorBlockListener(Orebfuscator orebfuscator) {
+		this.configManager = orebfuscator.getConfigManager();
+	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
@@ -41,7 +48,7 @@ public class OrebfuscatorBlockListener implements Listener {
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockDamage(BlockDamageEvent event) {
-		if (!Orebfuscator.config.isUpdateOnDamage()) {
+		if (!this.configManager.getConfig().isUpdateOnDamage()) {
 			return;
 		}
 
@@ -64,7 +71,7 @@ public class OrebfuscatorBlockListener implements Listener {
 
 		Material blockMaterial = event.getBlock().getRelative(0, -1, 0).getType();
 
-		if (!NmsInstance.current.canApplyPhysics(blockMaterial)) {
+		if (!NmsInstance.get().canApplyPhysics(blockMaterial)) {
 			return;
 		}
 

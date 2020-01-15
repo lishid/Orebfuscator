@@ -22,12 +22,16 @@ import org.bukkit.entity.Player;
 import com.lishid.orebfuscator.Orebfuscator;
 
 public class PlayerBlockTracking {
+
+	private final Orebfuscator orebfuscator;
+	private final Player player;
+
 	private Block block;
 	private int hackingIndicator;
-	private Player player;
 	private long lastTime = System.currentTimeMillis();
 
-	public PlayerBlockTracking(Player player) {
+	public PlayerBlockTracking(Orebfuscator orebfuscator, Player player) {
+		this.orebfuscator = orebfuscator;
 		this.player = player;
 	}
 
@@ -57,7 +61,8 @@ public class PlayerBlockTracking {
 	public void incrementHackingIndicator(int value) {
 		this.hackingIndicator += value;
 		if (this.hackingIndicator >= 1 << 14) {
-			Orebfuscator.instance.runTask(new Runnable() {
+			this.orebfuscator.runTask(new Runnable() {
+
 				@Override
 				public void run() {
 					String name = PlayerBlockTracking.this.player.getName();

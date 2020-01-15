@@ -22,7 +22,7 @@ public class ChunkMapBuffer {
 
 	private static int MAX_BYTES_PER_CHUNK;
 
-	public static void init(int bitsPerBlock) {
+	public static void initialize(int bitsPerBlock) {
 		_bitsPerBlock = bitsPerBlock;
 
 		int dataArraySize = BLOCKS_PER_CHUNK_SECTION * _bitsPerBlock / 8;

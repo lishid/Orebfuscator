@@ -27,17 +27,27 @@ import org.bukkit.Bukkit;
 
 import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.nms.IChunkCache;
 import com.lishid.orebfuscator.utils.FileHelper;
 
 public class ObfuscatedDataCache {
+
 	private static final String cacheFileName = "cache_config.yml";
 	private static File cacheFolder;
 	private static IChunkCache internalCache;
 
+	private static Orebfuscator orebfuscator;
+	private static ConfigManager configManager;
+
+	public static void initialize(Orebfuscator orebfuscator) {
+		ObfuscatedDataCache.orebfuscator = orebfuscator;
+		ObfuscatedDataCache.configManager = orebfuscator.getConfigManager();
+	}
+
 	private static IChunkCache getInternalCache() {
 		if (internalCache == null) {
-			internalCache = NmsInstance.current.createChunkCache();
+			internalCache = NmsInstance.get().createChunkCache();
 		}
 		return internalCache;
 	}
@@ -48,7 +58,7 @@ public class ObfuscatedDataCache {
 
 	public static File getCacheFolder() {
 		if (cacheFolder == null) {
-			cacheFolder = new File(Bukkit.getServer().getWorldContainer(), Orebfuscator.config.getCacheLocation());
+			cacheFolder = new File(Bukkit.getServer().getWorldContainer(), ObfuscatedDataCache.configManager.getConfig().getCacheLocation());
 		}
 
 		// Try to make the folder
@@ -67,7 +77,7 @@ public class ObfuscatedDataCache {
 	}
 
 	public static void checkCacheAndConfigSynchronized() throws IOException {
-		String configContent = Orebfuscator.instance.getConfig().saveToString();
+		String configContent = ObfuscatedDataCache.orebfuscator.getConfig().saveToString();
 
 		File cacheFolder = getCacheFolder();
 		File cacheConfigFile = new File(cacheFolder, cacheFileName);
@@ -94,7 +104,7 @@ public class ObfuscatedDataCache {
 
 		cacheFolder.mkdirs();
 
-		Orebfuscator.instance.getConfig().save(cacheConfigFile);
+		ObfuscatedDataCache.orebfuscator.getConfig().save(cacheConfigFile);
 	}
 
 	public static DataInputStream getInputStream(File folder, int x, int z) throws IOException {

@@ -29,13 +29,15 @@ import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
+import com.lishid.orebfuscator.config.ConfigManager;
 import com.lishid.orebfuscator.config.ProximityHiderConfig;
 import com.lishid.orebfuscator.config.WorldConfig;
 import com.lishid.orebfuscator.nms.IBlockInfo;
 
 import net.imprex.orebfuscator.util.BlockCoords;
 
-public class ProximityHider extends Thread implements Runnable {
+public class ProximityHider extends Thread {
+
 	private static final Map<Player, ProximityHiderPlayer> proximityHiderTracker = new HashMap<>();
 	private static final Map<Player, Location> playersToCheck = new HashMap<>();
 	private static final HashSet<Player> playersToReload = new HashSet<>();
@@ -47,7 +49,15 @@ public class ProximityHider extends Thread implements Runnable {
 	private AtomicBoolean kill = new AtomicBoolean(false);
 	private static boolean running = false;
 
-	public static void Load() {
+	private static Orebfuscator orebfuscator;
+	private static ConfigManager configManager;
+
+	public static void initialize(Orebfuscator orebfuscator) {
+		ProximityHider.orebfuscator = orebfuscator;
+		ProximityHider.configManager = orebfuscator.getConfigManager();
+	}
+
+	public static void load() {
 		running = true;
 		if (thread == null || thread.isInterrupted() || !thread.isAlive()) {
 			thread = new ProximityHider();
@@ -68,14 +78,14 @@ public class ProximityHider extends Thread implements Runnable {
 		while (!this.isInterrupted() && !this.kill.get()) {
 			try {
 				// Wait until necessary
-				long timeWait = this.lastExecute + Orebfuscator.config.getProximityHiderRate()
+				long timeWait = this.lastExecute + ProximityHider.configManager.getConfig().getProximityHiderRate()
 						- System.currentTimeMillis();
 				this.lastExecute = System.currentTimeMillis();
 				if (timeWait > 0) {
 					Thread.sleep(timeWait);
 				}
 
-				if (!Orebfuscator.config.isProximityHiderEnabled()) {
+				if (!ProximityHider.configManager.getConfig().isProximityHiderEnabled()) {
 					running = false;
 					return;
 				}
@@ -139,7 +149,7 @@ public class ProximityHider extends Thread implements Runnable {
 						continue;
 					}
 
-					WorldConfig worldConfig = Orebfuscator.configManager.getWorld(p.getWorld());
+					WorldConfig worldConfig = ProximityHider.configManager.getWorld(p.getWorld());
 					ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
 
 					int checkRadius = proximityHider.getDistance() >> 4;
@@ -186,13 +196,13 @@ public class ProximityHider extends Thread implements Runnable {
 										// 4.3.1 -- GAZE CHECK END
 										removedBlocks.add(b);
 
-										if (NmsInstance.current.sendBlockChange(p, blockLocation)) {
+										if (NmsInstance.get().sendBlockChange(p, blockLocation)) {
 											final BlockCoords block = b;
 											final Player player = p;
-											Orebfuscator.instance.runTask(new Runnable() {
+											ProximityHider.orebfuscator.runTask(new Runnable() {
 												@Override
 												public void run() {
-													NmsInstance.current.updateBlockTileEntity(block, player);
+													NmsInstance.get().updateBlockTileEntity(block, player);
 												}
 											});
 										}
@@ -280,8 +290,8 @@ public class ProximityHider extends Thread implements Runnable {
 			if (lx == bx && ly == by && lz == bz) {
 				return true; // we've reached our starting block, don't test it.
 			}
-			IBlockInfo between = NmsInstance.current.getBlockInfo(world, (int) lx, (int) ly, (int) lz);
-			if (between != null && !Orebfuscator.config.isBlockTransparent(between.getCombinedId())) {
+			IBlockInfo between = NmsInstance.get().getBlockInfo(world, (int) lx, (int) ly, (int) lz);
+			if (between != null && !ProximityHider.configManager.getConfig().isBlockTransparent(between.getCombinedId())) {
 				return false; // fail on first hit, this ray is "blocked"
 			}
 			s--; // we stop
@@ -295,15 +305,15 @@ public class ProximityHider extends Thread implements Runnable {
 				running = false;
 			}
 
-			if (!running && Orebfuscator.config.isProximityHiderEnabled()) {
+			if (!running && ProximityHider.configManager.getConfig().isProximityHiderEnabled()) {
 				// Load ProximityHider
-				ProximityHider.Load();
+				ProximityHider.load();
 			}
 		}
 	}
 
 	public static void addProximityBlocks(Player player, int chunkX, int chunkZ, List<BlockCoords> blocks) {
-		ProximityHiderConfig proximityHider = Orebfuscator.configManager.getWorld(player.getWorld())
+		ProximityHiderConfig proximityHider = ProximityHider.configManager.getWorld(player.getWorld())
 				.getProximityHiderConfig();
 
 		if (!proximityHider.isEnabled()) {
@@ -379,7 +389,7 @@ public class ProximityHider extends Thread implements Runnable {
 	}
 
 	public static void addPlayersToReload(HashSet<Player> players) {
-		if (!Orebfuscator.config.isProximityHiderEnabled()) {
+		if (!ProximityHider.configManager.getConfig().isProximityHiderEnabled()) {
 			return;
 		}
 

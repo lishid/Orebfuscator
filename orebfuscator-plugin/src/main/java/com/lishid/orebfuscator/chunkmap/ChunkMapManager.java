@@ -12,6 +12,7 @@ import java.util.Stack;
 import com.lishid.orebfuscator.NmsInstance;
 
 public class ChunkMapManager implements AutoCloseable {
+
 	private static final Object _lock = new Object();
 	private static final Stack<ChunkMapBuffer> _bufferStack = new Stack<>();
 
@@ -67,7 +68,7 @@ public class ChunkMapManager implements AutoCloseable {
 		manager.minZ = chunkData.chunkZ << 4;
 		manager.maxZ = manager.minZ + 15;
 
-		manager.buffer.lightArrayLength = NmsInstance.current.hasLightArray() ? 2048 : 0;
+		manager.buffer.lightArrayLength = NmsInstance.get().hasLightArray() ? 2048 : 0;
 
 		if (chunkData.isOverworld) {
 			manager.buffer.lightArrayLength <<= 1;
@@ -98,7 +99,7 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	public boolean inputHasNonAirBlock() {
-		return this.buffer.paletteLength > 1 || NmsInstance.current.isAir(this.buffer.palette[0]);
+		return this.buffer.paletteLength > 1 || NmsInstance.get().isAir(this.buffer.palette[0]);
 	}
 
 	public boolean initOutputPalette() {
@@ -149,7 +150,7 @@ public class ChunkMapManager implements AutoCloseable {
 		this.buffer.writer.setBitsPerBlock(this.buffer.outputBitsPerBlock);
 
 		// Block count
-		if (NmsInstance.current.hasBlockCount()) {
+		if (NmsInstance.get().hasBlockCount()) {
 			this.buffer.writer.writeShort((short) this.buffer.blockCount);
 		}
 
@@ -361,7 +362,7 @@ public class ChunkMapManager implements AutoCloseable {
 
 			if (this.buffer.paletteLength > 0) {
 				blockData = blockData >= 0 && blockData < this.buffer.paletteLength ? this.buffer.palette[blockData]
-						: NmsInstance.current.getCaveAirBlockId();
+						: NmsInstance.get().getCaveAirBlockId();
 			}
 
 			layer.map[i] = blockData;
@@ -371,7 +372,7 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	private void readSectionHeader() throws IOException {
-		if (NmsInstance.current.hasBlockCount()) {
+		if (NmsInstance.get().hasBlockCount()) {
 			this.buffer.blockCount = this.reader.readShort();
 		}
 

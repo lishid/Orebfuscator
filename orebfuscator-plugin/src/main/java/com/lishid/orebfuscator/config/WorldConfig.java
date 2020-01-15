@@ -53,7 +53,7 @@ public class WorldConfig {
 
 		HashSet<Integer> map = new HashSet<>();
 
-		map.add(NmsInstance.current.getCaveAirBlockId());
+		map.add(NmsInstance.get().getCaveAirBlockId());
 		map.add(this.mode1BlockId);
 
 		if (this.proximityHiderConfig.isUseSpecialBlock()) {
@@ -159,7 +159,7 @@ public class WorldConfig {
 				bits |= Globals.MASK_PROXIMITYHIDER;
 			}
 
-			if (NmsInstance.current.isTileEntity(blockId)) {
+			if (NmsInstance.get().isTileEntity(blockId)) {
 				bits |= Globals.MASK_TILEENTITY;
 			}
 
