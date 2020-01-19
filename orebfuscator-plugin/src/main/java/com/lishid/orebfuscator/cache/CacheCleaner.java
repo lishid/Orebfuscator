@@ -1,34 +1,51 @@
 package com.lishid.orebfuscator.cache;
 
-import java.io.File;
-
-import org.bukkit.Bukkit;
-import org.bukkit.World;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.TimeUnit;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.config.ConfigManager;
+
+import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.config.CacheConfig;
+import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 
 public class CacheCleaner implements Runnable {
 
-	private final ConfigManager configManager;
+	private final CacheConfig cacheConfig;
 
-	public CacheCleaner(ConfigManager configManager) {
-		this.configManager = configManager;
+	public CacheCleaner(Orebfuscator orebfuscator) {
+		this.cacheConfig = orebfuscator.getOrebfuscatorConfig().cache();
 	}
 
 	@Override
 	public void run() {
-		if (!this.configManager.getConfig().isEnabled() || this.configManager.getConfig().getDeleteCacheFilesAfterDays() <= 0) {
+		long deleteAfterDays = this.cacheConfig.deleteRegionFilesAfterAccess();
+		if (!this.cacheConfig.enabled() || deleteAfterDays <= 0) {
 			return;
 		}
 
-		int count = 0;
+		AbstractRegionFileCache<?> regionFileCache = NmsInstance.get().getRegionFileCache();
+		long deleteAfterMillis = TimeUnit.DAYS.toMillis(deleteAfterDays);
 
-		for (World world : Bukkit.getWorlds()) {
-			File cacheFolder = new File(ObfuscatedDataCache.getCacheFolder(), world.getName());
-			count += ObfuscatedDataCache.deleteFiles(cacheFolder, this.configManager.getConfig().getDeleteCacheFilesAfterDays());
+		try {
+			Files.walkFileTree(this.cacheConfig.baseDirectory(), new SimpleFileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) throws IOException {
+					if (System.currentTimeMillis() - attributes.lastAccessTime().toMillis() > deleteAfterMillis) {
+						regionFileCache.close(path);
+						Files.delete(path);
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-
-		Orebfuscator.log("Cache cleaner completed, deleted files: " + count);
 	}
 }

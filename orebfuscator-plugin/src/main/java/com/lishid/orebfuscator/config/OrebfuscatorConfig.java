@@ -5,23 +5,55 @@
 
 package com.lishid.orebfuscator.config;
 
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
 
+import net.imprex.orebfuscator.config.CacheConfig;
+
 public class OrebfuscatorConfig {
-	// Caching
-	private boolean useCache;
-	private int maxLoadedCacheFiles;
-	private String cacheLocation;
-	private int deleteCacheFilesAfterDays;
+
+	private CacheConfig cacheConfig = new CacheConfig() {
+		
+		@Override
+		public int maximumSize() {
+			return 2048;
+		}
+		
+		@Override
+		public int maximumOpenRegionFiles() {
+			return 256;
+		}
+	
+		@Override
+		public long deleteRegionFilesAfterAccess() {
+			return TimeUnit.DAYS.toMillis(2);
+		}
+		
+		@Override
+		public long expireAfterAccess() {
+			return TimeUnit.SECONDS.toMillis(30);
+		}
+		
+		@Override
+		public boolean enabled() {
+			return true;
+		}
+		
+		@Override
+		public Path baseDirectory() {
+			return Bukkit.getWorldContainer().toPath().resolve("orebfuscator_cache");
+		}
+	};
 
 	// Main engine config
 	private boolean enabled;
 	private boolean updateOnDamage;
-	private int engineMode;
 	private int initialRadius;
 	private int updateRadius;
 	private boolean noObfuscationForMetadata;
@@ -41,36 +73,8 @@ public class OrebfuscatorConfig {
 	private static final int proximityHiderRate = 500;
 	private static final long cacheCleanRate = 60 * 60 * 20;// once per hour
 
-	public boolean isUseCache() {
-		return this.useCache;
-	}
-
-	public void setUseCache(boolean value) {
-		this.useCache = value;
-	}
-
-	public int getMaxLoadedCacheFiles() {
-		return this.maxLoadedCacheFiles;
-	}
-
-	public void setMaxLoadedCacheFiles(int value) {
-		this.maxLoadedCacheFiles = value;
-	}
-
-	public String getCacheLocation() {
-		return this.cacheLocation;
-	}
-
-	public void setCacheLocation(String value) {
-		this.cacheLocation = value;
-	}
-
-	public int getDeleteCacheFilesAfterDays() {
-		return this.deleteCacheFilesAfterDays;
-	}
-
-	public void setDeleteCacheFilesAfterDays(int value) {
-		this.deleteCacheFilesAfterDays = value;
+	public CacheConfig getCacheConfig() {
+		return this.cacheConfig;
 	}
 
 	public boolean isEnabled() {
@@ -87,14 +91,6 @@ public class OrebfuscatorConfig {
 
 	public void setUpdateOnDamage(boolean value) {
 		this.updateOnDamage = value;
-	}
-
-	public int getEngineMode() {
-		return this.engineMode;
-	}
-
-	public void setEngineMode(int value) {
-		this.engineMode = value;
 	}
 
 	public int getInitialRadius() {

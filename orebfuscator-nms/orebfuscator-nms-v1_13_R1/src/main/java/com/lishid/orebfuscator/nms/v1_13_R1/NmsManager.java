@@ -7,7 +7,6 @@
 package com.lishid.orebfuscator.nms.v1_13_R1;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,9 +20,12 @@ import org.bukkit.craftbukkit.v1_13_R1.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.nms.IBlockInfo;
-import com.lishid.orebfuscator.nms.IChunkCache;
-import com.lishid.orebfuscator.nms.INmsManager;
 
+import net.imprex.orebfuscator.config.CacheConfig;
+import net.imprex.orebfuscator.config.Config;
+import net.imprex.orebfuscator.nms.AbstractNmsManager;
+import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
+import net.imprex.orebfuscator.nms.v1_13_R1.RegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.minecraft.server.v1_13_R1.Block;
 import net.minecraft.server.v1_13_R1.BlockPosition;
@@ -35,7 +37,7 @@ import net.minecraft.server.v1_13_R1.Packet;
 import net.minecraft.server.v1_13_R1.TileEntity;
 import net.minecraft.server.v1_13_R1.WorldServer;
 
-public class NmsManager implements INmsManager {
+public class NmsManager extends AbstractNmsManager {
 
 	private static final int BITS_PER_BLOCK = 14;
 
@@ -43,11 +45,15 @@ public class NmsManager implements INmsManager {
 	private final Set<Integer> BLOCK_ID_AIRS;
 	private final Set<Integer> BLOCK_ID_SIGNS;
 
-	private int maxLoadedCacheFiles;
-	private HashMap<Material, Set<Integer>> materialIds;
+	public NmsManager(Config config) {
+		super(config);
 
-	public NmsManager() {
-		this.initBlockIds();
+		for (Object blockDataObj : Block.REGISTRY_ID) {
+			IBlockData blockData = (IBlockData) blockDataObj;
+			Material material = CraftBlockData.fromData(blockData).getMaterial();
+			int id = Block.getCombinedId(blockData);
+			this.registerMaterialId(material, id);
+		}
 
 		this.BLOCK_ID_CAVE_AIR = this.getMaterialIds(Material.CAVE_AIR).iterator().next();
 		this.BLOCK_ID_AIRS = this
@@ -55,34 +61,14 @@ public class NmsManager implements INmsManager {
 		this.BLOCK_ID_SIGNS = this.convertMaterialsToSet(new Material[] { Material.SIGN, Material.WALL_SIGN });
 	}
 
-	private void initBlockIds() {
-		this.materialIds = new HashMap<>();
-
-		Block.REGISTRY_ID.iterator().forEachRemaining(blockData -> {
-			Material material = CraftBlockData.fromData(blockData).getMaterial();
-
-			if (material.isBlock()) {
-				int materialId = Block.REGISTRY_ID.getId(blockData);
-
-				Set<Integer> ids = this.materialIds.get(material);
-
-				if (ids == null) {
-					this.materialIds.put(material, ids = new HashSet<>());
-				}
-
-				ids.add(materialId);
-			}
-		});
+	@Override
+	protected AbstractRegionFileCache<?> createRegionFileCache(CacheConfig cacheConfig) {
+		return new RegionFileCache(cacheConfig);
 	}
 
 	@Override
-	public void setMaxLoadedCacheFiles(int value) {
-		this.maxLoadedCacheFiles = value;
-	}
-
-	@Override
-	public IChunkCache createChunkCache() {
-		return new ChunkCache(this.maxLoadedCacheFiles);
+	public int getMaterialSize() {
+		return Block.REGISTRY_ID.a();
 	}
 
 	@Override
@@ -169,11 +155,6 @@ public class NmsManager implements INmsManager {
 	public boolean canApplyPhysics(Material blockMaterial) {
 		return blockMaterial == Material.AIR || blockMaterial == Material.CAVE_AIR || blockMaterial == Material.VOID_AIR
 				|| blockMaterial == Material.FIRE || blockMaterial == Material.WATER || blockMaterial == Material.LAVA;
-	}
-
-	@Override
-	public Set<Integer> getMaterialIds(Material material) {
-		return this.materialIds.get(material);
 	}
 
 	@Override

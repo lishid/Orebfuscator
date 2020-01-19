@@ -16,10 +16,11 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.lishid.orebfuscator.NmsInstance;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.Globals;
 import com.lishid.orebfuscator.utils.MaterialHelper;
+
+import net.imprex.orebfuscator.NmsInstance;
 
 public class ConfigManager {
 
@@ -49,6 +50,17 @@ public class ConfigManager {
 		this.load();
 	}
 
+	public void postInitialize() {
+		this.orebfuscatorConfig.setTransparentBlocks(this.generateTransparentBlocks());
+
+		new WorldReader(this.plugin, Orebfuscator.LOGGER, this.orebfuscatorConfig, this.materialReader).load();
+
+		this.orebfuscatorConfig.setProximityHiderEnabled();
+
+		Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Proximity Hider is "
+				+ (this.orebfuscatorConfig.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
+	}
+
 	public void load() {
 		if (this.orebfuscatorConfig == null) {
 			this.orebfuscatorConfig = new OrebfuscatorConfig();
@@ -60,10 +72,6 @@ public class ConfigManager {
 			throw new RuntimeException("Current config is not up to date, please delete your config");
 		}
 
-		boolean useCache = this.getBoolean("Booleans.UseCache", true);
-		int maxLoadedCacheFiles = this.getInt("Integers.MaxLoadedCacheFiles", 64, 16, 128);
-		String cacheLocation = this.getString("Strings.CacheLocation", "orebfuscator_cache");
-		int deleteCacheFilesAfterDays = this.getInt("Integers.DeleteCacheFilesAfterDays", 0);
 		boolean enabled = this.getBoolean("Booleans.Enabled", true);
 		boolean updateOnDamage = this.getBoolean("Booleans.UpdateOnDamage", true);
 
@@ -85,15 +93,9 @@ public class ConfigManager {
 		boolean noObfuscationForOps = this.getBoolean("Booleans.NoObfuscationForOps", false);
 		boolean noObfuscationForPermission = this.getBoolean("Booleans.NoObfuscationForPermission", false);
 		boolean loginNotification = this.getBoolean("Booleans.LoginNotification", true);
-		byte[] transparentBlocks = this.generateTransparentBlocks(engineMode);
 
-		this.orebfuscatorConfig.setUseCache(useCache);
-		this.orebfuscatorConfig.setMaxLoadedCacheFiles(maxLoadedCacheFiles);
-		this.orebfuscatorConfig.setCacheLocation(cacheLocation);
-		this.orebfuscatorConfig.setDeleteCacheFilesAfterDays(deleteCacheFilesAfterDays);
 		this.orebfuscatorConfig.setEnabled(enabled);
 		this.orebfuscatorConfig.setUpdateOnDamage(updateOnDamage);
-		this.orebfuscatorConfig.setEngineMode(engineMode);
 		this.orebfuscatorConfig.setInitialRadius(initialRadius);
 		this.orebfuscatorConfig.setUpdateRadius(updateRadius);
 		this.orebfuscatorConfig.setNoObfuscationForMetadata(noObfuscationForMetadata);
@@ -101,14 +103,6 @@ public class ConfigManager {
 		this.orebfuscatorConfig.setNoObfuscationForOps(noObfuscationForOps);
 		this.orebfuscatorConfig.setNoObfuscationForPermission(noObfuscationForPermission);
 		this.orebfuscatorConfig.setLoginNotification(loginNotification);
-		this.orebfuscatorConfig.setTransparentBlocks(transparentBlocks);
-
-		new WorldReader(this.plugin, Orebfuscator.LOGGER, this.orebfuscatorConfig, this.materialReader).load();
-
-		this.orebfuscatorConfig.setProximityHiderEnabled();
-
-		Orebfuscator.LOGGER.info(Globals.LOG_PREFIX + "Proximity Hider is "
-				+ (this.orebfuscatorConfig.isProximityHiderEnabled() ? "Enabled" : "Disabled"));
 
 		this.save();
 	}
@@ -134,17 +128,15 @@ public class ConfigManager {
 
 				String configVersion = matcher.group(1) + "." + matcher.group(2);
 
+				if (Files.notExists(path.getParent())) {
+					Files.createDirectories(path.getParent());
+				}
+
 				Files.copy(Orebfuscator.class.getResourceAsStream("/resources/config-" + configVersion + ".yml"), path);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	public void setEngineMode(int value) {
-		this.getPluginConfig().set("Integers.EngineMode", value);
-		this.save();
-		this.orebfuscatorConfig.setEngineMode(value);
 	}
 
 	public void setUpdateRadius(int value) {
@@ -175,12 +167,6 @@ public class ConfigManager {
 		this.getPluginConfig().set("Booleans.LoginNotification", value);
 		this.save();
 		this.orebfuscatorConfig.setLoginNotification(value);
-	}
-
-	public void setUseCache(boolean value) {
-		this.getPluginConfig().set("Booleans.UseCache", value);
-		this.save();
-		this.orebfuscatorConfig.setUseCache(value);
 	}
 
 	public void setEnabled(boolean value) {
@@ -265,7 +251,7 @@ public class ConfigManager {
 		return this.getBoolean(path, defaultData, true);
 	}
 
-	private byte[] generateTransparentBlocks(int engineMode) {
+	private byte[] generateTransparentBlocks() {
 		byte[] transparentBlocks = new byte[MaterialHelper.getMaxId() + 1];
 
 		for (Material material : Material.values()) {
@@ -278,11 +264,11 @@ public class ConfigManager {
 			}
 		}
 
-		Set<Integer> lavaIds = NmsInstance.get().getMaterialIds(Material.LAVA);
-
-		for (int id : lavaIds) {
-			transparentBlocks[id] = (byte) (engineMode == 1 ? 0 : 1);
-		}
+//		Set<Integer> lavaIds = NmsInstance.get().getMaterialIds(Material.LAVA);
+//
+//		for (int id : lavaIds) {
+//			transparentBlocks[id] = (byte) (engineMode == 1 ? 0 : 1);
+//		}
 
 		return transparentBlocks;
 	}

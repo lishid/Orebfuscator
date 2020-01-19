@@ -7,8 +7,6 @@
 package com.lishid.orebfuscator.nms.v1_9_R1;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -16,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_9_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_9_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_9_R1.util.CraftChatMessage;
+import org.bukkit.craftbukkit.v1_9_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 import com.comphenix.protocol.PacketType;
@@ -25,11 +24,13 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import com.google.common.collect.ImmutableList;
 import com.lishid.orebfuscator.nms.IBlockInfo;
-import com.lishid.orebfuscator.nms.IChunkCache;
-import com.lishid.orebfuscator.nms.INmsManager;
 
+import net.imprex.orebfuscator.config.CacheConfig;
+import net.imprex.orebfuscator.config.Config;
+import net.imprex.orebfuscator.nms.AbstractNmsManager;
+import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
+import net.imprex.orebfuscator.nms.v1_9_R1.RegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.minecraft.server.v1_9_R1.Block;
 import net.minecraft.server.v1_9_R1.BlockPosition;
@@ -42,24 +43,31 @@ import net.minecraft.server.v1_9_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_9_R1.TileEntity;
 import net.minecraft.server.v1_9_R1.WorldServer;
 
-public class NmsManager implements INmsManager {
+public class NmsManager extends AbstractNmsManager {
 
 	private final ProtocolManager protocolManager;
 
-	private int maxLoadedCacheFiles;
+	public NmsManager(Config config) {
+		super(config);
 
-	public NmsManager() {
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
+
+		for (Object blockDataObj : Block.REGISTRY_ID) {
+			IBlockData blockData = (IBlockData) blockDataObj;
+			Material material = CraftMagicNumbers.getMaterial(blockData.getBlock());
+			int id = Block.getCombinedId(blockData);
+			this.registerMaterialId(material, id);
+		}
 	}
 
 	@Override
-	public void setMaxLoadedCacheFiles(int value) {
-		this.maxLoadedCacheFiles = value;
+	protected AbstractRegionFileCache<?> createRegionFileCache(CacheConfig cacheConfig) {
+		return new RegionFileCache(cacheConfig);
 	}
 
 	@Override
-	public IChunkCache createChunkCache() {
-		return new ChunkCache(this.maxLoadedCacheFiles);
+	public int getMaterialSize() {
+		return Block.REGISTRY_ID.a();
 	}
 
 	@Override
@@ -151,19 +159,6 @@ public class NmsManager implements INmsManager {
 				|| blockMaterial == Material.STATIONARY_LAVA;
 	}
 
-	@SuppressWarnings("deprecation")
-	public Set<Integer> getMaterialIds(Material material) {
-		Set<Integer> ids = new HashSet<>();
-		int blockId = material.getId() << 4;
-		Block block = Block.getById(material.getId());
-		ImmutableList<IBlockData> blockDataList = block.t().a();
-
-		for (IBlockData blockData : blockDataList) {
-			ids.add(blockId | block.toLegacyData(blockData));
-		}
-
-		return ids;
-	}
 	@Override
 	public boolean sendBlockChange(Player player, Location location) {
 		IBlockData blockData = this.getBlockData(location.getWorld(), location.getBlockX(), location.getBlockY(),
