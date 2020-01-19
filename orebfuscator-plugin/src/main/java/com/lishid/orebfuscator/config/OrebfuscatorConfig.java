@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import com.lishid.orebfuscator.Orebfuscator;
 
 import net.imprex.orebfuscator.config.CacheConfig;
+import net.imprex.orebfuscator.util.ChunkPosition;
 
 public class OrebfuscatorConfig {
 
@@ -48,6 +49,12 @@ public class OrebfuscatorConfig {
 		@Override
 		public Path baseDirectory() {
 			return Bukkit.getWorldContainer().toPath().resolve("orebfuscator_cache");
+		}
+
+		@Override
+		public Path regionFile(ChunkPosition chunkPosition) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	};
 

@@ -11,6 +11,8 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.lishid.orebfuscator.Orebfuscator;
 
+import net.imprex.orebfuscator.util.ChunkPosition;
+
 public class OrebfuscatorCacheConfig implements CacheConfig {
 
 	private boolean enabled = true;
@@ -34,7 +36,7 @@ public class OrebfuscatorCacheConfig implements CacheConfig {
 	}
 
 	private void serializeBaseDirectory(ConfigurationSection section, String defaultPath) {
-		Path worldPath = Bukkit.getWorldContainer().toPath().normalize();
+		Path worldPath = Bukkit.getWorldContainer().toPath().toAbsolutePath().normalize();
 		String baseDirectory = section.getString("baseDirectory", defaultPath);
 
 		try {
@@ -70,6 +72,12 @@ public class OrebfuscatorCacheConfig implements CacheConfig {
 	@Override
 	public Path baseDirectory() {
 		return this.baseDirectory;
+	}
+
+	@Override
+	public Path regionFile(ChunkPosition key) {
+		return this.baseDirectory.resolve(key.getWorld())
+				.resolve("r." + (key.getX() >> 5) + "." + (key.getZ() >> 5) + ".mca");
 	}
 
 	@Override

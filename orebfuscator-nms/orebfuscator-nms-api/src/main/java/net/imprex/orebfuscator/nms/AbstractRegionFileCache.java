@@ -31,10 +31,19 @@ public abstract class AbstractRegionFileCache<T> {
 
 	protected abstract void closeRegionFile(T t) throws IOException;
 
-	// TODO maybe generate Path inside RegionFileCache and not external
-	public abstract DataInputStream getInputStream(Path path, ChunkPosition key) throws IOException;
+	protected abstract DataInputStream createInputStream(T t, ChunkPosition key) throws IOException;
 
-	public abstract DataOutputStream getOutputStream(Path path, ChunkPosition key) throws IOException;
+	protected abstract DataOutputStream createOutputStream(T t, ChunkPosition key) throws IOException;
+
+	public final DataInputStream createInputStream(ChunkPosition key) throws IOException {
+		T t = this.get(this.cacheConfig.regionFile(key));
+		return t != null ? this.createInputStream(t, key) : null;
+	}
+
+	public final DataOutputStream createOutputStream(ChunkPosition key) throws IOException {
+		T t = this.get(this.cacheConfig.regionFile(key));
+		return t != null ? this.createOutputStream(t, key) : null;
+	}
 
 	private final void remove(Map.Entry<Path, T> entry) {
 		try {

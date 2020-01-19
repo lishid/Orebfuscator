@@ -28,7 +28,7 @@ public class ChunkCache {
 				.expireAfterAccess(this.cacheConfig.expireAfterAccess(), TimeUnit.MILLISECONDS)
 				.removalListener(this::onRemoval).build();
 
-		this.serializer = new ChunkCacheSerializer(this.cacheConfig);
+		this.serializer = new ChunkCacheSerializer();
 	}
 
 	private void onRemoval(RemovalNotification<ChunkPosition, ChunkCacheEntry> notification) {
@@ -71,6 +71,11 @@ public class ChunkCache {
 
 	public void invalidate(ChunkPosition key) {
 		this.cache.invalidate(key);
+		try {
+			this.serializer.write(key, null);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void invalidateAll(boolean save) {

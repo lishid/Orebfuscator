@@ -17,13 +17,8 @@ public class RegionFileCache extends AbstractRegionFileCache<RegionFile> {
 	}
 
 	@Override
-	public DataInputStream getInputStream(Path path, ChunkPosition key) throws IOException {
-		return this.get(path).a(key.getX() & 0x1F, key.getZ() & 0x1F);
-	}
-
-	@Override
-	public DataOutputStream getOutputStream(Path path, ChunkPosition key) throws IOException {
-		return this.get(path).b(key.getX() & 0x1F, key.getZ() & 0x1F);
+	protected RegionFile createRegionFile(Path path) throws IOException {
+		return new RegionFile(path.toFile());
 	}
 
 	@Override
@@ -32,7 +27,12 @@ public class RegionFileCache extends AbstractRegionFileCache<RegionFile> {
 	}
 
 	@Override
-	protected RegionFile createRegionFile(Path path) throws IOException {
-		return new RegionFile(path.toFile());
+	protected DataInputStream createInputStream(RegionFile t, ChunkPosition key) throws IOException {
+		return t.a(key.getX() & 0x1F, key.getZ() & 0x1F);
+	}
+
+	@Override
+	protected DataOutputStream createOutputStream(RegionFile t, ChunkPosition key) throws IOException {
+		return t.b(key.getX() & 0x1F, key.getZ() & 0x1F);
 	}
 }
