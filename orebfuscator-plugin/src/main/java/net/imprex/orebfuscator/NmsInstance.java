@@ -47,7 +47,7 @@ public class NmsInstance {
 			break;
 
 		case "v1_9_R2":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_9_R2.NmsManager(config);
+			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager(config);
 			break;
 
 		case "v1_9_R1":

@@ -44,13 +44,6 @@ import net.imprex.orebfuscator.util.MaterialUtil;
 
 public class Calculations {
 
-	public static class Result {
-		public byte[] output;
-		public List<BlockCoords> removedEntities;
-	}
-
-//	private static final Random RANDOM = new Random();
-
 	private static OrebfuscatorConfig config;
 	private static ChunkCache chunkCache;
 
@@ -118,11 +111,7 @@ public class Calculations {
 
 		ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, cacheEntry.getProximityBlocks());
 
-		Result result = new Result();
-		result.output = cacheEntry.getData();
-		result.removedEntities = cacheEntry.getRemovedEntities();
-
-		return result;
+		return new Result(cacheEntry.getData(), cacheEntry.getRemovedEntities());
 	}
 
 	private static byte[] obfuscate(WorldConfig worldConfig, ChunkData chunkData, Player player,
@@ -413,7 +402,14 @@ public class Calculations {
 		return false;
 	}
 
-//	private static int random(int max) {
-//		return RANDOM.nextInt(max);
-//	}
+	public static class Result {
+
+		public final byte[] output;
+		public final List<BlockCoords> removedEntities;
+
+		public Result(byte[] output, List<BlockCoords> removedEntities) {
+			this.output = output;
+			this.removedEntities = removedEntities;
+		}
+	}
 }

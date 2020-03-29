@@ -156,7 +156,7 @@ public class OrebfuscatorConfig implements Config {
 
 		for (World world : Bukkit.getWorlds()) {
 			if (!this.worldToWorldConfig.containsKey(world)) {
-				throw new IllegalStateException("world " + world.getName() + " is missing a world config");
+				Orebfuscator.LOGGER.warning("world " + world.getName() + " is missing a world config");
 			}
 		}
 

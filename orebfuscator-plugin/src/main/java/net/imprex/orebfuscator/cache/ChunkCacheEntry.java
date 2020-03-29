@@ -11,27 +11,34 @@ public class ChunkCacheEntry {
 
 	private final byte[] data;
 
-	private final List<BlockCoords> proximityBlocks = new ArrayList<>();
-	private final List<BlockCoords> removedEntities = new ArrayList<>();
+	private final List<BlockCoords> proximityBlocks;
+	private final List<BlockCoords> removedEntities;
 
 	public ChunkCacheEntry(long hash, byte[] data) {
+		this(hash, data, new ArrayList<>(), new ArrayList<>());
+	}
+
+	public ChunkCacheEntry(long hash, byte[] data, List<BlockCoords> proximityBlocks,
+			List<BlockCoords> removedEntities) {
 		this.hash = hash;
 		this.data = data;
+		this.proximityBlocks = proximityBlocks;
+		this.removedEntities = removedEntities;
 	}
 
 	public long getHash() {
-		return hash;
+		return this.hash;
 	}
 
 	public byte[] getData() {
-		return data;
+		return this.data;
 	}
 
 	public List<BlockCoords> getProximityBlocks() {
-		return proximityBlocks;
+		return this.proximityBlocks;
 	}
 
 	public List<BlockCoords> getRemovedEntities() {
-		return removedEntities;
+		return this.removedEntities;
 	}
 }

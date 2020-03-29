@@ -1,14 +1,8 @@
-/**
- * @author lishid
- * @author Aleksey Terzi
- *
- */
-
 package com.lishid.orebfuscator.nms.v1_13_R2;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.bukkit.Location;
@@ -20,6 +14,13 @@ import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
+import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.lishid.orebfuscator.nms.IBlockInfo;
 
 import net.imprex.orebfuscator.config.CacheConfig;
@@ -32,34 +33,37 @@ import net.minecraft.server.v1_13_R2.Block;
 import net.minecraft.server.v1_13_R2.BlockPosition;
 import net.minecraft.server.v1_13_R2.Chunk;
 import net.minecraft.server.v1_13_R2.ChunkProviderServer;
+import net.minecraft.server.v1_13_R2.EntityPlayer;
 import net.minecraft.server.v1_13_R2.IBlockData;
 import net.minecraft.server.v1_13_R2.IChatBaseComponent;
 import net.minecraft.server.v1_13_R2.Packet;
+import net.minecraft.server.v1_13_R2.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_13_R2.TileEntity;
 import net.minecraft.server.v1_13_R2.WorldServer;
 
 public class NmsManager extends AbstractNmsManager {
 
-	private static final int BITS_PER_BLOCK = 14;
-
-	private final int BLOCK_ID_CAVE_AIR;
-	private final Set<Integer> BLOCK_ID_AIRS;
-	private final Set<Integer> BLOCK_ID_SIGNS;
+	private final int blockIdCaveAir;
+	private final Set<Integer> blockIdAir;
+	private final Set<Integer> blockIdSign;
+	private final ProtocolManager protocolManager;
 
 	public NmsManager(Config config) {
 		super(config);
 
-		for (Object blockDataObj : Block.REGISTRY_ID) {
-			IBlockData blockData = (IBlockData) blockDataObj;
+		this.protocolManager = ProtocolLibrary.getProtocolManager();
+
+		for (Iterator<IBlockData> iterator = Block.REGISTRY_ID.iterator(); iterator.hasNext(); ) {
+			IBlockData blockData = iterator.next();
 			Material material = CraftBlockData.fromData(blockData).getMaterial();
 			int id = Block.getCombinedId(blockData);
 			this.registerMaterialId(material, id);
 		}
 
-		this.BLOCK_ID_CAVE_AIR = this.getMaterialIds(Material.CAVE_AIR).iterator().next();
-		this.BLOCK_ID_AIRS = this
+		this.blockIdCaveAir = this.getMaterialIds(Material.CAVE_AIR).iterator().next();
+		this.blockIdAir = this
 				.convertMaterialsToSet(new Material[] { Material.AIR, Material.CAVE_AIR, Material.VOID_AIR });
-		this.BLOCK_ID_SIGNS = this.convertMaterialsToSet(new Material[] { Material.SIGN, Material.WALL_SIGN });
+		this.blockIdSign = this.convertMaterialsToSet(new Material[] { Material.SIGN, Material.WALL_SIGN });
 	}
 
 	@Override
@@ -74,36 +78,29 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public void updateBlockTileEntity(BlockCoords blockCoord, Player player) {
-		CraftWorld world = (CraftWorld) player.getWorld();
-		// 1.13.2 has made this quite a bit different in later builds.
-		TileEntity tileEntity = null;
 		try {
-			Method getTileEntityAt = world.getClass().getMethod("getTileEntityAt", int.class, int.class, int.class);
-			tileEntity = (TileEntity) getTileEntityAt.invoke(world, blockCoord.x, blockCoord.y, blockCoord.z);
-		} catch (NoSuchMethodException nsme) {
-			tileEntity = world.getHandle().getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
+			EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
+			WorldServer world = entityPlayer.getWorldServer();
+
+			TileEntity tileEntity = world.getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
+			if (tileEntity == null) {
+				return;
+			}
+
+			Packet<?> packet = tileEntity.getUpdatePacket();
+			if (packet != null) {
+				entityPlayer.playerConnection.sendPacket(packet);
+			}
 		} catch (Exception e) {
-			return;
-		}
-
-		if (tileEntity == null) {
-			return;
-		}
-
-		Packet<?> packet = tileEntity.getUpdatePacket();
-
-		if (packet != null) {
-			CraftPlayer player2 = (CraftPlayer) player;
-			player2.getHandle().playerConnection.sendPacket(packet);
+			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void notifyBlockChange(World world, IBlockInfo blockInfo) {
-		BlockPosition blockPosition = new BlockPosition(blockInfo.getX(), blockInfo.getY(), blockInfo.getZ());
 		IBlockData blockData = ((BlockInfo) blockInfo).getBlockData();
-
-		((CraftWorld) world).getHandle().notify(blockPosition, blockData, blockData, 0);
+		((CraftWorld) world).getHandle().notify(new BlockPosition(blockInfo.getX(), blockInfo.getY(), blockInfo.getZ()),
+				blockData, blockData, 0);
 	}
 
 	@Override
@@ -113,37 +110,35 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public IBlockInfo getBlockInfo(World world, int x, int y, int z) {
-		IBlockData blockData = getBlockData(world, x, y, z, false);
-
+		IBlockData blockData = this.getBlockData(world, x, y, z, false);
 		return blockData != null ? new BlockInfo(x, y, z, blockData) : null;
 	}
 
 	@Override
 	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
-		IBlockData blockData = getBlockData(world, x, y, z, true);
+		IBlockData blockData = this.getBlockData(world, x, y, z, true);
 		return blockData != null ? Block.getCombinedId(blockData) : -1;
 	}
 
 	@Override
 	public String getTextFromChatComponent(String json) {
-		IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(json);
-		return CraftChatMessage.fromComponent(component);
+		return CraftChatMessage.fromComponent(IChatBaseComponent.ChatSerializer.a(json));
 	}
 
 	@Override
 	public boolean isHoe(Material item) {
-		return item == Material.WOODEN_HOE || item == Material.IRON_HOE || item == Material.GOLDEN_HOE
-				|| item == Material.DIAMOND_HOE;
+		return item == Material.WOODEN_HOE || item == Material.STONE_HOE || item == Material.IRON_HOE
+				|| item == Material.GOLDEN_HOE || item == Material.DIAMOND_HOE;
 	}
 
 	@Override
 	public boolean isSign(int combinedBlockId) {
-		return this.BLOCK_ID_SIGNS.contains(combinedBlockId);
+		return this.blockIdSign.contains(combinedBlockId);
 	}
 
 	@Override
 	public boolean isAir(int combinedBlockId) {
-		return this.BLOCK_ID_AIRS.contains(combinedBlockId);
+		return this.blockIdAir.contains(combinedBlockId);
 	}
 
 	@Override
@@ -153,12 +148,12 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public int getCaveAirBlockId() {
-		return this.BLOCK_ID_CAVE_AIR;
+		return this.blockIdCaveAir;
 	}
 
 	@Override
 	public int getBitsPerBlock() {
-		return BITS_PER_BLOCK;
+		return 14;
 	}
 
 	@Override
@@ -168,50 +163,72 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	@Override
-	public boolean sendBlockChange(Player player, Location blockLocation) {
-		IBlockData blockData = getBlockData(blockLocation.getWorld(), blockLocation.getBlockX(),
-				blockLocation.getBlockY(), blockLocation.getBlockZ(), false);
+	public boolean sendBlockChange(Player player, Location location) {
+		IBlockData blockData = this.getBlockData(location.getWorld(), location.getBlockX(), location.getBlockY(),
+				location.getBlockZ(), false);
 
 		if (blockData == null) {
 			return false;
 		}
 
-		CraftBlockData craftBlockData = CraftBlockData.fromData(blockData);
+		PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(((CraftWorld) location.getWorld()).getHandle(),
+				new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
+		packet.block = blockData;
 
-		player.sendBlockChange(blockLocation, craftBlockData);
-
+		((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
 		return true;
 	}
 
-	private static IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
+	@Override
+	public void sendMultiBlockChange(Player player, int chunkX, int chunkZ, Location... locations)
+			throws IllegalAccessException, InvocationTargetException {
+		if (locations.length == 0) {
+			return;
+		}
+
+		PacketContainer packet = this.protocolManager.createPacket(PacketType.Play.Server.MULTI_BLOCK_CHANGE);
+		MultiBlockChangeInfo[] blockInfoArray = new MultiBlockChangeInfo[locations.length];
+
+		int index = 0;
+		for (Location location : locations) {
+			org.bukkit.block.Block block = location.getBlock();
+
+			if (block == null || location.getBlockX() >> 4 != chunkX || location.getBlockZ() >> 4 != chunkZ) {
+				index++;
+				continue;
+			}
+
+			blockInfoArray[index++] = new MultiBlockChangeInfo(location, WrappedBlockData.createData(block.getType()));
+		}
+
+		packet.getChunkCoordIntPairs().write(0, new ChunkCoordIntPair(chunkX, chunkZ));
+		packet.getMultiBlockChangeInfoArrays().write(0, blockInfoArray);
+
+		this.protocolManager.sendServerPacket(player, packet);
+	}
+
+	@Override
+	public boolean hasLightArray() {
+		return false;
+	}
+
+	@Override
+	public boolean hasBlockCount() {
+		return true;
+	}
+
+	private IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
 		int chunkX = x >> 4;
 		int chunkZ = z >> 4;
 
-		WorldServer worldServer = ((CraftWorld) world).getHandle();
-		// like in ChunkCache, NMS change without R increment.
-		ChunkProviderServer chunkProviderServer = null;
-		try {
-			Method getChunkProviderServer = worldServer.getClass().getDeclaredMethod("getChunkProviderServer");
-			chunkProviderServer = (ChunkProviderServer) getChunkProviderServer.invoke(worldServer);
-		} catch (NoSuchMethodException nmfe) {
-			try {
-				Method getChunkProvider = worldServer.getClass().getDeclaredMethod("getChunkProvider");
-				chunkProviderServer = (ChunkProviderServer) getChunkProvider.invoke(worldServer);
-			} catch (NoSuchMethodException nsme) {
-				return null; // oops
-			} catch (Exception e) {
-				return null;
-			}
-		} catch (Exception e) {
-			return null;
-		}
+		ChunkProviderServer chunkProviderServer = ((CraftWorld) world).getHandle().getChunkProvider();
+
 		if (!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ)) {
 			return null;
 		}
 
 		Chunk chunk = chunkProviderServer.getChunkAt(chunkX, chunkZ, true, true);
-
-		return chunk != null ? chunk.getBlockData(x, y, z) : null;
+		return chunk != null ? chunk.getType(new BlockPosition(x, y, z)) : null;
 	}
 
 	private Set<Integer> convertMaterialsToSet(Material[] materials) {
@@ -222,22 +239,5 @@ public class NmsManager extends AbstractNmsManager {
 		}
 
 		return ids;
-	}
-
-	@Override
-	public void sendMultiBlockChange(Player player, int chunkX, int chunkZ, Location... locations)
-			throws IllegalAccessException, InvocationTargetException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public boolean hasLightArray() {
-		return true;
-	}
-
-	@Override
-	public boolean hasBlockCount() {
-		return false;
 	}
 }
