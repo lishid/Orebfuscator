@@ -27,6 +27,18 @@ public abstract class AbstractNmsManager implements INmsManager {
 		this.materialToIds.computeIfAbsent(material, key -> new HashSet<>()).add(id);
 	}
 
+	protected final Set<Integer> mergeMaterialIds(Set<Material> materials) {
+		return mergeMaterialIds(materials.toArray(new Material[materials.size()]));
+	}
+
+	protected final Set<Integer> mergeMaterialIds(Material...materials) {
+		Set<Integer> materialIds = new HashSet<>();
+		for (Material material : materials) {
+			materialIds.addAll(this.getMaterialIds(material));
+		}
+		return materialIds;
+	}
+
 	@Override
 	public final AbstractRegionFileCache<?> getRegionFileCache() {
 		return this.regionFileCache;

@@ -52,8 +52,7 @@ public class NmsManager extends AbstractNmsManager {
 
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
 
-		for (Object blockDataObj : Block.REGISTRY_ID) {
-			IBlockData blockData = (IBlockData) blockDataObj;
+		for (IBlockData blockData : Block.REGISTRY_ID) {
 			Material material = CraftMagicNumbers.getMaterial(blockData.getBlock());
 			int id = Block.getCombinedId(blockData);
 			this.registerMaterialId(material, id);
@@ -73,14 +72,13 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public void updateBlockTileEntity(BlockCoords blockCoord, Player player) {
 		CraftWorld world = (CraftWorld) player.getWorld();
-		TileEntity tileEntity = world.getTileEntityAt(blockCoord.x, blockCoord.y, blockCoord.z);
 
+		TileEntity tileEntity = world.getTileEntityAt(blockCoord.x, blockCoord.y, blockCoord.z);
 		if (tileEntity == null) {
 			return;
 		}
 
 		Packet<?> packet = tileEntity.getUpdatePacket();
-
 		if (packet != null) {
 			((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
 		}
@@ -120,8 +118,17 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public boolean isHoe(Material item) {
-		return item == Material.WOOD_HOE || item == Material.IRON_HOE || item == Material.GOLD_HOE
-				|| item == Material.DIAMOND_HOE;
+		switch (item) {
+		case WOOD_HOE:
+		case STONE_HOE:
+		case IRON_HOE:
+		case GOLD_HOE:
+		case DIAMOND_HOE:
+			return true;
+
+		default:
+			return false;
+		}
 	}
 
 	@SuppressWarnings("deprecation")

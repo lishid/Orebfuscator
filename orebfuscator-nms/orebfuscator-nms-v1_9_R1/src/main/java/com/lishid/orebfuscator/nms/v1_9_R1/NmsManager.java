@@ -38,6 +38,7 @@ import net.minecraft.server.v1_9_R1.Chunk;
 import net.minecraft.server.v1_9_R1.ChunkProviderServer;
 import net.minecraft.server.v1_9_R1.IBlockData;
 import net.minecraft.server.v1_9_R1.IChatBaseComponent;
+import net.minecraft.server.v1_9_R1.MinecraftServer;
 import net.minecraft.server.v1_9_R1.Packet;
 import net.minecraft.server.v1_9_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_9_R1.TileEntity;
@@ -90,7 +91,6 @@ public class NmsManager extends AbstractNmsManager {
 	public void notifyBlockChange(World world, IBlockInfo blockInfo) {
 		BlockPosition blockPosition = new BlockPosition(blockInfo.getX(), blockInfo.getY(), blockInfo.getZ());
 		IBlockData blockData = ((BlockInfo) blockInfo).getBlockData();
-
 		((CraftWorld) world).getHandle().notify(blockPosition, blockData, blockData, 0);
 	}
 
