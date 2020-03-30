@@ -4,7 +4,7 @@ import org.bukkit.World;
 
 import net.imprex.orebfuscator.util.BlockCoords;
 
-public abstract class AbstractBlockState<T> extends BlockCoords {
+public abstract class AbstractBlockState<T> extends BlockCoords implements BlockStateHolder {
 
 	public final World world;
 
@@ -17,7 +17,18 @@ public abstract class AbstractBlockState<T> extends BlockCoords {
 		this.state = state;
 	}
 
-	public abstract int getBlockId();
+	@Override
+	public int getX() {
+		return this.x;
+	}
 
-	public abstract void notifyBlockChange();
+	@Override
+	public int getY() {
+		return this.y;
+	}
+
+	@Override
+	public int getZ() {
+		return this.z;
+	}
 }

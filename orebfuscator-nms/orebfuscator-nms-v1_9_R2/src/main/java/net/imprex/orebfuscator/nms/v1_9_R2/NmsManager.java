@@ -1,13 +1,14 @@
-package net.imprex.orebfuscator.nms.v1_14_R1;
+package net.imprex.orebfuscator.nms.v1_9_R2;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_9_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_9_R2.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 import net.imprex.orebfuscator.config.CacheConfig;
@@ -16,16 +17,15 @@ import net.imprex.orebfuscator.nms.AbstractBlockState;
 import net.imprex.orebfuscator.nms.AbstractNmsManager;
 import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
-import net.minecraft.server.v1_14_R1.Block;
-import net.minecraft.server.v1_14_R1.BlockPosition;
-import net.minecraft.server.v1_14_R1.ChunkSection;
-import net.minecraft.server.v1_14_R1.EntityPlayer;
-import net.minecraft.server.v1_14_R1.IBlockData;
-import net.minecraft.server.v1_14_R1.MathHelper;
-import net.minecraft.server.v1_14_R1.Packet;
-import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_14_R1.TileEntity;
-import net.minecraft.server.v1_14_R1.WorldServer;
+import net.minecraft.server.v1_9_R2.Block;
+import net.minecraft.server.v1_9_R2.BlockPosition;
+import net.minecraft.server.v1_9_R2.EntityPlayer;
+import net.minecraft.server.v1_9_R2.IBlockData;
+import net.minecraft.server.v1_9_R2.MathHelper;
+import net.minecraft.server.v1_9_R2.Packet;
+import net.minecraft.server.v1_9_R2.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_9_R2.TileEntity;
+import net.minecraft.server.v1_9_R2.WorldServer;
 
 public class NmsManager extends AbstractNmsManager {
 
@@ -38,7 +38,7 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	private static boolean isChunkLoaded(WorldServer world, int chunkX, int chunkZ) {
-		return world.isChunkLoaded(chunkX, chunkZ);
+		return world.getChunkProviderServer().isLoaded(chunkX, chunkZ);
 	}
 
 	private static IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
@@ -56,14 +56,15 @@ public class NmsManager extends AbstractNmsManager {
 	public NmsManager(Config config) {
 		super(config);
 
-		for (IBlockData blockData : Block.REGISTRY_ID) {
-			Material material = CraftBlockData.fromData(blockData).getMaterial();
+		for (Iterator<IBlockData> iterator = Block.REGISTRY_ID.iterator(); iterator.hasNext();) {
+			IBlockData blockData = iterator.next();
+			Material material = CraftMagicNumbers.getMaterial(blockData.getBlock());
 			int id = Block.getCombinedId(blockData);
 			this.registerMaterialId(material, id);
 		}
 
-		this.blockIdCaveAir = this.getMaterialIds(Material.CAVE_AIR).iterator().next();
-		this.blockIdAir = this.mergeMaterialIds(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
+		this.blockIdCaveAir = this.getMaterialIds(Material.AIR).iterator().next();
+		this.blockIdAir = this.mergeMaterialIds(Material.AIR);
 	}
 
 	@Override
@@ -73,7 +74,7 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public int getBitsPerBlock() {
-		return MathHelper.d(ChunkSection.GLOBAL_PALETTE.a());
+		return MathHelper.d(Block.REGISTRY_ID.a());
 	}
 
 	@Override
@@ -99,10 +100,10 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public boolean isHoe(Material material) {
 		switch (material) {
-		case WOODEN_HOE:
+		case WOOD_HOE:
 		case STONE_HOE:
 		case IRON_HOE:
-		case GOLDEN_HOE:
+		case GOLD_HOE:
 		case DIAMOND_HOE:
 			return true;
 
@@ -125,8 +126,6 @@ public class NmsManager extends AbstractNmsManager {
 	public boolean canApplyPhysics(Material material) {
 		switch (material) {
 		case AIR:
-		case CAVE_AIR:
-		case VOID_AIR:
 		case FIRE:
 		case WATER:
 		case LAVA:
@@ -140,7 +139,7 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public void updateBlockTileEntity(BlockCoords blockCoord, Player player) {
 		EntityPlayer entityPlayer = player(player);
-		WorldServer world = entityPlayer.getWorldServer();
+		net.minecraft.server.v1_9_R2.World world = entityPlayer.getWorld();
 
 		TileEntity tileEntity = world.getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
 		if (tileEntity == null) {

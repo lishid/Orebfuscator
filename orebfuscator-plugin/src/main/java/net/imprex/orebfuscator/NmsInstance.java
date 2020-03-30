@@ -1,14 +1,14 @@
 package net.imprex.orebfuscator;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.nms.INmsManager;
 import com.lishid.orebfuscator.utils.Globals;
 
 import net.imprex.orebfuscator.config.Config;
+import net.imprex.orebfuscator.nms.NmsManager;
 
 public class NmsInstance {
 
-	private static INmsManager instance;
+	private static NmsManager instance;
 
 	public static void initialize(Config config) {
 		if (NmsInstance.instance != null) {
@@ -27,31 +27,31 @@ public class NmsInstance {
 			break;
 
 		case "v1_13_R2":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager(config);
+			NmsInstance.instance = new net.imprex.orebfuscator.nms.v1_13_R2.NmsManager(config);
 			break;
 
 		case "v1_13_R1":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_13_R1.NmsManager(config);
+			NmsInstance.instance = new net.imprex.orebfuscator.nms.v1_13_R1.NmsManager(config);
 			break;
 
 		case "v1_12_R1":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_12_R1.NmsManager(config);
+			NmsInstance.instance = new net.imprex.orebfuscator.nms.v1_12_R1.NmsManager(config);
 			break;
 
 		case "v1_11_R1":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_11_R1.NmsManager(config);
+			NmsInstance.instance = new net.imprex.orebfuscator.nms.v1_11_R1.NmsManager(config);
 			break;
 
 		case "v1_10_R1":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_10_R1.NmsManager(config);
+			NmsInstance.instance = new net.imprex.orebfuscator.nms.v1_10_R1.NmsManager(config);
 			break;
 
 		case "v1_9_R2":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_13_R2.NmsManager(config);
+			NmsInstance.instance = new net.imprex.orebfuscator.nms.v1_13_R2.NmsManager(config);
 			break;
 
 		case "v1_9_R1":
-			NmsInstance.instance = new com.lishid.orebfuscator.nms.v1_9_R1.NmsManager(config);
+			NmsInstance.instance = new net.imprex.orebfuscator.nms.v1_9_R1.NmsManager(config);
 			break;
 		}
 
@@ -62,7 +62,7 @@ public class NmsInstance {
 		}
 	}
 
-	public static INmsManager get() {
+	public static NmsManager get() {
 		if (NmsInstance.instance == null) {
 			throw new IllegalStateException("No NmsManager instance initialized");
 		}

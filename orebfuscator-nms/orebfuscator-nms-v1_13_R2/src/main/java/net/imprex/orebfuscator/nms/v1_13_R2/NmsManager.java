@@ -1,13 +1,14 @@
-package net.imprex.orebfuscator.nms.v1_14_R1;
+package net.imprex.orebfuscator.nms.v1_13_R2;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_13_R2.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 import net.imprex.orebfuscator.config.CacheConfig;
@@ -16,16 +17,16 @@ import net.imprex.orebfuscator.nms.AbstractBlockState;
 import net.imprex.orebfuscator.nms.AbstractNmsManager;
 import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
-import net.minecraft.server.v1_14_R1.Block;
-import net.minecraft.server.v1_14_R1.BlockPosition;
-import net.minecraft.server.v1_14_R1.ChunkSection;
-import net.minecraft.server.v1_14_R1.EntityPlayer;
-import net.minecraft.server.v1_14_R1.IBlockData;
-import net.minecraft.server.v1_14_R1.MathHelper;
-import net.minecraft.server.v1_14_R1.Packet;
-import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_14_R1.TileEntity;
-import net.minecraft.server.v1_14_R1.WorldServer;
+import net.minecraft.server.v1_13_R2.Block;
+import net.minecraft.server.v1_13_R2.BlockPosition;
+import net.minecraft.server.v1_13_R2.ChunkSection;
+import net.minecraft.server.v1_13_R2.EntityPlayer;
+import net.minecraft.server.v1_13_R2.IBlockData;
+import net.minecraft.server.v1_13_R2.MathHelper;
+import net.minecraft.server.v1_13_R2.Packet;
+import net.minecraft.server.v1_13_R2.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_13_R2.TileEntity;
+import net.minecraft.server.v1_13_R2.WorldServer;
 
 public class NmsManager extends AbstractNmsManager {
 
@@ -38,7 +39,7 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	private static boolean isChunkLoaded(WorldServer world, int chunkX, int chunkZ) {
-		return world.isChunkLoaded(chunkX, chunkZ);
+		return world.getChunkProvider().isLoaded(chunkX, chunkZ);
 	}
 
 	private static IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
@@ -56,7 +57,8 @@ public class NmsManager extends AbstractNmsManager {
 	public NmsManager(Config config) {
 		super(config);
 
-		for (IBlockData blockData : Block.REGISTRY_ID) {
+		for (Iterator<IBlockData> iterator = Block.REGISTRY_ID.iterator(); iterator.hasNext();) {
+			IBlockData blockData = iterator.next();
 			Material material = CraftBlockData.fromData(blockData).getMaterial();
 			int id = Block.getCombinedId(blockData);
 			this.registerMaterialId(material, id);

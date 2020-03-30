@@ -28,11 +28,11 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.nms.IBlockInfo;
 
 import net.imprex.orebfuscator.NmsInstance;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.ProximityConfig;
+import net.imprex.orebfuscator.nms.BlockStateHolder;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.imprex.orebfuscator.util.MaterialUtil;
 
@@ -290,9 +290,8 @@ public class ProximityHider extends Thread {
 			if (lx == bx && ly == by && lz == bz) {
 				return true; // we've reached our starting block, don't test it.
 			}
-			IBlockInfo between = NmsInstance.get().getBlockInfo(world, (int) lx, (int) ly, (int) lz);
-			if (between != null
-					&& !MaterialUtil.isTransparent(between.getCombinedId())) {
+			BlockStateHolder between = NmsInstance.get().getBlockState(world, (int) lx, (int) ly, (int) lz);
+			if (between != null && !MaterialUtil.isTransparent(between.getBlockId())) {
 				return false; // fail on first hit, this ray is "blocked"
 			}
 			s--; // we stop

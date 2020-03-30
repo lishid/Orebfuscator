@@ -7,12 +7,10 @@ import java.util.Set;
 
 import org.bukkit.Material;
 
-import com.lishid.orebfuscator.nms.INmsManager;
-
 import net.imprex.orebfuscator.config.CacheConfig;
 import net.imprex.orebfuscator.config.Config;
 
-public abstract class AbstractNmsManager implements INmsManager {
+public abstract class AbstractNmsManager implements NmsManager {
 
 	private final AbstractRegionFileCache<?> regionFileCache;
 	private final Map<Material, Set<Integer>> materialToIds = new HashMap<>();

@@ -26,12 +26,12 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.nms.IBlockInfo;
 
 import net.imprex.orebfuscator.NmsInstance;
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
+import net.imprex.orebfuscator.nms.BlockStateHolder;
 import net.imprex.orebfuscator.util.ChunkPosition;
 import net.imprex.orebfuscator.util.MaterialUtil;
 
@@ -67,26 +67,30 @@ public class BlockUpdate {
 		WorldConfig worldConfig = BlockUpdate.config.world(world);
 		String worldName = world.getName();
 
-		HashSet<IBlockInfo> updateBlocks = new HashSet<>();
+		HashSet<BlockStateHolder> updateBlocks = new HashSet<>();
 		HashSet<ChunkPosition> invalidChunks = new HashSet<>();
 		int updateRadius = BlockUpdate.config.general().updateRadius();
 
 		for (Block block : blocks) {
 			if (needsUpdate(block)) {
-				IBlockInfo blockInfo = NmsInstance.get().getBlockInfo(world, block.getX(), block.getY(),
+				BlockStateHolder blockState = NmsInstance.get().getBlockState(world, block.getX(), block.getY(),
 						block.getZ());
 
-				getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
+				getAdjacentBlocks(updateBlocks, world, worldConfig, blockState, updateRadius);
 
-				if (blockInfo != null) {
-					if ((blockInfo.getX() & 0xf) == 0) {
-						invalidChunks.add(new ChunkPosition(worldName, (blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4));
-					} else if ((blockInfo.getX() + 1 & 0xf) == 0) {
-						invalidChunks.add(new ChunkPosition(worldName, (blockInfo.getX() >> 4) + 1, blockInfo.getZ() >> 4));
-					} else if ((blockInfo.getZ() & 0xf) == 0) {
-						invalidChunks.add(new ChunkPosition(worldName, blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) - 1));
-					} else if ((blockInfo.getZ() + 1 & 0xf) == 0) {
-						invalidChunks.add(new ChunkPosition(worldName, blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) + 1));
+				if (blockState != null) {
+					if ((blockState.getX() & 0xf) == 0) {
+						invalidChunks.add(
+								new ChunkPosition(worldName, (blockState.getX() >> 4) - 1, blockState.getZ() >> 4));
+					} else if ((blockState.getX() + 1 & 0xf) == 0) {
+						invalidChunks.add(
+								new ChunkPosition(worldName, (blockState.getX() >> 4) + 1, blockState.getZ() >> 4));
+					} else if ((blockState.getZ() & 0xf) == 0) {
+						invalidChunks.add(
+								new ChunkPosition(worldName, blockState.getX() >> 4, (blockState.getZ() >> 4) - 1));
+					} else if ((blockState.getZ() + 1 & 0xf) == 0) {
+						invalidChunks.add(
+								new ChunkPosition(worldName, blockState.getX() >> 4, (blockState.getZ() >> 4) + 1));
 					}
 				}
 			}
@@ -107,24 +111,24 @@ public class BlockUpdate {
 		WorldConfig worldConfig = BlockUpdate.config.world(world);
 		String worldName = world.getName();
 
-		HashSet<IBlockInfo> updateBlocks = new HashSet<>();
+		HashSet<BlockStateHolder> updateBlocks = new HashSet<>();
 		HashSet<ChunkPosition> invalidChunks = new HashSet<>();
 
 		for (Location location : locations) {
-			IBlockInfo blockInfo = NmsInstance.get().getBlockInfo(world, location.getBlockX(), location.getBlockY(),
-					location.getBlockZ());
+			BlockStateHolder blockState = NmsInstance.get().getBlockState(world, location.getBlockX(),
+					location.getBlockY(), location.getBlockZ());
 
-			getAdjacentBlocks(updateBlocks, world, worldConfig, blockInfo, updateRadius);
+			getAdjacentBlocks(updateBlocks, world, worldConfig, blockState, updateRadius);
 
-			if (blockInfo != null) {
-				if ((blockInfo.getX() & 0xf) == 0) {
-					invalidChunks.add(new ChunkPosition(worldName, (blockInfo.getX() >> 4) - 1, blockInfo.getZ() >> 4));
-				} else if ((blockInfo.getX() + 1 & 0xf) == 0) {
-					invalidChunks.add(new ChunkPosition(worldName, (blockInfo.getX() >> 4) + 1, blockInfo.getZ() >> 4));
-				} else if ((blockInfo.getZ() & 0xf) == 0) {
-					invalidChunks.add(new ChunkPosition(worldName, blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) - 1));
-				} else if ((blockInfo.getZ() + 1 & 0xf) == 0) {
-					invalidChunks.add(new ChunkPosition(worldName, blockInfo.getX() >> 4, (blockInfo.getZ() >> 4) + 1));
+			if (blockState != null) {
+				if ((blockState.getX() & 0xf) == 0) {
+					invalidChunks.add(new ChunkPosition(worldName, (blockState.getX() >> 4) - 1, blockState.getZ() >> 4));
+				} else if ((blockState.getX() + 1 & 0xf) == 0) {
+					invalidChunks.add(new ChunkPosition(worldName, (blockState.getX() >> 4) + 1, blockState.getZ() >> 4));
+				} else if ((blockState.getZ() & 0xf) == 0) {
+					invalidChunks.add(new ChunkPosition(worldName, blockState.getX() >> 4, (blockState.getZ() >> 4) - 1));
+				} else if ((blockState.getZ() + 1 & 0xf) == 0) {
+					invalidChunks.add(new ChunkPosition(worldName, blockState.getX() >> 4, (blockState.getZ() >> 4) + 1));
 				}
 			}
 		}
@@ -134,12 +138,12 @@ public class BlockUpdate {
 		invalidateCachedChunks(invalidChunks);
 	}
 
-	private static void sendUpdates(World world, Set<IBlockInfo> blocks) {
+	private static void sendUpdates(World world, Set<BlockStateHolder> blocks) {
 		// Orebfuscator.log("Notify block change for " + blocks.size() + "
 		// blocks");/*debug*/
 
-		for (IBlockInfo blockInfo : blocks) {
-			NmsInstance.get().notifyBlockChange(world, blockInfo);
+		for (BlockStateHolder blockState : blocks) {
+			blockState.notifyBlockChange();
 		}
 	}
 
@@ -153,37 +157,37 @@ public class BlockUpdate {
 		}
 	}
 
-	private static void getAdjacentBlocks(HashSet<IBlockInfo> allBlocks, World world, WorldConfig worldConfig,
-			IBlockInfo blockInfo, int countdown) {
-		if (blockInfo == null) {
+	private static void getAdjacentBlocks(HashSet<BlockStateHolder> allBlocks, World world, WorldConfig worldConfig,
+			BlockStateHolder blockState, int countdown) {
+		if (blockState == null) {
 			return;
 		}
 
-		int blockId = blockInfo.getCombinedId();
+		int blockId = blockState.getBlockId();
 
 		if ((worldConfig.blockmask(blockId) & WorldConfig.BLOCK_MASK_OBFUSCATE) != 0) {
-			allBlocks.add(blockInfo);
+			allBlocks.add(blockState);
 		}
 
 		if (countdown > 0) {
 			countdown--;
 			getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX() + 1, blockInfo.getY(), blockInfo.getZ()),
+					NmsInstance.get().getBlockState(world, blockState.getX() + 1, blockState.getY(), blockState.getZ()),
 					countdown);
 			getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX() - 1, blockInfo.getY(), blockInfo.getZ()),
+					NmsInstance.get().getBlockState(world, blockState.getX() - 1, blockState.getY(), blockState.getZ()),
 					countdown);
 			getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY() + 1, blockInfo.getZ()),
+					NmsInstance.get().getBlockState(world, blockState.getX(), blockState.getY() + 1, blockState.getZ()),
 					countdown);
 			getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY() - 1, blockInfo.getZ()),
+					NmsInstance.get().getBlockState(world, blockState.getX(), blockState.getY() - 1, blockState.getZ()),
 					countdown);
 			getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() + 1),
+					NmsInstance.get().getBlockState(world, blockState.getX(), blockState.getY(), blockState.getZ() + 1),
 					countdown);
 			getAdjacentBlocks(allBlocks, world, worldConfig,
-					NmsInstance.get().getBlockInfo(world, blockInfo.getX(), blockInfo.getY(), blockInfo.getZ() - 1),
+					NmsInstance.get().getBlockState(world, blockState.getX(), blockState.getY(), blockState.getZ() - 1),
 					countdown);
 		}
 	}

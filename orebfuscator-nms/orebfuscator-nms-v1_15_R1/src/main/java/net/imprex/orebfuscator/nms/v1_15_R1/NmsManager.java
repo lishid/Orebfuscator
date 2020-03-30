@@ -18,16 +18,37 @@ import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.minecraft.server.v1_15_R1.Block;
 import net.minecraft.server.v1_15_R1.BlockPosition;
-import net.minecraft.server.v1_15_R1.Chunk;
-import net.minecraft.server.v1_15_R1.ChunkProviderServer;
+import net.minecraft.server.v1_15_R1.ChunkSection;
 import net.minecraft.server.v1_15_R1.EntityPlayer;
 import net.minecraft.server.v1_15_R1.IBlockData;
+import net.minecraft.server.v1_15_R1.MathHelper;
 import net.minecraft.server.v1_15_R1.Packet;
 import net.minecraft.server.v1_15_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_15_R1.TileEntity;
 import net.minecraft.server.v1_15_R1.WorldServer;
 
 public class NmsManager extends AbstractNmsManager {
+
+	private static WorldServer world(World world) {
+		return ((CraftWorld) world).getHandle();
+	}
+
+	private static EntityPlayer player(Player player) {
+		return ((CraftPlayer) player).getHandle();
+	}
+
+	private static boolean isChunkLoaded(WorldServer world, int chunkX, int chunkZ) {
+		return world.isChunkLoaded(chunkX, chunkZ);
+	}
+
+	private static IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
+		WorldServer worldServer = world(world);
+		if (isChunkLoaded(worldServer, x >> 4, z >> 4) || loadChunk) {
+			// will load chunk if not loaded already
+			return worldServer.getType(new BlockPosition(x, y, z));
+		}
+		return null;
+	}
 
 	private final int blockIdCaveAir;
 	private final Set<Integer> blockIdAir;
@@ -51,45 +72,28 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	@Override
+	public int getBitsPerBlock() {
+		return MathHelper.d(ChunkSection.GLOBAL_PALETTE.a());
+	}
+
+	@Override
+	public boolean hasLightArray() {
+		return false;
+	}
+
+	@Override
+	public boolean hasBlockCount() {
+		return true;
+	}
+
+	@Override
 	public int getMaterialSize() {
 		return Block.REGISTRY_ID.a();
 	}
 
 	@Override
-	public void updateBlockTileEntity(BlockCoords blockCoord, Player player) {
-		try {
-			EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
-			WorldServer world = entityPlayer.getWorldServer();
-
-			TileEntity tileEntity = world.getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
-			if (tileEntity == null) {
-				return;
-			}
-
-			Packet<?> packet = tileEntity.getUpdatePacket();
-			if (packet != null) {
-				entityPlayer.playerConnection.sendPacket(packet);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public AbstractBlockState<?> getBlockInfo(World world, int x, int y, int z) {
-		IBlockData blockData = this.getBlockData(world, x, y, z, false);
-		return blockData != null ? new BlockState(x, y, z, world, blockData) : null;
-	}
-
-	@Override
-	public int getBlockLightLevel(World world, int x, int y, int z) {
-		return ((CraftWorld) world).getHandle().getLightLevel(new BlockPosition(x, y, z));
-	}
-
-	@Override
-	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
-		IBlockData blockData = this.getBlockData(world, x, y, z, true);
-		return blockData != null ? Block.getCombinedId(blockData) : -1;
+	public int getCaveAirBlockId() {
+		return this.blockIdCaveAir;
 	}
 
 	@Override
@@ -113,18 +117,8 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	@Override
-	public boolean isTileEntity(int combinedBlockId) {
-		return Block.getByCombinedId(combinedBlockId).getBlock().isTileEntity();
-	}
-
-	@Override
-	public int getCaveAirBlockId() {
-		return this.blockIdCaveAir;
-	}
-
-	@Override
-	public int getBitsPerBlock() {
-		return 14;
+	public boolean isTileEntity(int blockId) {
+		return Block.getByCombinedId(blockId).getBlock().isTileEntity();
 	}
 
 	@Override
@@ -144,43 +138,49 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	@Override
-	public boolean sendBlockChange(Player player, Location location) {
-		IBlockData blockData = this.getBlockData(location.getWorld(), location.getBlockX(), location.getBlockY(),
-				location.getBlockZ(), false);
+	public void updateBlockTileEntity(BlockCoords blockCoord, Player player) {
+		EntityPlayer entityPlayer = player(player);
+		WorldServer world = entityPlayer.getWorldServer();
 
-		if (blockData == null) {
+		TileEntity tileEntity = world.getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
+		if (tileEntity == null) {
+			return;
+		}
+
+		Packet<?> packet = tileEntity.getUpdatePacket();
+		if (packet != null) {
+			entityPlayer.playerConnection.sendPacket(packet);
+		}
+	}
+
+	@Override
+	public int getBlockLightLevel(World world, int x, int y, int z) {
+		return world(world).getLightLevel(new BlockPosition(x, y, z));
+	}
+
+	@Override
+	public AbstractBlockState<?> getBlockState(World world, int x, int y, int z) {
+		IBlockData blockData = getBlockData(world, x, y, z, false);
+		return blockData != null ? new BlockState(x, y, z, world, blockData) : null;
+	}
+
+	@Override
+	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
+		IBlockData blockData = getBlockData(world, x, y, z, true);
+		return blockData != null ? Block.getCombinedId(blockData) : -1;
+	}
+
+	@Override
+	public boolean sendBlockChange(Player player, Location location) {
+		WorldServer world = world(location.getWorld());
+		if (!isChunkLoaded(world, location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
 			return false;
 		}
 
-		PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(((CraftWorld) location.getWorld()).getHandle(),
-				new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
-		packet.block = blockData;
+		BlockPosition position = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+		PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(world, position);
+		player(player).playerConnection.sendPacket(packet);
 
-		((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
 		return true;
-	}
-
-	@Override
-	public boolean hasLightArray() {
-		return false;
-	}
-
-	@Override
-	public boolean hasBlockCount() {
-		return true;
-	}
-
-	private IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
-		int chunkX = x >> 4;
-		int chunkZ = z >> 4;
-
-		ChunkProviderServer chunkProviderServer = ((CraftWorld) world).getHandle().getChunkProvider();
-
-		if (!loadChunk && !chunkProviderServer.isLoaded(chunkX, chunkZ)) {
-			return null;
-		}
-
-		Chunk chunk = chunkProviderServer.getChunkAt(chunkX, chunkZ, true);
-		return chunk != null ? chunk.getType(new BlockPosition(x, y, z)) : null;
 	}
 }

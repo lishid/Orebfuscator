@@ -23,22 +23,5 @@
 			<version>1.13.2-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.comphenix.protocol</groupId>
-			<artifactId>ProtocolLib-API</artifactId>
-			<version>4.4.0</version>
-			<scope>provided</scope>
-			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<artifactId>cglib-nodep</artifactId>
-					<groupId>cglib</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>BukkitExecutors</artifactId>
-					<groupId>com.comphenix.executors</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 	</dependencies>
 </project>

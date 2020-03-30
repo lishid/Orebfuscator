@@ -25,9 +25,7 @@ import java.util.List;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
-import com.comphenix.protocol.wrappers.nbt.NbtType;
 import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
@@ -284,32 +282,7 @@ public class Calculations {
 	}
 
 	private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, int blockData) {
-		if (!NmsInstance.get().isSign(blockData)) {
-			return true;
-		}
-
-		NbtCompound tag = getBlockEntity(chunkData, x, y, z);
-
-		return tag == null || isSignTextEmpty(tag, "Text1") && isSignTextEmpty(tag, "Text2")
-				&& isSignTextEmpty(tag, "Text3") && isSignTextEmpty(tag, "Text4");
-	}
-
-	private static boolean isSignTextEmpty(NbtCompound compound, String key) {
-		NbtBase<?> tag = compound.getValue(key);
-
-		if (tag == null || tag.getType() != NbtType.TAG_STRING) {
-			return true;
-		}
-
-		String json = (String) tag.getValue();
-
-		if (json == null || json.isEmpty()) {
-			return true;
-		}
-
-		String text = NmsInstance.get().getTextFromChatComponent(json);
-
-		return text == null || text.isEmpty();
+		return getBlockEntity(chunkData, x, y, z) == null;
 	}
 
 	private static NbtCompound getBlockEntity(ChunkData chunkData, int x, int y, int z) {
