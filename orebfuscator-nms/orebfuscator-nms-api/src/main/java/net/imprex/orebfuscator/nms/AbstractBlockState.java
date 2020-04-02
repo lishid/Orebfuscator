@@ -31,4 +31,9 @@ public abstract class AbstractBlockState<T> extends BlockCoords implements Block
 	public int getZ() {
 		return this.z;
 	}
+
+	@Override
+	public String toString() {
+		return "[" + this.x + ", " + this.y + ", " + this.z + ", " + this.state + "]";
+	}
 }

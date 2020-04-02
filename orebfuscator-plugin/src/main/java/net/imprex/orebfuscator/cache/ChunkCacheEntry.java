@@ -1,7 +1,7 @@
 package net.imprex.orebfuscator.cache;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import net.imprex.orebfuscator.util.BlockCoords;
 
@@ -10,19 +10,19 @@ public class ChunkCacheEntry {
 	private final long hash;
 	private final byte[] data;
 
-	private final List<BlockCoords> proximityBlocks;
-	private final List<BlockCoords> removedEntities;
+	private final Set<BlockCoords> proximityBlocks;
+	private final Set<BlockCoords> removedTileEntities;
 
 	public ChunkCacheEntry(long hash, byte[] data) {
-		this(hash, data, new ArrayList<>(), new ArrayList<>());
+		this(hash, data, new HashSet<>(), new HashSet<>());
 	}
 
-	public ChunkCacheEntry(long hash, byte[] data, List<BlockCoords> proximityBlocks,
-			List<BlockCoords> removedEntities) {
+	public ChunkCacheEntry(long hash, byte[] data, Set<BlockCoords> proximityBlocks,
+			Set<BlockCoords> removedTileEntities) {
 		this.hash = hash;
 		this.data = data;
 		this.proximityBlocks = proximityBlocks;
-		this.removedEntities = removedEntities;
+		this.removedTileEntities = removedTileEntities;
 	}
 
 	public long getHash() {
@@ -33,11 +33,11 @@ public class ChunkCacheEntry {
 		return this.data;
 	}
 
-	public List<BlockCoords> getProximityBlocks() {
+	public Set<BlockCoords> getProximityBlocks() {
 		return this.proximityBlocks;
 	}
 
-	public List<BlockCoords> getRemovedEntities() {
-		return this.removedEntities;
+	public Set<BlockCoords> getRemovedTileEntities() {
+		return this.removedTileEntities;
 	}
 }

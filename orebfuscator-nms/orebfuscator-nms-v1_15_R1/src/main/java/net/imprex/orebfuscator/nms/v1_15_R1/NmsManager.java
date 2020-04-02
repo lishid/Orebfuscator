@@ -18,7 +18,6 @@ import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.minecraft.server.v1_15_R1.Block;
 import net.minecraft.server.v1_15_R1.BlockPosition;
-import net.minecraft.server.v1_15_R1.ChunkSection;
 import net.minecraft.server.v1_15_R1.EntityPlayer;
 import net.minecraft.server.v1_15_R1.IBlockData;
 import net.minecraft.server.v1_15_R1.MathHelper;
@@ -73,7 +72,7 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public int getBitsPerBlock() {
-		return MathHelper.d(ChunkSection.GLOBAL_PALETTE.a());
+		return MathHelper.d(Block.REGISTRY_ID.a());
 	}
 
 	@Override

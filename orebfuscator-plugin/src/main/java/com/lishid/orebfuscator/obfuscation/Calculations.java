@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2014 lishid.  All rights reserved.
+// * Copyright (C) 2011-2014 lishid.  All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -59,7 +60,7 @@ public class Calculations {
 
 			ChunkCacheEntry chunkCacheEntry = new ChunkCacheEntry(hash, data);
 			chunkCacheEntry.getProximityBlocks().addAll(proximityBlocks);
-			chunkCacheEntry.getRemovedEntities().addAll(removedEntities);
+			chunkCacheEntry.getRemovedTileEntities().addAll(removedEntities);
 			return chunkCacheEntry;
 		} catch (Exception e) {
 			throw new RuntimeException("Can't obfuscate chunk " + chunkData.chunkX + ", " + chunkData.chunkZ, e);
@@ -109,7 +110,7 @@ public class Calculations {
 
 		ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, cacheEntry.getProximityBlocks());
 
-		return new Result(cacheEntry.getData(), cacheEntry.getRemovedEntities());
+		return new Result(cacheEntry.getData(), cacheEntry.getRemovedTileEntities());
 	}
 
 	private static byte[] obfuscate(WorldConfig worldConfig, ChunkData chunkData, Player player,
@@ -378,9 +379,9 @@ public class Calculations {
 	public static class Result {
 
 		public final byte[] output;
-		public final List<BlockCoords> removedEntities;
+		public final Set<BlockCoords> removedEntities;
 
-		public Result(byte[] output, List<BlockCoords> removedEntities) {
+		public Result(byte[] output, Set<BlockCoords> removedEntities) {
 			this.output = output;
 			this.removedEntities = removedEntities;
 		}

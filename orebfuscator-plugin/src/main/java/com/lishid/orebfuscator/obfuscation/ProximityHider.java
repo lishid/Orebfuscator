@@ -19,8 +19,8 @@ package com.lishid.orebfuscator.obfuscation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.Location;
@@ -172,7 +172,7 @@ public class ProximityHider extends Thread {
 
 					for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
 						for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-							List<BlockCoords> blocks = localPlayerInfo.getBlocks(chunkX, chunkZ);
+							Set<BlockCoords> blocks = localPlayerInfo.getBlocks(chunkX, chunkZ);
 
 							if (blocks == null) {
 								continue;
@@ -312,7 +312,7 @@ public class ProximityHider extends Thread {
 		}
 	}
 
-	public static void addProximityBlocks(Player player, int chunkX, int chunkZ, List<BlockCoords> blocks) {
+	public static void addProximityBlocks(Player player, int chunkX, int chunkZ, Set<BlockCoords> blocks) {
 		ProximityConfig proximityConfig = config.proximity(player.getWorld());
 		if (!proximityConfig.enabled()) {
 			return;

@@ -11,6 +11,7 @@
 	<properties>
 		<orebfuscator.version>5.0.0</orebfuscator.version>
 
+		<dependency.netty.version>4.1.20.Final</dependency.netty.version>
 		<dependency.bukkit.version>1.15.1-R0.1-SNAPSHOT</dependency.bukkit.version>
 		<plugin.shade.version>3.2.1</plugin.shade.version>
 
