@@ -1,5 +1,7 @@
 package net.imprex.orebfuscator.chunk;
 
+import java.util.function.BiConsumer;
+
 import net.imprex.orebfuscator.NmsInstance;
 
 public class ChunkSection {
@@ -16,12 +18,9 @@ public class ChunkSection {
 
 	private void setBitsPerBlock(int bitsPerBlock) {
 		if (this.bitsPerBlock != bitsPerBlock) {
-			if (bitsPerBlock <= 4) {
-				this.bitsPerBlock = 4;
-				this.palette = new IndirectPalette(4, this);
-			} else if (bitsPerBlock <= 8) {
-				this.bitsPerBlock = bitsPerBlock;
-				this.palette = new IndirectPalette(bitsPerBlock, this);
+			if (bitsPerBlock <= 8) {
+				this.bitsPerBlock = Math.max(4, bitsPerBlock);
+				this.palette = new IndirectPalette(this.bitsPerBlock, this);
 			} else {
 				this.bitsPerBlock = NmsInstance.get().getBitsPerBlock();
 				this.palette = new DirectPalette();
@@ -75,6 +74,10 @@ public class ChunkSection {
 
 	public int getBlock(int index) {
 		return this.palette.toBlockId(this.data.get(index));
+	}
+
+	public void forEach(BiConsumer<Integer, Integer> consumer) {
+		this.data.forEach((paletteIndex, index) -> consumer.accept(palette.toBlockId(paletteIndex), index));
 	}
 
 	public void write(ChunkBuffer chunkBuffer) {

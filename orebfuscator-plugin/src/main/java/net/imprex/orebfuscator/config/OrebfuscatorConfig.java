@@ -31,6 +31,7 @@ public class OrebfuscatorConfig implements Config {
 	private final List<OrebfuscatorWorldConfig> world = new ArrayList<>();
 	private final List<OrebfuscatorProximityConfig> proximity = new ArrayList<>();
 
+	private final Map<World, OrebfuscatorBlockMask> worldToBlockMask = new HashMap<>();
 	private final Map<World, OrebfuscatorWorldConfig> worldToWorldConfig = new HashMap<>();
 	private final Map<World, OrebfuscatorProximityConfig> worldToProximityConfig = new HashMap<>();
 
@@ -171,6 +172,16 @@ public class OrebfuscatorConfig implements Config {
 				}
 			}
 		}
+
+		for (World world : Bukkit.getWorlds()) {
+			if (!this.worldToWorldConfig.containsKey(world)) {
+				Orebfuscator.LOGGER.warning("world " + world.getName() + " is missing a world config");
+			}
+
+			OrebfuscatorWorldConfig worldConfig = this.worldToWorldConfig.get(world);
+			OrebfuscatorProximityConfig proximityConfig = this.worldToProximityConfig.get(world);
+			this.worldToBlockMask.put(world, new OrebfuscatorBlockMask(worldConfig, proximityConfig));
+		}
 	}
 
 	@Override
@@ -181,6 +192,11 @@ public class OrebfuscatorConfig implements Config {
 	@Override
 	public CacheConfig cache() {
 		return this.cacheConfig;
+	}
+
+	@Override
+	public BlockMask blockMask(World world) {
+		return this.worldToBlockMask.get(Objects.requireNonNull(world));
 	}
 
 	@Override

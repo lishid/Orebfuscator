@@ -1,5 +1,6 @@
 package net.imprex.orebfuscator.nms;
 
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,16 +26,14 @@ public abstract class AbstractNmsManager implements NmsManager {
 		this.materialToIds.computeIfAbsent(material, key -> new HashSet<>()).add(id);
 	}
 
-	protected final Set<Integer> mergeMaterialIds(Set<Material> materials) {
-		return mergeMaterialIds(materials.toArray(new Material[materials.size()]));
-	}
-
-	protected final Set<Integer> mergeMaterialIds(Material...materials) {
-		Set<Integer> materialIds = new HashSet<>();
+	protected final BitSet materialsToBitSet(Material...materials) {
+		BitSet bitSet = new BitSet();
 		for (Material material : materials) {
-			materialIds.addAll(this.getMaterialIds(material));
+			for (int blockId : this.getMaterialIds(material)) {
+				bitSet.set(blockId);
+			}
 		}
-		return materialIds;
+		return bitSet;
 	}
 
 	@Override

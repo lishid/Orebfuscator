@@ -165,9 +165,9 @@ public class BlockUpdate {
 
 		int blockId = blockState.getBlockId();
 
-		if ((worldConfig.blockmask(blockId) & WorldConfig.BLOCK_MASK_OBFUSCATE) != 0) {
-			allBlocks.add(blockState);
-		}
+//		if ((worldConfig.blockmask(blockId) & WorldConfig.BLOCK_MASK_OBFUSCATE) != 0) {
+//			allBlocks.add(blockState);
+//		}
 
 		if (countdown > 0) {
 			countdown--;

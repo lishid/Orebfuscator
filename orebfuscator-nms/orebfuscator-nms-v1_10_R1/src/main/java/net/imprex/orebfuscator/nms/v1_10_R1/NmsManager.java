@@ -1,7 +1,7 @@
 package net.imprex.orebfuscator.nms.v1_10_R1;
 
+import java.util.BitSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -51,7 +51,7 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	private final int blockIdCaveAir;
-	private final Set<Integer> blockIdAir;
+	private final BitSet blockAir;
 
 	public NmsManager(Config config) {
 		super(config);
@@ -64,7 +64,7 @@ public class NmsManager extends AbstractNmsManager {
 		}
 
 		this.blockIdCaveAir = this.getMaterialIds(Material.AIR).iterator().next();
-		this.blockIdAir = this.mergeMaterialIds(Material.AIR);
+		this.blockAir = this.materialsToBitSet(Material.AIR);
 	}
 
 	@Override
@@ -76,16 +76,6 @@ public class NmsManager extends AbstractNmsManager {
 	public int getBitsPerBlock() {
 		// from DataPaletteBlock::b(int var0) L10
 		return MathHelper.d(Block.REGISTRY_ID.a());
-	}
-
-	@Override
-	public boolean hasLightArray() {
-		return false;
-	}
-
-	@Override
-	public boolean hasBlockCount() {
-		return true;
 	}
 
 	@Override
@@ -115,7 +105,7 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public boolean isAir(int blockId) {
-		return this.blockIdAir.contains(blockId);
+		return this.blockAir.get(blockId);
 	}
 
 	@Override

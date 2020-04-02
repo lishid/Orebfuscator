@@ -1,7 +1,6 @@
 package net.imprex.orebfuscator.config;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +19,20 @@ import net.imprex.orebfuscator.util.WeightedRandom;
 
 public class OrebfuscatorProximityConfig implements ProximityConfig {
 
-	private static final ShouldHideConfig EMPTY_HIDE_CONFIG = new ShouldHideConfig(0, true);
+	private static final short EMPTY_HIDE_CONDITION = createHideCondition(0, true);
+
+	private static short createHideCondition(int y, boolean above) {
+		return (short) ((y & 0xFF) << 8 | (above ? 0x80 : 0x00));
+	}
+
+	static boolean matchHideCondition(short hideCondition, int y) {
+		int expectedY = hideCondition >> 8;
+		if ((hideCondition & 0x80) != 0) {
+			return expectedY < y;
+		} else {
+			return expectedY > y;
+		}
+	}
 
 	private final List<World> worlds = new ArrayList<>();
 
@@ -29,27 +41,16 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 	private int distanceSquared;
 	private boolean useFastGazeCheck;
 
-	private Map<Material, ShouldHideConfig> hiddenBlocks = new HashMap<>();
-	private Map<Integer, ShouldHideConfig> hiddenMaterials = new HashMap<>();
+	private Map<Material, Short> hiddenBlocks = new HashMap<>();
 
 	private Map<Material, Integer> randomBlocks = new HashMap<>();
-
-	private List<Integer> randomBlockIds = new ArrayList<>();
 	private WeightedRandom<Integer> randomMaterials = new WeightedRandom<>();
 
 	protected void initialize() {
-		this.hiddenMaterials.clear();
-		for (Entry<Material, ShouldHideConfig> entry : this.hiddenBlocks.entrySet()) {
-			for (int id : NmsInstance.get().getMaterialIds(entry.getKey())) {
-				this.hiddenMaterials.put(id, entry.getValue());
-			}
-		}
-
 		this.randomMaterials.clear();
 		for (Entry<Material, Integer> entry : this.randomBlocks.entrySet()) {
 			int blockId = NmsInstance.get().getMaterialIds(entry.getKey()).iterator().next();
 			this.randomMaterials.add(entry.getValue(), blockId);
-			this.randomBlockIds.add(blockId);
 		}
 	}
 
@@ -105,18 +106,22 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 				continue;
 			}
 
-			ShouldHideConfig hideConfig = EMPTY_HIDE_CONFIG;
+			short hideCondition = EMPTY_HIDE_CONDITION;
 			if (materialSection.isInt(materialName + ".y") && materialSection.isBoolean(materialName + ".above")) {
-				hideConfig = new ShouldHideConfig(materialSection.getInt(materialName + ".y"), materialSection.getBoolean(materialName + ".above"));
+				hideCondition = createHideCondition(materialSection.getInt(materialName + ".y"), materialSection.getBoolean(materialName + ".above"));
 			}
 
-			this.hiddenBlocks.put(material, hideConfig);
+			this.hiddenBlocks.put(material, hideCondition);
 		}
 	}
 
 	private void failSerialize(String message) {
 		this.enabled = false;
 		Orebfuscator.LOGGER.warning(message);
+	}
+
+	public Set<Map.Entry<Material, Short>> getHiddenBlocks() {
+		return hiddenBlocks.entrySet();
 	}
 
 	@Override
@@ -145,47 +150,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 	}
 
 	@Override
-	public Collection<Integer> randomBlocks() {
-		return this.randomBlockIds;
-	}
-
-	@Override
 	public int randomBlockId() {
 		return this.randomMaterials.next();
-	}
-
-	@Override
-	public Set<Integer> hiddenBlocks() {
-		return Collections.unmodifiableSet(this.hiddenMaterials.keySet());
-	}
-
-	@Override
-	public boolean shouldHide(int y, int id) {
-		ShouldHideConfig shouldHide = this.hiddenMaterials.get(id);
-
-		if (shouldHide == null) {
-			return false;
-		}
-
-		return shouldHide.shouldHide(y);
-	}
-
-	private static class ShouldHideConfig {
-
-		private final int y;
-		private final boolean higher;
-
-		public ShouldHideConfig(int y, boolean higher) {
-			this.y = y;
-			this.higher = higher;
-		}
-
-		public boolean shouldHide(int y) {
-			if (this.higher) {
-				return this.y < y;
-			} else {
-				return this.y > y;
-			}
-		}
 	}
 }

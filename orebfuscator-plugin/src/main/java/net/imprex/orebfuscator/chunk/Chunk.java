@@ -2,24 +2,22 @@ package net.imprex.orebfuscator.chunk;
 
 import java.util.Arrays;
 
-import com.lishid.orebfuscator.chunkmap.ChunkData;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 
 public class Chunk implements AutoCloseable {
 
-	public static Chunk fromChunkData(ChunkData chunkData) {
+	public static Chunk fromChunkStruct(ChunkStruct chunkStruct) {
 		int sectionCount;
-		for (sectionCount = 0; (chunkData.primaryBitMask & (1 << sectionCount)) != 0; sectionCount++) {}
+		for (sectionCount = 0; (chunkStruct.primaryBitMask & (1 << sectionCount)) != 0; sectionCount++) {}
 
 		int extraBytes = ChunkCapabilities.hasLightArray ? 2048 : 0;
-		if (chunkData.isOverworld) {
+		if (chunkStruct.isOverworld) {
 			extraBytes *= 2;
 		}
 
-		return new Chunk(sectionCount, extraBytes, chunkData.data);
+		return new Chunk(sectionCount, extraBytes, chunkStruct.data);
 	}
 
 	private final int sectionCount;

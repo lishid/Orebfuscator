@@ -9,16 +9,11 @@ import org.bukkit.entity.Player;
 
 import net.imprex.orebfuscator.util.BlockCoords;
 
-// TODO integrate into abstract nms manager
 public interface NmsManager {
 
 	AbstractRegionFileCache<?> getRegionFileCache();
 
 	int getBitsPerBlock();
-
-	boolean hasLightArray();
-
-	boolean hasBlockCount();
 
 	int getMaterialSize();
 

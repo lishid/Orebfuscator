@@ -1,7 +1,6 @@
 package net.imprex.orebfuscator.config;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,46 +21,18 @@ import net.imprex.orebfuscator.util.WeightedRandom;
 public class OrebfuscatorWorldConfig implements WorldConfig {	
 
 	private boolean enabled;
-	private List<World> worlds = new ArrayList<>();
-	private Set<Material> hiddenBlocks = new HashSet<>();
-	private Set<Material> darknessBlocks = new HashSet<>();
+	private final List<World> worlds = new ArrayList<>();
+	private final Set<Material> hiddenBlocks = new HashSet<>();
+	private final Set<Material> darknessBlocks = new HashSet<>();
 
-	private byte[] blockmask;
-
-	private Map<Material, Integer> randomBlocks = new HashMap<>();
-	private List<Integer> randomBlockIds = new ArrayList<>();
-	private WeightedRandom<Integer> randomMaterials = new WeightedRandom<>();
+	private final Map<Material, Integer> randomBlocks = new HashMap<>();
+	private final WeightedRandom<Integer> randomMaterials = new WeightedRandom<>();
 
 	protected void initialize() {
 		this.randomMaterials.clear();
 		for (Entry<Material, Integer> entry : this.randomBlocks.entrySet()) {
 			int blockId = NmsInstance.get().getMaterialIds(entry.getKey()).iterator().next();
 			this.randomMaterials.add(entry.getValue(), blockId);
-			this.randomBlockIds.add(blockId);
-		}
-
-		this.blockmask = new byte[NmsInstance.get().getMaterialSize()];
-		for (Material material : this.hiddenBlocks) {
-			this.setBlockmask(NmsInstance.get().getMaterialIds(material), false);
-		}
-		for (Material material : this.darknessBlocks) {
-			this.setBlockmask(NmsInstance.get().getMaterialIds(material), true);
-		}
-	}
-
-	private void setBlockmask(Set<Integer> blockIds, boolean isDarknessBlock) {
-		for (int blockId : blockIds) {
-			int blockmask = this.blockmask[blockId] | WorldConfig.BLOCK_MASK_OBFUSCATE;
-
-			if (isDarknessBlock) {
-				blockmask |= WorldConfig.BLOCK_MASK_DARKNESS;
-			}
-
-			if (NmsInstance.get().isTileEntity(blockId)) {
-				blockmask |= WorldConfig.BLOCK_MASK_TILEENTITY;
-			}
-
-			this.blockmask[blockId] = (byte) blockmask;
 		}
 	}
 
@@ -116,6 +87,14 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 		Orebfuscator.LOGGER.warning(message);
 	}
 
+	public Set<Material> getHiddenBlocks() {
+		return hiddenBlocks;
+	}
+
+	public Set<Material> getDarknessBlocks() {
+		return darknessBlocks;
+	}
+
 	@Override
 	public boolean enabled() {
 		return this.enabled;
@@ -127,18 +106,8 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 	}
 
 	@Override
-	public int blockmask(int id) {
-		return this.blockmask[id];
-	}
-
-	@Override
 	public boolean darknessBlocksEnabled() {
 		return this.darknessBlocks.size() != 0;
-	}
-
-	@Override
-	public Collection<Integer> randomBlocks() {
-		return this.randomBlockIds;
 	}
 
 	@Override
