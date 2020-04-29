@@ -9,4 +9,6 @@ public interface GeneralConfig {
 	int initialRadius();
 
 	int updateRadius();
+
+	int proximityHiderRunnerSize();
 }

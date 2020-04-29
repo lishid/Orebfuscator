@@ -34,15 +34,16 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
 import com.lishid.orebfuscator.obfuscation.Calculations.Result;
 
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
 import net.imprex.orebfuscator.util.BlockCoords;
+import net.imprex.orebfuscator.util.OFCLogger;
 import net.imprex.orebfuscator.util.PermissionUtil;
 
 public class ProtocolLibHook {
@@ -108,7 +109,7 @@ public class ProtocolLibHook {
 					}
 				} catch (Exception e) {
 					if (chunkData != null) {
-						Orebfuscator.LOGGER.log(Level.SEVERE,
+						OFCLogger.log(Level.SEVERE,
 								"ChunkX = " + chunkData.chunkX + ", chunkZ = " + chunkData.chunkZ);
 					}
 

@@ -7,10 +7,10 @@ import java.util.Set;
 
 import org.bukkit.World;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.cache.ChunkCacheEntry;
 import net.imprex.orebfuscator.chunk.Chunk;
@@ -18,11 +18,11 @@ import net.imprex.orebfuscator.chunk.ChunkSection;
 import net.imprex.orebfuscator.chunk.ChunkStruct;
 import net.imprex.orebfuscator.config.BlockMask;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
-import net.imprex.orebfuscator.config.ProximityConfig;
+import net.imprex.orebfuscator.config.ProximityWorldConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.imprex.orebfuscator.util.ChunkPosition;
-import net.imprex.orebfuscator.util.MaterialUtil;
+import net.imprex.orebfuscator.util.MathUtil;
 
 public class Obfuscator {
 
@@ -77,7 +77,7 @@ public class Obfuscator {
 	private ChunkCacheEntry obfuscate(long hash, World world, ChunkStruct chunkStruct) {
 		BlockMask blockMask = this.config.blockMask(world);
 		WorldConfig worldConfig = this.config.world(world);
-		ProximityConfig proximityConfig = this.config.proximity(world);
+		ProximityWorldConfig proximityConfig = this.config.proximity(world);
 		int initialRadius = this.config.general().initialRadius();
 
 		Set<BlockCoords> proximityBlocks = new HashSet<>();
@@ -116,7 +116,7 @@ public class Obfuscator {
 						if (initialRadius == 0) {
 							// Do not interfere with PH
 							if (proximityFlag) {
-								if (!areAjacentBlocksTransparent(world, x, y, z, false, 1)) {
+								if (!MathUtil.areAjacentBlocksTransparent(world, x, y, z, false, 1)) {
 									obfuscate = true;
 								}
 							} else {
@@ -125,7 +125,7 @@ public class Obfuscator {
 							}
 						} else {
 							// Check if any nearby blocks are transparent
-							if (!areAjacentBlocksTransparent(world, x, y, z, false, initialRadius)) {
+							if (!MathUtil.areAjacentBlocksTransparent(world, x, y, z, false, initialRadius)) {
 								obfuscate = true;
 							}
 						}
@@ -149,7 +149,7 @@ public class Obfuscator {
 
 					// Check if the block should be obfuscated because of the darkness
 					if (!obfuscate && darknessFlag && worldConfig.darknessBlocksEnabled()) {
-						if (!areAjacentBlocksBright(world, x, y, z, 1)) {
+						if (!MathUtil.areAjacentBlocksBright(world, x, y, z, 1)) {
 							// Hide block, setting it to air
 							chunkSection.setBlock(index, NmsInstance.get().getCaveAirBlockId());
 							obfuscate = true;
@@ -172,74 +172,5 @@ public class Obfuscator {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static boolean areAjacentBlocksTransparent(World world, int x, int y, int z, boolean check, int depth) {
-		if (y >= world.getMaxHeight() || y < 0) {
-			return true;
-		}
-
-		if (check) {
-			int blockData = NmsInstance.get().loadChunkAndGetBlockId(world, x, y, z);
-			if (blockData >= 0 && MaterialUtil.isTransparent(blockData)) {
-				return true;
-			}
-		}
-
-		if (depth == 0) {
-			return false;
-		}
-
-		if (areAjacentBlocksTransparent(world, x, y + 1, z, true, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksTransparent(world, x, y - 1, z, true, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksTransparent(world, x + 1, y, z, true, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksTransparent(world, x - 1, y, z, true, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksTransparent(world, x, y, z + 1, true, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksTransparent(world, x, y, z - 1, true, depth - 1)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	public static boolean areAjacentBlocksBright(World world, int x, int y, int z, int depth) {
-		if (NmsInstance.get().getBlockLightLevel(world, x, y, z) > 0) {
-			return true;
-		}
-
-		if (depth == 0) {
-			return false;
-		}
-
-		if (areAjacentBlocksBright(world, x, y + 1, z, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksBright(world, x, y - 1, z, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksBright(world, x + 1, y, z, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksBright(world, x - 1, y, z, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksBright(world, x, y, z + 1, depth - 1)) {
-			return true;
-		}
-		if (areAjacentBlocksBright(world, x, y, z - 1, depth - 1)) {
-			return true;
-		}
-
-		return false;
 	}
 }

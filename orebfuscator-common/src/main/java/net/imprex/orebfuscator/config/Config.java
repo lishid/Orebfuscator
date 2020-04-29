@@ -14,7 +14,7 @@ public interface Config {
 	
 	boolean proximityEnabled();
 
-	ProximityConfig proximity(World world);
+	ProximityWorldConfig proximity(World world);
 
 	byte[] hash();
 }

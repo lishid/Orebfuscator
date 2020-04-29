@@ -8,8 +8,8 @@ import java.util.function.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
-import com.lishid.orebfuscator.Orebfuscator;
 
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.CacheConfig;
 import net.imprex.orebfuscator.util.ChunkPosition;
 

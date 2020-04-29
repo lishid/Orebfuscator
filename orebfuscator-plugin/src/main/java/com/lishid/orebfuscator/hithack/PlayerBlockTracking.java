@@ -19,7 +19,8 @@ package com.lishid.orebfuscator.hithack;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
+import net.imprex.orebfuscator.Orebfuscator;
+import net.imprex.orebfuscator.util.OFCLogger;
 
 public class PlayerBlockTracking {
 
@@ -66,7 +67,7 @@ public class PlayerBlockTracking {
 				@Override
 				public void run() {
 					String name = PlayerBlockTracking.this.player.getName();
-					Orebfuscator.log("Player \"" + name + "\" tried to hack with packet spamming.");
+					OFCLogger.log("Player \"" + name + "\" tried to hack with packet spamming.");
 					PlayerBlockTracking.this.player.kickPlayer("End of Stream");
 				}
 			});

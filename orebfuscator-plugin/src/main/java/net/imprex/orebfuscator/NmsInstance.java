@@ -1,11 +1,11 @@
 package net.imprex.orebfuscator;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.Globals;
 
 import net.imprex.orebfuscator.chunk.ChunkCapabilities;
 import net.imprex.orebfuscator.config.Config;
 import net.imprex.orebfuscator.nms.NmsManager;
+import net.imprex.orebfuscator.util.OFCLogger;
 
 public class NmsInstance {
 
@@ -16,7 +16,7 @@ public class NmsInstance {
 			throw new IllegalStateException("NMS protocol version was already initialized!");
 		}
 
-		Orebfuscator.log("Searching NMS protocol for server version \"" + Globals.SERVER_VERSION + "\"!");
+		OFCLogger.log("Searching NMS protocol for server version \"" + Globals.SERVER_VERSION + "\"!");
 
 		// hasLight < 1.14
 		// hasDirectPaletteZeroLength < 1.13
@@ -75,7 +75,7 @@ public class NmsInstance {
 		}
 
 		if (NmsInstance.instance != null) {
-			Orebfuscator.log("NMS protocol for server version \"" + Globals.SERVER_VERSION + "\" found!");
+			OFCLogger.log("NMS protocol for server version \"" + Globals.SERVER_VERSION + "\" found!");
 		} else {
 			throw new RuntimeException("Server version \"" + Globals.SERVER_VERSION + "\" is currently not supported!");
 		}

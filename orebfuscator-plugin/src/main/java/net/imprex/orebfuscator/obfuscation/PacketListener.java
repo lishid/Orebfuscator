@@ -16,12 +16,13 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.nbt.NbtBase;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
-import com.lishid.orebfuscator.Orebfuscator;
 
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.cache.ChunkCacheEntry;
 import net.imprex.orebfuscator.chunk.ChunkStruct;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
+import net.imprex.orebfuscator.proximityhider.ProximityHider;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.imprex.orebfuscator.util.PermissionUtil;
 
@@ -32,6 +33,8 @@ public class PacketListener extends PacketAdapter {
 	private final OrebfuscatorConfig config;
 	private final Obfuscator obfuscator;
 
+	private final ProximityHider proximityHider;
+
 	public PacketListener(Orebfuscator orebfuscator) {
 		super(orebfuscator, PacketType.Play.Server.MAP_CHUNK);
 
@@ -40,6 +43,7 @@ public class PacketListener extends PacketAdapter {
 
 		this.config = orebfuscator.getOrebfuscatorConfig();
 		this.obfuscator = orebfuscator.getObfuscator();
+		this.proximityHider = orebfuscator.getProximityHider();
 	}
 
 	public void unregister() {
@@ -78,11 +82,11 @@ public class PacketListener extends PacketAdapter {
 			byteArray.write(0, chunkEntry.getData());
 
 			if (tileEntityList != null) {
-				removeBlockEntities(tileEntityList, chunkEntry.getRemovedTileEntities());
+				PacketListener.removeBlockEntities(tileEntityList, chunkEntry.getRemovedTileEntities());
 				nbtList.write(0, tileEntityList);
 			}
 
-//			ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, chunkEntry.getProximityBlocks());
+			this.proximityHider.addProximityBlocks(player, world, chunkStruct.chunkX, chunkStruct.chunkZ, chunkEntry.getProximityBlocks());
 		}
 	}
 

@@ -27,11 +27,11 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.cache.ChunkCacheEntry;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;

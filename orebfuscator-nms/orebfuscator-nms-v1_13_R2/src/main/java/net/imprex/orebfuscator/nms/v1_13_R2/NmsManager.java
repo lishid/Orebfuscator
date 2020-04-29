@@ -3,7 +3,6 @@ package net.imprex.orebfuscator.nms.v1_13_R2;
 import java.util.BitSet;
 import java.util.Iterator;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
@@ -129,7 +128,7 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	@Override
-	public void updateBlockTileEntity(BlockCoords blockCoord, Player player) {
+	public void updateBlockTileEntity(Player player, BlockCoords blockCoord) {
 		EntityPlayer entityPlayer = player(player);
 		WorldServer world = entityPlayer.getWorldServer();
 
@@ -162,13 +161,13 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	@Override
-	public boolean sendBlockChange(Player player, Location location) {
-		WorldServer world = world(location.getWorld());
-		if (!isChunkLoaded(world, location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+	public boolean sendBlockChange(Player player, BlockCoords location) {
+		WorldServer world = world(player.getWorld());
+		if (!isChunkLoaded(world, location.x >> 4, location.z >> 4)) {
 			return false;
 		}
 
-		BlockPosition position = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+		BlockPosition position = new BlockPosition(location.x, location.y, location.z);
 		PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(world, position);
 		player(player).playerConnection.sendPacket(packet);
 

@@ -27,14 +27,14 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
-
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
-import net.imprex.orebfuscator.config.ProximityConfig;
+import net.imprex.orebfuscator.config.ProximityWorldConfig;
 import net.imprex.orebfuscator.nms.BlockStateHolder;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.imprex.orebfuscator.util.MaterialUtil;
+import net.imprex.orebfuscator.util.OFCLogger;
 
 public class ProximityHider extends Thread {
 
@@ -51,11 +51,9 @@ public class ProximityHider extends Thread {
 	private AtomicBoolean kill = new AtomicBoolean(false);
 	private static boolean running = false;
 
-	private static Orebfuscator orebfuscator;
 	private static OrebfuscatorConfig config;
 
 	public static void initialize(Orebfuscator orebfuscator) {
-		ProximityHider.orebfuscator = orebfuscator;
 		ProximityHider.config = orebfuscator.getOrebfuscatorConfig();
 	}
 
@@ -150,7 +148,7 @@ public class ProximityHider extends Thread {
 						continue;
 					}
 
-					ProximityConfig proximityConfig = config.proximity(p.getWorld());
+					ProximityWorldConfig proximityConfig = config.proximity(p.getWorld());
 
 					int checkRadius = proximityConfig.distance() >> 4;
 
@@ -195,17 +193,17 @@ public class ProximityHider extends Thread {
 										// 4.3.1 -- GAZE CHECK END
 										removedBlocks.add(b);
 
-										if (NmsInstance.get().sendBlockChange(p, blockLocation)) {
-											final BlockCoords block = b;
-											final Player player = p;
-
-											ProximityHider.orebfuscator.runTask(new Runnable() {
-												@Override
-												public void run() {
-													NmsInstance.get().updateBlockTileEntity(block, player);
-												}
-											});
-										}
+//										if (NmsInstance.get().sendBlockChange(p, blockLocation)) {
+//											final BlockCoords block = b;
+//											final Player player = p;
+//
+//											ProximityHider.orebfuscator.runTask(new Runnable() {
+//												@Override
+//												public void run() {
+//													NmsInstance.get().updateBlockTileEntity(block, player);
+//												}
+//											});
+//										}
 									}
 								}
 							}
@@ -219,7 +217,7 @@ public class ProximityHider extends Thread {
 					}
 				}
 			} catch (Exception e) {
-				Orebfuscator.log(e);
+				OFCLogger.log(e);
 			}
 		}
 
@@ -313,7 +311,7 @@ public class ProximityHider extends Thread {
 	}
 
 	public static void addProximityBlocks(Player player, int chunkX, int chunkZ, Set<BlockCoords> blocks) {
-		ProximityConfig proximityConfig = config.proximity(player.getWorld());
+		ProximityWorldConfig proximityConfig = config.proximity(player.getWorld());
 		if (!proximityConfig.enabled()) {
 			return;
 		}

@@ -2,7 +2,6 @@ package net.imprex.orebfuscator.nms;
 
 import java.util.Set;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -29,7 +28,7 @@ public interface NmsManager {
 
 	boolean canApplyPhysics(Material material);
 
-	void updateBlockTileEntity(BlockCoords blockCoord, Player player);
+	void updateBlockTileEntity(Player player, BlockCoords blockCoord);
 
 	int getBlockLightLevel(World world, int x, int y, int z);
 
@@ -37,7 +36,7 @@ public interface NmsManager {
 
 	int loadChunkAndGetBlockId(World world, int x, int y, int z);
 
-	boolean sendBlockChange(Player player, Location blockLocation);
+	boolean sendBlockChange(Player player, BlockCoords blockCoords);
 
 	void close();
 }

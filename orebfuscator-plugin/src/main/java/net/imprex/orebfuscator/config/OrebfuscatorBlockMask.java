@@ -34,7 +34,7 @@ public class OrebfuscatorBlockMask implements BlockMask {
 				blockMask |= BLOCK_MASK_TILEENTITY;
 			}
 
-			this.blockMask[blockId] = (byte) blockMask;
+			this.blockMask[blockId] = (short) blockMask;
 		}
 	}
 
