@@ -159,13 +159,13 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	@Override
-	public boolean sendBlockChange(Player player, BlockCoords location) {
+	public boolean sendBlockChange(Player player, BlockCoords blockCoord) {
 		WorldServer world = world(player.getWorld());
-		if (!isChunkLoaded(world, location.x >> 4, location.z >> 4)) {
+		if (!isChunkLoaded(world, blockCoord.x >> 4, blockCoord.z >> 4)) {
 			return false;
 		}
 
-		BlockPosition position = new BlockPosition(location.x, location.y, location.z);
+		BlockPosition position = new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z);
 		PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange(world, position);
 		player(player).playerConnection.sendPacket(packet);
 

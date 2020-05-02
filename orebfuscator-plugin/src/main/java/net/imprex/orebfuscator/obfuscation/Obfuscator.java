@@ -90,6 +90,7 @@ public class Obfuscator {
 		try (Chunk chunk = Chunk.fromChunkStruct(chunkStruct)) {
 			for (int sectionIndex = 0; sectionIndex < chunk.getSectionCount(); sectionIndex++) {
 				ChunkSection chunkSection = chunk.nextChunkSection();
+				// TODO faster buffer + pre calc palette
 
 				final int baseY = sectionIndex * 16;
 				for (int index = 0; index < 4096; index++) {

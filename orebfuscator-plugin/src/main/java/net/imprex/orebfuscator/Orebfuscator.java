@@ -50,12 +50,13 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 			if (this.config.proximityEnabled()) {
 				this.proximityHider.start();
 
+				this.proximityPacketListener = new ProximityPacketListener(this);
+
 				this.getServer().getPluginManager().registerEvents(new ProximityListener(this), this);
 			}
 
 			// Load packet listener
 			this.packetListener = new PacketListener(this);
-			this.proximityPacketListener = new ProximityPacketListener(this);
 		} catch(Exception e) {
 			OFCLogger.log(e);
 			OFCLogger.log(Level.SEVERE, "An error occurred by enabling plugin");

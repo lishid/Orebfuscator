@@ -2,6 +2,7 @@ package net.imprex.orebfuscator.proximityhider;
 
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -31,6 +32,7 @@ public class ProximityHider {
 
 	private final ProximityQueue queue = new ProximityQueue();
 
+	private final AtomicBoolean running = new AtomicBoolean();
 	private final ProximityThread[] queueThreads;
 
 	public ProximityHider(Orebfuscator orebfuscator) {
@@ -41,14 +43,17 @@ public class ProximityHider {
 	}
 
 	public void start() {
-		int size = 0;
+		if (!this.running.compareAndSet(false, true)) {
+			throw new IllegalStateException("proximity hider already running");
+		}
 
-		for (ProximityThread thread : this.queueThreads) {
-			if (thread == null) {
-				thread = new ProximityThread(this, this.orebfuscator);
+		for (int i = 0; i < this.queueThreads.length; i++) {
+			if (this.queueThreads[i] == null) {
+				ProximityThread thread = new ProximityThread(this, this.orebfuscator);
 				thread.setDaemon(true);
-				thread.setName("OFC - ProximityHider Thread - " + ++size);
+				thread.setName("OFC - ProximityHider Thread - #" + i);
 				thread.start();
+				this.queueThreads[i] = thread;
 			}
 		}
 	}
@@ -105,6 +110,7 @@ public class ProximityHider {
 		this.queuePlayer(player);
 	}
 
+	// TODO needs testing on teleport since I don't know if teleports get chunkunload packets
 	public void removeProximityChunks(Player player, World world, int chunkX, int chunkZ) {
 		ProximityConfig proximityConfig = this.config.proximity(player.getWorld());
 
@@ -116,6 +122,10 @@ public class ProximityHider {
 	}
 
 	public void destroy() {
+		if (!this.running.compareAndSet(true, false)) {
+			throw new IllegalStateException("proximity hider isn't running");
+		}
+
 		for (ProximityThread thread : this.queueThreads) {
 			if (thread != null) {
 				thread.destroy();
