@@ -9,8 +9,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.lishid.orebfuscator.hithack.BlockHitManager;
-
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.obfuscation.Obfuscator;
@@ -80,8 +78,6 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 		this.packetListener.unregister();
 		this.proximityPacketListener.unregister();
 		this.proximityHider.destroy();
-
-		BlockHitManager.clearAll();
 
 		this.getServer().getScheduler().cancelTasks(this);
 
