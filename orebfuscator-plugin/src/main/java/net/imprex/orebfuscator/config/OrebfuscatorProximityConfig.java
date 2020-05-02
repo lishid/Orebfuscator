@@ -12,9 +12,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.lishid.orebfuscator.Orebfuscator;
-
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.util.OFCLogger;
 import net.imprex.orebfuscator.util.WeightedRandom;
 
 public class OrebfuscatorProximityConfig implements ProximityConfig {
@@ -103,7 +102,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 			Material material = Material.matchMaterial(materialName);
 
 			if (material == null) {
-				Orebfuscator.LOGGER.warning(String.format("config section '%s.hiddenBlocks' contains unknown block '%s'",
+				OFCLogger.warn(String.format("config section '%s.hiddenBlocks' contains unknown block '%s'",
 						section.getCurrentPath(), materialName));
 				continue;
 			}
@@ -112,6 +111,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 			if (materialSection.isInt(materialName + ".y") && materialSection.isBoolean(materialName + ".above")) {
 				hideCondition = createHideCondition(materialSection.getInt(materialName + ".y"), materialSection.getBoolean(materialName + ".above"));
 			}
+			System.out.println(materialName + " " + hideCondition);
 
 			this.hiddenBlocks.put(material, hideCondition);
 		}
@@ -119,7 +119,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 
 	private void failSerialize(String message) {
 		this.enabled = false;
-		Orebfuscator.LOGGER.warning(message);
+		OFCLogger.warn(message);
 	}
 
 	public Set<Map.Entry<Material, Short>> getHiddenBlocks() {

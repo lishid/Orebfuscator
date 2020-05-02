@@ -7,10 +7,10 @@ import java.util.Set;
 
 import org.bukkit.World;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.cache.ChunkCacheEntry;
 import net.imprex.orebfuscator.chunk.Chunk;
@@ -23,6 +23,7 @@ import net.imprex.orebfuscator.config.WorldConfig;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.imprex.orebfuscator.util.ChunkPosition;
 import net.imprex.orebfuscator.util.MaterialUtil;
+import net.imprex.orebfuscator.util.MathUtil;
 
 public class Obfuscator {
 
@@ -138,7 +139,7 @@ public class Obfuscator {
 
 					// Check if the block should be obfuscated because of the darkness
 					if (!obfuscate && darknessFlag && worldConfig.darknessBlocksEnabled()) {
-						if (!areAjacentBlocksBright(world, x, y, z, 1)) {
+						if (!MathUtil.areAjacentBlocksBright(world, x, y, z, 1)) {
 							// Hide block, setting it to air
 							chunkSection.setBlock(index, NmsInstance.get().getCaveAirBlockId());
 							obfuscate = true;

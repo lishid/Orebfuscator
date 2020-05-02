@@ -13,9 +13,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.lishid.orebfuscator.Orebfuscator;
-
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.util.OFCLogger;
 import net.imprex.orebfuscator.util.WeightedRandom;
 
 public class OrebfuscatorWorldConfig implements WorldConfig {	
@@ -75,7 +74,7 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 			Material material = Material.matchMaterial(materialName);
 
 			if (material == null) {
-				Orebfuscator.LOGGER.warning(String.format("config section '%s.%s' contains unknown block '%s'",
+				OFCLogger.warn(String.format("config section '%s.%s' contains unknown block '%s'",
 						section.getCurrentPath(), path, materialName));
 				continue;
 			}
@@ -86,7 +85,7 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 
 	private void failSerialize(String message) {
 		this.enabled = false;
-		Orebfuscator.LOGGER.warning(message);
+		OFCLogger.warn(message);
 	}
 
 	public Set<Material> getHiddenBlocks() {

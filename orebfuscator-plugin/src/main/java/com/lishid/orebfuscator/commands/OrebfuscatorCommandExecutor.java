@@ -28,10 +28,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.CommandSenderUtil;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 
 public class OrebfuscatorCommandExecutor implements CommandExecutor {

@@ -25,9 +25,8 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
-import com.lishid.orebfuscator.Orebfuscator;
-
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.WorldConfig;

@@ -8,12 +8,14 @@ public class OrebfuscatorGeneralConfig implements GeneralConfig {
 	private boolean bypassNotification = true;
 	private int initialRadius = 1;
 	private int updateRadius = 2;
+	private int proximityHiderRunnerSize = 4;
 
 	public void serialize(ConfigurationSection section) {
 		this.updateOnBlockDamage = section.getBoolean("updateOnBlockDamage", true);
 		this.bypassNotification = section.getBoolean("bypassNotification", true);
 		this.initialRadius = section.getInt("initialRadius", 1);
 		this.updateRadius = section.getInt("updateRadius", 2);
+		this.proximityHiderRunnerSize = section.getInt("proximityHiderRunnerSize", 4);
 	}
 
 	@Override
@@ -34,5 +36,10 @@ public class OrebfuscatorGeneralConfig implements GeneralConfig {
 	@Override
 	public int updateRadius() {
 		return this.updateRadius;
+	}
+
+	@Override
+	public int proximityHiderRunnerSize() {
+		return this.proximityHiderRunnerSize;
 	}
 }

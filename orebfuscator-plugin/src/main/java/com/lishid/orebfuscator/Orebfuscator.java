@@ -29,9 +29,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.lishid.orebfuscator.chunkmap.ChunkMapBuffer;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
-import com.lishid.orebfuscator.obfuscation.BlockUpdate;
-import com.lishid.orebfuscator.obfuscation.Calculations;
-import com.lishid.orebfuscator.obfuscation.ProximityHider;
 import com.lishid.orebfuscator.utils.Globals;
 import com.lishid.orebfuscator.utils.MaterialHelper;
 
@@ -87,14 +84,14 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 			MaterialHelper.initialize();
 			ChunkMapBuffer.initialize(NmsInstance.get().getBitsPerBlock());
 
-			this.chunkCache = new ChunkCache(this);
-
-			BlockHitManager.initialize(this);
-			BlockUpdate.initialize(this);
-			Calculations.initialize(this);
-			ProximityHider.initialize(this);
-
-			this.obfuscator = new Obfuscator(this);
+//			this.chunkCache = new ChunkCache(this);
+//
+//			BlockHitManager.initialize(this);
+//			BlockUpdate.initialize(this);
+//			Calculations.initialize(this);
+//			ProximityHider.initialize(this);
+//
+//			this.obfuscator = new Obfuscator(this);
 
 			// Register events
 //			pluginManager.registerEvents(new OrebfuscatorPlayerListener(this), this);
@@ -106,7 +103,7 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 
 			// Register protocolLib
 //			new ProtocolLibHook(this).register(this.obfuscator);
-			this.packetListener = new PacketListener(this);
+//			this.packetListener = new PacketListener(this);
 
 			// Run CacheCleaner
 //			this.getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleaner(this), 0,

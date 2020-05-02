@@ -3,7 +3,7 @@ api-version: 1.15
 name: Orebfuscator
 version: 5.0.1
 
-main: com.lishid.orebfuscator.Orebfuscator
+main: net.imprex.orebfuscator.Orebfuscator
 
 author: lishid
 authors: [Ingrim4, NgLoader, SydMontague, ProgrammerDan, Aleksey-Terzi]

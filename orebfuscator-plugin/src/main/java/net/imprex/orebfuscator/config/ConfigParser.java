@@ -10,7 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.lishid.orebfuscator.Orebfuscator;
+import net.imprex.orebfuscator.util.OFCLogger;
 
 public class ConfigParser {
 
@@ -57,7 +57,7 @@ public class ConfigParser {
 			World world = Bukkit.getWorld(worldName);
 
 			if (world == null) {
-				Orebfuscator.LOGGER.warning(String.format("config section '%s.%s' contains unknown world '%s'",
+				OFCLogger.warn(String.format("config section '%s.%s' contains unknown world '%s'",
 						section.getCurrentPath(), path, worldName));
 				continue;
 			}
@@ -84,7 +84,7 @@ public class ConfigParser {
 			Material material = Material.matchMaterial(materialName);
 
 			if (material == null) {
-				Orebfuscator.LOGGER.warning(String.format("config section '%s.%s' contains unknown block '%s'",
+				OFCLogger.warn(String.format("config section '%s.%s' contains unknown block '%s'",
 						section.getCurrentPath(), path, materialName));
 				continue;
 			}
