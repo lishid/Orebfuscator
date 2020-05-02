@@ -27,9 +27,13 @@ import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.lishid.orebfuscator.chunkmap.ChunkMapBuffer;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
+import com.lishid.orebfuscator.obfuscation.BlockUpdate;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import com.lishid.orebfuscator.obfuscation.ProximityHider;
 import com.lishid.orebfuscator.utils.Globals;
+import com.lishid.orebfuscator.utils.MaterialHelper;
 
 import net.imprex.orebfuscator.NmsInstance;
 import net.imprex.orebfuscator.cache.ChunkCache;
@@ -80,15 +84,15 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 			// Load configurations
 			this.config = new OrebfuscatorConfig(this);
 
-//			MaterialHelper.initialize();
-//			ChunkMapBuffer.initialize(NmsInstance.get().getBitsPerBlock());
+			MaterialHelper.initialize();
+			ChunkMapBuffer.initialize(NmsInstance.get().getBitsPerBlock());
 
 			this.chunkCache = new ChunkCache(this);
 
-//			BlockHitManager.initialize(this);
-//			BlockUpdate.initialize(this);
+			BlockHitManager.initialize(this);
+			BlockUpdate.initialize(this);
 			Calculations.initialize(this);
-//			ProximityHider.initialize(this);
+			ProximityHider.initialize(this);
 
 			this.obfuscator = new Obfuscator(this);
 

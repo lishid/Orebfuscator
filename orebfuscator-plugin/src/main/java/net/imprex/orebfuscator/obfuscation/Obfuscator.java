@@ -109,25 +109,14 @@ public class Obfuscator {
 					boolean tileEntityFlag = (obfuscateBits & BlockMask.BLOCK_MASK_TILEENTITY) != 0;
 					boolean proximityFlag = (obfuscateBits & BlockMask.BLOCK_MASK_PROXIMITY) != 0;
 
-					boolean obfuscate = false;
+					boolean obfuscate = proximityFlag;
 
-					// Check if the block should be obfuscated for the default engine modes
+					// Check if the block should be obfuscated
 					if (obfuscateFlag) {
 						if (initialRadius == 0) {
-							// Do not interfere with PH
-							if (proximityFlag) {
-								if (!areAjacentBlocksTransparent(world, x, y, z, false, 1)) {
-									obfuscate = true;
-								}
-							} else {
-								// Obfuscate all blocks
-								obfuscate = true;
-							}
-						} else {
-							// Check if any nearby blocks are transparent
-							if (!areAjacentBlocksTransparent(world, x, y, z, false, initialRadius)) {
-								obfuscate = true;
-							}
+							obfuscate = true;
+						} else if (!areAjacentBlocksTransparent(world, x, y, z, false, initialRadius)) {
+							obfuscate = true;
 						}
 					}
 
@@ -170,18 +159,18 @@ public class Obfuscator {
 			return new ChunkCacheEntry(hash, data, proximityBlocks, removedTileEntities);
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
+			throw new Error(e);
 		}
 	}
 
-	public static boolean areAjacentBlocksTransparent(World world, int x, int y, int z, boolean check, int depth) {
+	private static boolean areAjacentBlocksTransparent(World world, int x, int y, int z, boolean check, int depth) {
 		if (y >= world.getMaxHeight() || y < 0) {
 			return true;
 		}
 
 		if (check) {
-			int blockData = NmsInstance.get().loadChunkAndGetBlockId(world, x, y, z);
-			if (blockData >= 0 && MaterialUtil.isTransparent(blockData)) {
+			int blockId = NmsInstance.get().loadChunkAndGetBlockId(world, x, y, z);
+			if (blockId >= 0 && MaterialUtil.isTransparent(blockId)) {
 				return true;
 			}
 		}

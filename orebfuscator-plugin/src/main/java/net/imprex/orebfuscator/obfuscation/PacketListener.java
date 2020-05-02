@@ -84,6 +84,20 @@ public class PacketListener extends PacketAdapter {
 
 //			ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, chunkEntry.getProximityBlocks());
 		}
+
+//		ChunkData chunkData = new ChunkData();
+//		chunkData.chunkX = ints.read(0);
+//		chunkData.chunkZ = ints.read(1);
+//		chunkData.groundUpContinuous = true;
+//		chunkData.primaryBitMask = ints.read(2);
+//		chunkData.data = byteArray.read(0);
+//		chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
+//		chunkData.blockEntities = Collections.emptyList();
+//
+//		Result result = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
+//		if (result != null) {
+//			byteArray.write(0, result.output);
+//		}
 	}
 
 	private static void removeBlockEntities(List<NbtBase<?>> tileEntityList, Set<BlockCoords> removedTileEntities) {

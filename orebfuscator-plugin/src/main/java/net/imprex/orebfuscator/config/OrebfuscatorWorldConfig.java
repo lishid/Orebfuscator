@@ -26,6 +26,7 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 	private final Set<Material> darknessBlocks = new HashSet<>();
 
 	private final Map<Material, Integer> randomBlocks = new HashMap<>();
+	private final List<Integer> randomBlockIds = new ArrayList<>();
 	private final WeightedRandom<Integer> randomMaterials = new WeightedRandom<>();
 
 	protected void initialize() {
@@ -33,6 +34,7 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 		for (Entry<Material, Integer> entry : this.randomBlocks.entrySet()) {
 			int blockId = NmsInstance.get().getMaterialIds(entry.getKey()).iterator().next();
 			this.randomMaterials.add(entry.getValue(), blockId);
+			this.randomBlockIds.add(blockId);
 		}
 	}
 
@@ -108,6 +110,11 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 	@Override
 	public boolean darknessBlocksEnabled() {
 		return this.darknessBlocks.size() != 0;
+	}
+
+	@Override
+	public List<Integer> randomBlocks() {
+		return this.randomBlockIds;
 	}
 
 	@Override

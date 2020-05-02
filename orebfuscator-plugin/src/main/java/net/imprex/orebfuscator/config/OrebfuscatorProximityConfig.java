@@ -44,6 +44,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 	private Map<Material, Short> hiddenBlocks = new HashMap<>();
 
 	private Map<Material, Integer> randomBlocks = new HashMap<>();
+	private final List<Integer> randomBlockIds = new ArrayList<>();
 	private WeightedRandom<Integer> randomMaterials = new WeightedRandom<>();
 
 	protected void initialize() {
@@ -51,6 +52,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 		for (Entry<Material, Integer> entry : this.randomBlocks.entrySet()) {
 			int blockId = NmsInstance.get().getMaterialIds(entry.getKey()).iterator().next();
 			this.randomMaterials.add(entry.getValue(), blockId);
+			this.randomBlockIds.add(blockId);
 		}
 	}
 
@@ -147,6 +149,11 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 	@Override
 	public boolean useFastGazeCheck() {
 		return this.useFastGazeCheck;
+	}
+
+	@Override
+	public List<Integer> randomBlocks() {
+		return this.randomBlockIds;
 	}
 
 	@Override

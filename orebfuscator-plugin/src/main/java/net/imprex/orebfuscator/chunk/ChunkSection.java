@@ -1,7 +1,5 @@
 package net.imprex.orebfuscator.chunk;
 
-import java.util.function.BiConsumer;
-
 import net.imprex.orebfuscator.NmsInstance;
 
 public class ChunkSection {
@@ -14,6 +12,10 @@ public class ChunkSection {
 
 	public ChunkSection() {
 		this.setBitsPerBlock(4);
+	}
+
+	public ChunkSection(int bitsPerBlock) {
+		this.setBitsPerBlock(bitsPerBlock);
 	}
 
 	private void setBitsPerBlock(int bitsPerBlock) {
@@ -74,10 +76,6 @@ public class ChunkSection {
 
 	public int getBlock(int index) {
 		return this.palette.toBlockId(this.data.get(index));
-	}
-
-	public void forEach(BiConsumer<Integer, Integer> consumer) {
-		this.data.forEach((paletteIndex, index) -> consumer.accept(palette.toBlockId(paletteIndex), index));
 	}
 
 	public void write(ChunkBuffer chunkBuffer) {

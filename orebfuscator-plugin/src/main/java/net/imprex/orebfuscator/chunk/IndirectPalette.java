@@ -1,10 +1,15 @@
 package net.imprex.orebfuscator.chunk;
 
-import net.imprex.orebfuscator.util.ObjectIdMap;
+import java.util.Arrays;
+
+import net.imprex.orebfuscator.NmsInstance;
 
 public class IndirectPalette implements Palette {
 
-	private final ObjectIdMap<Integer> palette;
+	private final byte[] blockToIndex;
+	private final int[] indexToBlock;
+	private int index = 0;
+
 	private final ChunkSection chunkSection;
 	private final int bitsPerBlock;
 
@@ -12,19 +17,22 @@ public class IndirectPalette implements Palette {
 		this.bitsPerBlock = bitsPerBlock;
 		this.chunkSection = chunkSection;
 
-		this.palette = new ObjectIdMap<Integer>(1 << bitsPerBlock);
+		this.blockToIndex = new byte[NmsInstance.get().getMaterialSize()];
+		Arrays.fill(this.blockToIndex, (byte) -1);
+		this.indexToBlock = new int[1 << bitsPerBlock];
 	}
 
 	@Override
 	public int fromBlockId(int block) {
-		Integer blockId = Integer.valueOf(block);
-
-		int index = this.palette.getKey(blockId);
+		int index = this.blockToIndex[block];
 		if (index == -1) {
-			index = this.palette.add(blockId);
+			index = this.index++;
 
 			if (index >= 1 << this.bitsPerBlock) {
 				index = this.chunkSection.grow(this.bitsPerBlock + 1, block);
+			} else {
+				this.blockToIndex[block] = (byte) index;
+				this.indexToBlock[index] = block;
 			}
 		}
 
@@ -33,31 +41,29 @@ public class IndirectPalette implements Palette {
 
 	@Override
 	public int toBlockId(int index) {
-		return this.palette.getValue(index);
+		return this.indexToBlock[index];
 	}
 
 	@Override
 	public void read(ChunkBuffer buffer) {
-		this.palette.clear();
-
 		int size = buffer.readVarInt();
 		for (int i = 0; i < size; i++) {
-			this.palette.add(Integer.valueOf(buffer.readVarInt()));
+			this.fromBlockId(buffer.readVarInt());
 		}
 	}
 
 	@Override
 	public void write(ChunkBuffer buffer) {
-		int size = this.palette.size();
+		int size = this.indexToBlock.length;
 		buffer.writeVarInt(size);
 
 		for (int i = 0; i < size; i++) {
-			buffer.writeVarInt(this.palette.getValue(i));
+			buffer.writeVarInt(this.toBlockId(i));
 		}
 	}
 
 	@Override
 	public String toString() {
-		return this.palette.toString();
+		return Arrays.toString(this.indexToBlock);
 	}
 }

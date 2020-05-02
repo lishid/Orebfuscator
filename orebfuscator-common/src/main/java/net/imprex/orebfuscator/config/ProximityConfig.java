@@ -16,5 +16,7 @@ public interface ProximityConfig {
 
 	boolean useFastGazeCheck();
 
+	List<Integer> randomBlocks();
+
 	int randomBlockId();
 }

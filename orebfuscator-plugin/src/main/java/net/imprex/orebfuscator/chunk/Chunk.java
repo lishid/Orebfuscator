@@ -3,14 +3,15 @@ package net.imprex.orebfuscator.chunk;
 import java.util.Arrays;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledByteBufAllocator;
 
 public class Chunk implements AutoCloseable {
 
 	public static Chunk fromChunkStruct(ChunkStruct chunkStruct) {
 		int sectionCount;
-		for (sectionCount = 0; (chunkStruct.primaryBitMask & (1 << sectionCount)) != 0; sectionCount++) {}
+		for (sectionCount = 0; (chunkStruct.primaryBitMask & (1 << sectionCount)) != 0; sectionCount++) {
+		}
 
 		int extraBytes = ChunkCapabilities.hasLightArray ? 2048 : 0;
 		if (chunkStruct.isOverworld) {
@@ -29,8 +30,9 @@ public class Chunk implements AutoCloseable {
 	private Chunk(int sectionCount, int extraBytes, byte[] data) {
 		this.sectionCount = sectionCount;
 		this.extraBytes = extraBytes;
+
 		this.inputBuffer = Unpooled.wrappedBuffer(data);
-		this.outputBuffer = UnpooledByteBufAllocator.DEFAULT.heapBuffer();
+		this.outputBuffer = PooledByteBufAllocator.DEFAULT.heapBuffer(data.length);
 	}
 
 	public int getSectionCount() {
@@ -50,7 +52,8 @@ public class Chunk implements AutoCloseable {
 
 	public byte[] finalizeOutput() {
 		this.outputBuffer.writeBytes(this.inputBuffer);
-		return Arrays.copyOf(this.outputBuffer.array(), this.outputBuffer.readableBytes());
+		return Arrays.copyOfRange(this.outputBuffer.array(), this.outputBuffer.arrayOffset(),
+				this.outputBuffer.arrayOffset() + this.outputBuffer.readableBytes());
 	}
 
 	@Override
