@@ -7,17 +7,17 @@ import net.imprex.orebfuscator.util.BlockCoords;
 
 public class ChunkCacheEntry {
 
-	private final long hash;
+	private final byte[] hash;
 	private final byte[] data;
 
 	private final Set<BlockCoords> proximityBlocks;
 	private final Set<BlockCoords> removedTileEntities;
 
-	public ChunkCacheEntry(long hash, byte[] data) {
+	public ChunkCacheEntry(byte[] hash, byte[] data) {
 		this(hash, data, new HashSet<>(), new HashSet<>());
 	}
 
-	public ChunkCacheEntry(long hash, byte[] data, Set<BlockCoords> proximityBlocks,
+	public ChunkCacheEntry(byte[] hash, byte[] data, Set<BlockCoords> proximityBlocks,
 			Set<BlockCoords> removedTileEntities) {
 		this.hash = hash;
 		this.data = data;
@@ -25,7 +25,7 @@ public class ChunkCacheEntry {
 		this.removedTileEntities = removedTileEntities;
 	}
 
-	public long getHash() {
+	public byte[] getHash() {
 		return this.hash;
 	}
 

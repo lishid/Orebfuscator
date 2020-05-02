@@ -52,7 +52,7 @@ public class Calculations {
 	}
 
 	public static ChunkCacheEntry obfuscateChunk(ChunkData chunkData, Player player, WorldConfig worldConfig,
-			long hash) {
+			byte[] hash) {
 		List<BlockCoords> proximityBlocks = new ArrayList<>();
 		List<BlockCoords> removedEntities = new ArrayList<>();
 		try {
@@ -95,7 +95,7 @@ public class Calculations {
 		ChunkPosition position = new ChunkPosition(player.getWorld().getName(), chunkData.chunkX, chunkData.chunkZ);
 		ChunkCacheEntry cacheEntry = null;
 
-		final long hash = CalculationsUtil.Hash(chunkData.data, chunkData.data.length, Calculations.config.hash());
+		final byte[] hash = ChunkCache.hash(Calculations.config.hash(), chunkData.data);
 
 		if (Calculations.config.cache().enabled()) {
 			cacheEntry = Calculations.chunkCache.get(position, hash,

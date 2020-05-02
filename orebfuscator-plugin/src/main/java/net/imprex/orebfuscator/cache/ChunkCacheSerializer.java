@@ -29,7 +29,8 @@ public class ChunkCacheSerializer {
 					return null;
 				}
 
-				long hash = dataInputStream.readLong();
+				byte[] hash = new byte[dataInputStream.readInt()];
+				dataInputStream.readFully(hash);
 
 				byte[] data = new byte[dataInputStream.readInt()];
 				dataInputStream.readFully(data);
@@ -61,7 +62,10 @@ public class ChunkCacheSerializer {
 
 			if (value != null) {
 				dataOutputStream.writeBoolean(true);
-				dataOutputStream.writeLong(value.getHash());
+
+				byte[] hash = value.getHash();
+				dataOutputStream.writeInt(hash.length);
+				dataOutputStream.write(hash, 0, hash.length);
 
 				byte[] data = value.getData();
 				dataOutputStream.writeInt(data.length);

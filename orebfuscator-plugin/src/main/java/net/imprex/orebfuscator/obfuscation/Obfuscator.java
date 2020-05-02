@@ -7,8 +7,6 @@ import java.util.Set;
 
 import org.bukkit.World;
 
-import com.lishid.orebfuscator.obfuscation.CalculationsUtil;
-
 import net.imprex.orebfuscator.NmsInstance;
 import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.cache.ChunkCache;
@@ -66,7 +64,7 @@ public class Obfuscator {
 		}
 
 		final ChunkPosition position = new ChunkPosition(world.getName(), chunkStruct.chunkX, chunkStruct.chunkZ);
-		final long hash = CalculationsUtil.Hash(chunkStruct.data, chunkStruct.data.length, this.config.hash());
+		final byte[] hash = ChunkCache.hash(this.config.hash(), chunkStruct.data);
 
 		if (this.config.cache().enabled()) {
 			return this.chunkCache.get(position, hash, key -> this.obfuscate(hash, world, chunkStruct));
@@ -75,7 +73,7 @@ public class Obfuscator {
 		}
 	}
 
-	private ChunkCacheEntry obfuscate(long hash, World world, ChunkStruct chunkStruct) {
+	private ChunkCacheEntry obfuscate(byte[] hash, World world, ChunkStruct chunkStruct) {
 		BlockMask blockMask = this.config.blockMask(world);
 		WorldConfig worldConfig = this.config.world(world);
 		ProximityConfig proximityConfig = this.config.proximity(world);
