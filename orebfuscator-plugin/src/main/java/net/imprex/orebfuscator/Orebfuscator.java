@@ -17,6 +17,7 @@ import net.imprex.orebfuscator.obfuscation.Obfuscator;
 import net.imprex.orebfuscator.obfuscation.PacketListener;
 import net.imprex.orebfuscator.proximityhider.ProximityHider;
 import net.imprex.orebfuscator.proximityhider.ProximityListener;
+import net.imprex.orebfuscator.proximityhider.ProximityPacketListener;
 import net.imprex.orebfuscator.util.OFCLogger;
 
 public class Orebfuscator extends JavaPlugin implements Listener {
@@ -26,6 +27,7 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 	private Obfuscator obfuscator;
 	private ProximityHider proximityHider;
 	private PacketListener packetListener;
+	private ProximityPacketListener proximityPacketListener;
 
 	@Override
 	public void onEnable() {
@@ -55,6 +57,7 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 
 			// Load packet listener
 			this.packetListener = new PacketListener(this);
+			this.proximityPacketListener = new ProximityPacketListener(this);
 		} catch(Exception e) {
 			OFCLogger.log(e);
 			OFCLogger.log(Level.SEVERE, "An error occurred by enabling plugin");
@@ -106,5 +109,9 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 
 	public PacketListener getPacketListener() {
 		return this.packetListener;
+	}
+
+	public ProximityPacketListener getProximityPacketListener() {
+		return this.proximityPacketListener;
 	}
 }

@@ -105,6 +105,16 @@ public class ProximityHider {
 		this.queuePlayer(player);
 	}
 
+	public void removeProximityChunks(Player player, World world, int chunkX, int chunkZ) {
+		ProximityWorldConfig proximityWorldConfig = this.config.proximity(player.getWorld());
+
+		if (proximityWorldConfig == null || !proximityWorldConfig.enabled()) {
+			return;
+		}
+
+		this.getPlayer(player).removeChunk(chunkX, chunkZ);
+	}
+
 	public void destroy() {
 		for (ProximityThread thread : this.queueThreads) {
 			if (thread != null) {
