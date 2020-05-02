@@ -34,7 +34,7 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 		try {
 			// Check if protocolLib is enabled
 			if (this.getServer().getPluginManager().getPlugin("ProtocolLib") == null) {
-				OFCLogger.log("ProtocolLib is not found! Plugin cannot be enabled.");
+				OFCLogger.log("[OFC] ProtocolLib is not found! Plugin cannot be enabled.");
 				return;
 			}
 
@@ -78,6 +78,7 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 		NmsInstance.get().getRegionFileCache().clear();
 		this.chunkCache.invalidateAll(true);
 		this.packetListener.unregister();
+		this.proximityPacketListener.unregister();
 		this.proximityHider.destroy();
 
 		BlockHitManager.clearAll();
