@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Stack;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.chunk.ChunkCapabilities;
 
 public class ChunkMapManager implements AutoCloseable {
 
@@ -68,7 +69,7 @@ public class ChunkMapManager implements AutoCloseable {
 		manager.minZ = chunkData.chunkZ << 4;
 		manager.maxZ = manager.minZ + 15;
 
-		manager.buffer.lightArrayLength = NmsInstance.get().hasLightArray() ? 2048 : 0;
+		manager.buffer.lightArrayLength = ChunkCapabilities.hasLightArray ? 2048 : 0;
 
 		if (chunkData.isOverworld) {
 			manager.buffer.lightArrayLength <<= 1;
@@ -150,7 +151,7 @@ public class ChunkMapManager implements AutoCloseable {
 		this.buffer.writer.setBitsPerBlock(this.buffer.outputBitsPerBlock);
 
 		// Block count
-		if (NmsInstance.get().hasBlockCount()) {
+		if (ChunkCapabilities.hasBlockCount) {
 			this.buffer.writer.writeShort((short) this.buffer.blockCount);
 		}
 
@@ -372,7 +373,7 @@ public class ChunkMapManager implements AutoCloseable {
 	}
 
 	private void readSectionHeader() throws IOException {
-		if (NmsInstance.get().hasBlockCount()) {
+		if (ChunkCapabilities.hasBlockCount) {
 			this.buffer.blockCount = this.reader.readShort();
 		}
 

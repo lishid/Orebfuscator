@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Simple cache implementation that removed the oldest element once a certain size is reached
+ * Simple cache implementation that removes the oldest element once a certain size is reached
  */
 public class SimpleCache<K, V> extends LinkedHashMap<K, V> {
 

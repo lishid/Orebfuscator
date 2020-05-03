@@ -22,7 +22,7 @@ import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
+import net.imprex.orebfuscator.Orebfuscator;
 
 public class BlockHitManager {
 	

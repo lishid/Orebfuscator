@@ -8,9 +8,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.TimeUnit;
 
-import com.lishid.orebfuscator.Orebfuscator;
-
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.CacheConfig;
 import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 

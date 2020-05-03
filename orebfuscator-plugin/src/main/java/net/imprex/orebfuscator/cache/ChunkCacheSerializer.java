@@ -3,7 +3,7 @@ package net.imprex.orebfuscator.cache;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 import net.imprex.orebfuscator.NmsInstance;
 import net.imprex.orebfuscator.util.BlockCoords;
@@ -29,19 +29,20 @@ public class ChunkCacheSerializer {
 					return null;
 				}
 
-				long hash = dataInputStream.readLong();
+				byte[] hash = new byte[dataInputStream.readInt()];
+				dataInputStream.readFully(hash);
 
 				byte[] data = new byte[dataInputStream.readInt()];
 				dataInputStream.readFully(data);
 
 				ChunkCacheEntry chunkCacheEntry = new ChunkCacheEntry(hash, data);
 
-				List<BlockCoords> proximityBlocks = chunkCacheEntry.getProximityBlocks();
+				Collection<BlockCoords> proximityBlocks = chunkCacheEntry.getProximityBlocks();
 				for (int i = dataInputStream.readInt(); i > 0; i--) {
 					proximityBlocks.add(BlockCoords.fromLong(dataInputStream.readLong()));
 				}
 
-				List<BlockCoords> removedEntities = chunkCacheEntry.getRemovedEntities();
+				Collection<BlockCoords> removedEntities = chunkCacheEntry.getRemovedTileEntities();
 				for (int i = dataInputStream.readInt(); i > 0; i--) {
 					removedEntities.add(BlockCoords.fromLong(dataInputStream.readLong()));
 				}
@@ -61,19 +62,22 @@ public class ChunkCacheSerializer {
 
 			if (value != null) {
 				dataOutputStream.writeBoolean(true);
-				dataOutputStream.writeLong(value.getHash());
+
+				byte[] hash = value.getHash();
+				dataOutputStream.writeInt(hash.length);
+				dataOutputStream.write(hash, 0, hash.length);
 
 				byte[] data = value.getData();
 				dataOutputStream.writeInt(data.length);
 				dataOutputStream.write(data, 0, data.length);
 
-				List<BlockCoords> proximityBlocks = value.getProximityBlocks();
+				Collection<BlockCoords> proximityBlocks = value.getProximityBlocks();
 				dataOutputStream.writeInt(proximityBlocks.size());
 				for (BlockCoords blockPosition : proximityBlocks) {
 					dataOutputStream.writeLong(blockPosition.toLong());
 				}
 
-				List<BlockCoords> removedEntities = value.getRemovedEntities();
+				Collection<BlockCoords> removedEntities = value.getRemovedTileEntities();
 				dataOutputStream.writeInt(removedEntities.size());
 				for (BlockCoords blockPosition : removedEntities) {
 					dataOutputStream.writeLong(blockPosition.toLong());

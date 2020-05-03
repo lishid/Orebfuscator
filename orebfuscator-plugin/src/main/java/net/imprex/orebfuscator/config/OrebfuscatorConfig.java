@@ -16,10 +16,11 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.utils.Globals;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
+import net.imprex.orebfuscator.util.OFCLogger;
 
 public class OrebfuscatorConfig implements Config {
 
@@ -29,8 +30,9 @@ public class OrebfuscatorConfig implements Config {
 	private final OrebfuscatorCacheConfig cacheConfig = new OrebfuscatorCacheConfig();
 
 	private final List<OrebfuscatorWorldConfig> world = new ArrayList<>();
-	private final List<OrebfuscatorProximityConfig> proximity = new ArrayList<>();
+	private final List<OrebfuscatorProximityConfig> proximityWorlds = new ArrayList<>();
 
+	private final Map<World, OrebfuscatorBlockMask> worldToBlockMask = new HashMap<>();
 	private final Map<World, OrebfuscatorWorldConfig> worldToWorldConfig = new HashMap<>();
 	private final Map<World, OrebfuscatorProximityConfig> worldToProximityConfig = new HashMap<>();
 
@@ -100,20 +102,20 @@ public class OrebfuscatorConfig implements Config {
 		}
 
 		this.world.clear();
-		this.proximity.clear();
+		this.proximityWorlds.clear();
 
 		ConfigurationSection generalSection = section.getConfigurationSection("general");
 		if (generalSection != null) {
 			this.generalConfig.serialize(generalSection);
 		} else {
-			Orebfuscator.LOGGER.warning("config section 'general' is missing, using default one");
+			OFCLogger.warn("config section 'general' is missing, using default one");
 		}
 
 		ConfigurationSection cacheSection = section.getConfigurationSection("cache");
 		if (cacheSection != null) {
 			this.cacheConfig.serialize(cacheSection);
 		} else {
-			Orebfuscator.LOGGER.warning("config section 'cache' is missing, using default one");
+			OFCLogger.warn("config section 'cache' is missing, using default one");
 		}
 
 		List<ConfigurationSection> worldSectionList = ConfigParser.serializeSectionList(section, "world");
@@ -124,7 +126,7 @@ public class OrebfuscatorConfig implements Config {
 				this.world.add(worldConfig);
 			}
 		} else {
-			Orebfuscator.LOGGER.warning("config section 'world' is missing or empty");
+			OFCLogger.warn("config section 'world' is missing or empty");
 		}
 
 		List<ConfigurationSection> proximitySectionList = ConfigParser.serializeSectionList(section, "proximity");
@@ -132,10 +134,10 @@ public class OrebfuscatorConfig implements Config {
 			for (ConfigurationSection proximitySection : proximitySectionList) {
 				OrebfuscatorProximityConfig proximityHiderConfig = new OrebfuscatorProximityConfig();
 				proximityHiderConfig.serialize(proximitySection);
-				this.proximity.add(proximityHiderConfig);
+				this.proximityWorlds.add(proximityHiderConfig);
 			}
 		} else {
-			Orebfuscator.LOGGER.warning("config section 'proximity' is missing or empty");
+			OFCLogger.warn("config section 'proximity' is missing or empty");
 		}
 	}
 
@@ -146,8 +148,7 @@ public class OrebfuscatorConfig implements Config {
 			worldConfig.initialize();
 			for (World world : worldConfig.worlds()) {
 				if (this.worldToWorldConfig.containsKey(world)) {
-					Orebfuscator.LOGGER
-							.warning("world " + world.getName() + " has more than one world config choosing first one");
+					OFCLogger.warn("world " + world.getName() + " has more than one world config choosing first one");
 				} else {
 					this.worldToWorldConfig.put(world, worldConfig);
 				}
@@ -156,20 +157,29 @@ public class OrebfuscatorConfig implements Config {
 
 		for (World world : Bukkit.getWorlds()) {
 			if (!this.worldToWorldConfig.containsKey(world)) {
-				throw new IllegalStateException("world " + world.getName() + " is missing a world config");
+				OFCLogger.warn("world " + world.getName() + " is missing a world config");
 			}
 		}
 
-		for (OrebfuscatorProximityConfig proximityConfig : this.proximity) {
+		for (OrebfuscatorProximityConfig proximityConfig : this.proximityWorlds) {
 			proximityConfig.initialize();
 			for (World world : proximityConfig.worlds()) {
 				if (this.worldToProximityConfig.containsKey(world)) {
-					Orebfuscator.LOGGER
-							.warning("world " + world.getName() + " has more than one proximity config choosing first one");
+					OFCLogger.warn("world " + world.getName() + " has more than one proximity config choosing first one");
 				} else {
 					this.worldToProximityConfig.put(world, proximityConfig);
 				}
 			}
+		}
+
+		for (World world : Bukkit.getWorlds()) {
+			if (!this.worldToWorldConfig.containsKey(world)) {
+				OFCLogger.warn("world " + world.getName() + " is missing a world config");
+			}
+
+			OrebfuscatorWorldConfig worldConfig = this.worldToWorldConfig.get(world);
+			OrebfuscatorProximityConfig proximityConfig = this.worldToProximityConfig.get(world);
+			this.worldToBlockMask.put(world, new OrebfuscatorBlockMask(worldConfig, proximityConfig));
 		}
 	}
 
@@ -184,13 +194,19 @@ public class OrebfuscatorConfig implements Config {
 	}
 
 	@Override
+	public BlockMask blockMask(World world) {
+		return this.worldToBlockMask.get(Objects.requireNonNull(world));
+	}
+
+	@Override
 	public OrebfuscatorWorldConfig world(World world) {
 		return this.worldToWorldConfig.get(Objects.requireNonNull(world));
 	}
 
 	@Override
 	public boolean proximityEnabled() {
-		return this.proximity.size() != 0;
+		// TODO check if at least one config is enabled
+		return this.proximityWorlds.size() != 0;
 	}
 
 	@Override

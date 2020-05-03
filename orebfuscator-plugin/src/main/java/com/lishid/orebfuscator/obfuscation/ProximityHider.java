@@ -19,22 +19,22 @@ package com.lishid.orebfuscator.obfuscation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.lishid.orebfuscator.Orebfuscator;
-import com.lishid.orebfuscator.nms.IBlockInfo;
-
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.ProximityConfig;
+import net.imprex.orebfuscator.nms.BlockStateHolder;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.imprex.orebfuscator.util.MaterialUtil;
+import net.imprex.orebfuscator.util.OFCLogger;
 
 public class ProximityHider extends Thread {
 
@@ -51,11 +51,9 @@ public class ProximityHider extends Thread {
 	private AtomicBoolean kill = new AtomicBoolean(false);
 	private static boolean running = false;
 
-	private static Orebfuscator orebfuscator;
 	private static OrebfuscatorConfig config;
 
 	public static void initialize(Orebfuscator orebfuscator) {
-		ProximityHider.orebfuscator = orebfuscator;
 		ProximityHider.config = orebfuscator.getOrebfuscatorConfig();
 	}
 
@@ -172,7 +170,7 @@ public class ProximityHider extends Thread {
 
 					for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
 						for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
-							List<BlockCoords> blocks = localPlayerInfo.getBlocks(chunkX, chunkZ);
+							Set<BlockCoords> blocks = localPlayerInfo.getBlocks(chunkX, chunkZ);
 
 							if (blocks == null) {
 								continue;
@@ -195,17 +193,17 @@ public class ProximityHider extends Thread {
 										// 4.3.1 -- GAZE CHECK END
 										removedBlocks.add(b);
 
-										if (NmsInstance.get().sendBlockChange(p, blockLocation)) {
-											final BlockCoords block = b;
-											final Player player = p;
-
-											ProximityHider.orebfuscator.runTask(new Runnable() {
-												@Override
-												public void run() {
-													NmsInstance.get().updateBlockTileEntity(block, player);
-												}
-											});
-										}
+//										if (NmsInstance.get().sendBlockChange(p, blockLocation)) {
+//											final BlockCoords block = b;
+//											final Player player = p;
+//
+//											ProximityHider.orebfuscator.runTask(new Runnable() {
+//												@Override
+//												public void run() {
+//													NmsInstance.get().updateBlockTileEntity(block, player);
+//												}
+//											});
+//										}
 									}
 								}
 							}
@@ -219,7 +217,7 @@ public class ProximityHider extends Thread {
 					}
 				}
 			} catch (Exception e) {
-				Orebfuscator.log(e);
+				OFCLogger.log(e);
 			}
 		}
 
@@ -290,9 +288,8 @@ public class ProximityHider extends Thread {
 			if (lx == bx && ly == by && lz == bz) {
 				return true; // we've reached our starting block, don't test it.
 			}
-			IBlockInfo between = NmsInstance.get().getBlockInfo(world, (int) lx, (int) ly, (int) lz);
-			if (between != null
-					&& !MaterialUtil.isTransparent(between.getCombinedId())) {
+			BlockStateHolder between = NmsInstance.get().getBlockState(world, (int) lx, (int) ly, (int) lz);
+			if (between != null && !MaterialUtil.isTransparent(between.getBlockId())) {
 				return false; // fail on first hit, this ray is "blocked"
 			}
 			s--; // we stop
@@ -313,7 +310,7 @@ public class ProximityHider extends Thread {
 		}
 	}
 
-	public static void addProximityBlocks(Player player, int chunkX, int chunkZ, List<BlockCoords> blocks) {
+	public static void addProximityBlocks(Player player, int chunkX, int chunkZ, Set<BlockCoords> blocks) {
 		ProximityConfig proximityConfig = config.proximity(player.getWorld());
 		if (!proximityConfig.enabled()) {
 			return;

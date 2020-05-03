@@ -8,6 +8,8 @@ public interface Config {
 
 	CacheConfig cache();
 
+	BlockMask blockMask(World world);
+
 	WorldConfig world(World world);
 	
 	boolean proximityEnabled();

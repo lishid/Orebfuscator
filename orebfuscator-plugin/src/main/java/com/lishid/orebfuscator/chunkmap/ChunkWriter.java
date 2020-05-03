@@ -41,10 +41,14 @@ public class ChunkWriter {
 		this.bitIndex = 0;
 	}
 
-	public void writeBytes(byte[] source, int index, int length) throws IOException {
+	private void checkSpace(int length) throws IOException {
 		if (this.byteIndex + length > this.data.length) {
-			throw new IOException("No space to write.");
+			throw new IOException("No space to write (widx=" + this.byteIndex + ", len=" + length + ", cap=" + this.data.length + ")");
 		}
+	}
+
+	public void writeBytes(byte[] source, int index, int length) throws IOException {
+		checkSpace(length);
 
 		System.arraycopy(source, index, this.data, this.byteIndex, length);
 
@@ -73,9 +77,7 @@ public class ChunkWriter {
 	}
 
 	private void writeLong() throws IOException {
-		if (this.byteIndex + 7 >= this.data.length) {
-			throw new IOException("No space to write.");
-		}
+		checkSpace(8);
 
 		this.data[this.byteIndex++] = (byte) (this.buffer >> 56);
 		this.data[this.byteIndex++] = (byte) (this.buffer >> 48);
@@ -99,17 +101,13 @@ public class ChunkWriter {
 	}
 
 	public void writeByte(int value) throws IOException {
-		if (this.byteIndex >= this.data.length) {
-			throw new IOException("No space to write.");
-		}
+		checkSpace(1);
 
 		this.data[this.byteIndex++] = (byte) value;
 	}
 
 	public void writeShort(int blockCount) throws IOException {
-		if (this.byteIndex + 1 >= this.data.length) {
-			throw new IOException("No space to write.");
-		}
+		checkSpace(2);
 
 		this.data[this.byteIndex++] = (byte) (blockCount >> 8);
 		this.data[this.byteIndex++] = (byte) (blockCount >> 0);

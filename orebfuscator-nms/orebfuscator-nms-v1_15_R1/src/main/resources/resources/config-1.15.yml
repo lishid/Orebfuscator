@@ -4,6 +4,7 @@ general:
   bypassNotification: true
   initialRadius: 1
   updateRadius: 2
+  proximityHiderRunnerSize: 4
 cache:
   enabled: true
   baseDirectory: 'orebfuscator_cache/'

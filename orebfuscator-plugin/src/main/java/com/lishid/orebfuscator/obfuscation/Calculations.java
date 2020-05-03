@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2014 lishid.  All rights reserved.
+// * Copyright (C) 2011-2014 lishid.  All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,20 +21,19 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.comphenix.protocol.wrappers.nbt.NbtBase;
-import com.comphenix.protocol.wrappers.nbt.NbtCompound;
-import com.comphenix.protocol.wrappers.nbt.NbtType;
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.chunkmap.ChunkMapManager;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.cache.ChunkCacheEntry;
+import net.imprex.orebfuscator.config.BlockMask;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.ProximityConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
@@ -43,13 +42,6 @@ import net.imprex.orebfuscator.util.ChunkPosition;
 import net.imprex.orebfuscator.util.MaterialUtil;
 
 public class Calculations {
-
-	public static class Result {
-		public byte[] output;
-		public List<BlockCoords> removedEntities;
-	}
-
-//	private static final Random RANDOM = new Random();
 
 	private static OrebfuscatorConfig config;
 	private static ChunkCache chunkCache;
@@ -60,7 +52,7 @@ public class Calculations {
 	}
 
 	public static ChunkCacheEntry obfuscateChunk(ChunkData chunkData, Player player, WorldConfig worldConfig,
-			long hash) {
+			byte[] hash) {
 		List<BlockCoords> proximityBlocks = new ArrayList<>();
 		List<BlockCoords> removedEntities = new ArrayList<>();
 		try {
@@ -68,7 +60,7 @@ public class Calculations {
 
 			ChunkCacheEntry chunkCacheEntry = new ChunkCacheEntry(hash, data);
 			chunkCacheEntry.getProximityBlocks().addAll(proximityBlocks);
-			chunkCacheEntry.getRemovedEntities().addAll(removedEntities);
+			chunkCacheEntry.getRemovedTileEntities().addAll(removedEntities);
 			return chunkCacheEntry;
 		} catch (Exception e) {
 			throw new RuntimeException("Can't obfuscate chunk " + chunkData.chunkX + ", " + chunkData.chunkZ, e);
@@ -100,14 +92,10 @@ public class Calculations {
 	}
 
 	public static Result obfuscateOrUseCache0(ChunkData chunkData, Player player, WorldConfig worldConfig) {
-		if (chunkData.primaryBitMask == 0) {
-			return null;
-		}
-
 		ChunkPosition position = new ChunkPosition(player.getWorld().getName(), chunkData.chunkX, chunkData.chunkZ);
 		ChunkCacheEntry cacheEntry = null;
 
-		final long hash = CalculationsUtil.Hash(chunkData.data, chunkData.data.length, Calculations.config.hash());
+		final byte[] hash = ChunkCache.hash(Calculations.config.hash(), chunkData.data);
 
 		if (Calculations.config.cache().enabled()) {
 			cacheEntry = Calculations.chunkCache.get(position, hash,
@@ -116,32 +104,17 @@ public class Calculations {
 			cacheEntry = obfuscateChunk(chunkData, player, worldConfig, hash);
 		}
 
-		ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, cacheEntry.getProximityBlocks());
+//		ProximityHider.addProximityBlocks(player, chunkData.chunkX, chunkData.chunkZ, cacheEntry.getProximityBlocks());
 
-		Result result = new Result();
-		result.output = cacheEntry.getData();
-		result.removedEntities = cacheEntry.getRemovedEntities();
-
-		return result;
+		return new Result(cacheEntry.getData(), cacheEntry.getRemovedTileEntities());
 	}
 
 	private static byte[] obfuscate(WorldConfig worldConfig, ChunkData chunkData, Player player,
 			List<BlockCoords> proximityBlocks, List<BlockCoords> removedEntities) throws IOException {
 
 		final ProximityConfig proximityConfig = config.proximity(player.getWorld());
-//		ProximityHiderConfig proximityHider = worldConfig.getProximityHiderConfig();
+		final BlockMask blockMask = config.blockMask(player.getWorld());
 		int initialRadius = Calculations.config.general().initialRadius();
-
-		// Track of pseudo-randomly assigned randomBlock
-//		int randomIncrement = 0;
-//		int randomIncrement2 = 0;
-//		int randomCave = 0;
-
-//		int engineMode = Calculations.configManager.getConfig().getEngineMode();
-//		int maxChance = worldConfig.getAirGeneratorMaxChance();
-
-//		int randomBlocksLength = worldConfig.getRandomBlocks().length;
-//		boolean randomAlternate = false;
 
 		int startX = chunkData.chunkX << 4;
 		int startZ = chunkData.chunkZ << 4;
@@ -150,12 +123,8 @@ public class Calculations {
 
 		try (ChunkMapManager manager = ChunkMapManager.create(chunkData)) {
 			for (int i = 0; i < manager.getSectionCount(); i++) {
-//				worldConfig.shuffleRandomBlocks();
-
 				for (int offsetY = 0; offsetY < 16; offsetY++) {
 					for (int offsetZ = 0; offsetZ < 16; offsetZ++) {
-//						int incrementMax = (maxChance + random(maxChance)) / 2;
-
 						for (int offsetX = 0; offsetX < 16; offsetX++) {
 							int blockData = manager.readNextBlock();
 							int x = startX | offsetX;
@@ -163,15 +132,13 @@ public class Calculations {
 							int z = startZ | offsetZ;
 
 							// Initialize data
-							int obfuscateBits = worldConfig.blockmask(blockData);
-							boolean obfuscateFlag = (obfuscateBits & WorldConfig.BLOCK_MASK_OBFUSCATE) != 0;
-							boolean darknessBlockFlag = (obfuscateBits & WorldConfig.BLOCK_MASK_DARKNESS) != 0;
-							boolean tileEntityFlag = (obfuscateBits & WorldConfig.BLOCK_MASK_TILEENTITY) != 0;
-							boolean proximityHiderFlag = proximityConfig != null
-									&& proximityConfig.shouldHide(y, blockData);
+							int obfuscateBits = blockMask.mask(blockData, y);
+							boolean obfuscateFlag = (obfuscateBits & BlockMask.BLOCK_MASK_OBFUSCATE) != 0;
+							boolean darknessBlockFlag = (obfuscateBits & BlockMask.BLOCK_MASK_DARKNESS) != 0;
+							boolean tileEntityFlag = (obfuscateBits & BlockMask.BLOCK_MASK_TILEENTITY) != 0;
+							boolean proximityHiderFlag = (obfuscateBits & BlockMask.BLOCK_MASK_PROXIMITY) != 0;
 
 							boolean obfuscate = false;
-//							boolean specialObfuscate = false;
 
 							// Check if the block should be obfuscated for the default engine modes
 							if (obfuscateFlag) {
@@ -196,54 +163,21 @@ public class Calculations {
 							}
 
 							// Check if the block should be obfuscated because of proximity check
-							if (!obfuscate && proximityHiderFlag && proximityConfig.enabled()
-									&& proximityConfig.shouldHide(y, blockData)) {
+							if (!obfuscate && proximityHiderFlag && proximityConfig.enabled()) {
 								BlockCoords block = new BlockCoords(x, y, z);
 								if (block != null) {
 									proximityBlocks.add(block);
 								}
 
 								obfuscate = true;
-//								if (proximityHider.isUseSpecialBlock()) {
-//									specialObfuscate = true;
-//								}
 							}
 
 							// Check if the block is obfuscated
-							if (obfuscate && /*(!worldConfig.isBypassObfuscationForSignsWithText()
-									||*/ canObfuscate(chunkData, x, y, z, blockData)/*)*/) {
+							if (obfuscate) {
 								if (proximityHiderFlag) {
-									// Proximity hider
 									blockData = proximityConfig.randomBlockId();
 								} else {
 									blockData = worldConfig.randomBlockId();
-//									if (engineMode == 1) {
-									// Engine mode 1, replace with stone
-//										blockData = worldConfig.getMode1BlockId();
-//									} else if (engineMode == 2) {
-									// Ending mode 2, replace with random block
-//									if (randomBlocksLength > 1) {
-//										randomIncrement = CalculationsUtil.increment(randomIncrement,
-//												randomBlocksLength);
-//									}
-//
-//									blockData = worldConfig.getRandomBlock(randomIncrement, randomAlternate);
-//									randomAlternate = !randomAlternate;
-//									}
-									// Anti texturepack and freecam
-//									if (worldConfig.isAntiTexturePackAndFreecam()) {
-//										// Add random air blocks
-//										randomIncrement2 = random(incrementMax);
-//
-//										if (randomIncrement2 == 0) {
-//											randomCave = 1 + random(3);
-//										}
-//
-//										if (randomCave > 0) {
-//											blockData = NmsInstance.get().getCaveAirBlockId();
-//											randomCave--;
-//										}
-//									}
 								}
 							}
 
@@ -288,49 +222,7 @@ public class Calculations {
 			output = manager.createOutput();
 		}
 
-		// Orebfuscator.log("Create new chunk data for x = " + chunkData.chunkX + ", z =
-		// " + chunkData.chunkZ);/*debug*/
-
 		return output;
-	}
-
-	private static boolean canObfuscate(ChunkData chunkData, int x, int y, int z, int blockData) {
-		if (!NmsInstance.get().isSign(blockData)) {
-			return true;
-		}
-
-		NbtCompound tag = getBlockEntity(chunkData, x, y, z);
-
-		return tag == null || isSignTextEmpty(tag, "Text1") && isSignTextEmpty(tag, "Text2")
-				&& isSignTextEmpty(tag, "Text3") && isSignTextEmpty(tag, "Text4");
-	}
-
-	private static boolean isSignTextEmpty(NbtCompound compound, String key) {
-		NbtBase<?> tag = compound.getValue(key);
-
-		if (tag == null || tag.getType() != NbtType.TAG_STRING) {
-			return true;
-		}
-
-		String json = (String) tag.getValue();
-
-		if (json == null || json.isEmpty()) {
-			return true;
-		}
-
-		String text = NmsInstance.get().getTextFromChatComponent(json);
-
-		return text == null || text.isEmpty();
-	}
-
-	private static NbtCompound getBlockEntity(ChunkData chunkData, int x, int y, int z) {
-		for (NbtCompound tag : chunkData.blockEntities) {
-			if (tag != null && x == tag.getInteger("x") && y == tag.getInteger("y") && z == tag.getInteger("z")) {
-				return tag;
-			}
-		}
-
-		return null;
 	}
 
 	public static boolean areAjacentBlocksTransparent(ChunkMapManager manager, World world, boolean checkCurrentBlock,
@@ -413,7 +305,14 @@ public class Calculations {
 		return false;
 	}
 
-//	private static int random(int max) {
-//		return RANDOM.nextInt(max);
-//	}
+	public static class Result {
+
+		public final byte[] output;
+		public final Set<BlockCoords> removedEntities;
+
+		public Result(byte[] output, Set<BlockCoords> removedEntities) {
+			this.output = output;
+			this.removedEntities = removedEntities;
+		}
+	}
 }

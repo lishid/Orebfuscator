@@ -18,6 +18,7 @@ package com.lishid.orebfuscator.hook;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.bukkit.World;
@@ -33,14 +34,16 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.comphenix.protocol.wrappers.nbt.NbtFactory;
-import com.lishid.orebfuscator.Orebfuscator;
 import com.lishid.orebfuscator.chunkmap.ChunkData;
 import com.lishid.orebfuscator.hithack.BlockHitManager;
 import com.lishid.orebfuscator.obfuscation.Calculations;
+import com.lishid.orebfuscator.obfuscation.Calculations.Result;
 
+import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
 import net.imprex.orebfuscator.util.BlockCoords;
+import net.imprex.orebfuscator.util.OFCLogger;
 import net.imprex.orebfuscator.util.PermissionUtil;
 
 public class ProtocolLibHook {
@@ -88,13 +91,13 @@ public class ProtocolLibHook {
 					chunkData = new ChunkData();
 					chunkData.chunkX = ints.read(0);
 					chunkData.chunkZ = ints.read(1);
-					chunkData.groundUpContinuous = bools.read(0);
+					chunkData.groundUpContinuous = bools.read(0);	
 					chunkData.primaryBitMask = ints.read(2);
 					chunkData.data = byteArray.read(0);
 					chunkData.isOverworld = event.getPlayer().getWorld().getEnvironment() == World.Environment.NORMAL;
 					chunkData.blockEntities = getBlockEntities(nmsTags);
 
-					Calculations.Result result = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
+					Result result = Calculations.obfuscateOrUseCache(chunkData, player, worldConfig);
 
 					if (result != null && result.output != null) {
 						byteArray.write(0, result.output);
@@ -106,7 +109,7 @@ public class ProtocolLibHook {
 					}
 				} catch (Exception e) {
 					if (chunkData != null) {
-						Orebfuscator.LOGGER.log(Level.SEVERE,
+						OFCLogger.log(Level.SEVERE,
 								"ChunkX = " + chunkData.chunkX + ", chunkZ = " + chunkData.chunkZ);
 					}
 
@@ -142,27 +145,27 @@ public class ProtocolLibHook {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static void removeBlockEntities(List nmsTags, List<NbtCompound> tags, List<BlockCoords> removedEntities) {
-		for (int i = nmsTags.size() - 1; i >= 0; i--) {
-			if (removedEntities.size() == 0) {
-				break;
-			}
-
-			NbtCompound tag = tags.get(i);
-			int x = tag.getInteger("x");
-			int y = tag.getInteger("y");
-			int z = tag.getInteger("z");
-
-			for (int k = 0; k < removedEntities.size(); k++) {
-				BlockCoords blockCoord = removedEntities.get(k);
-
-				if (blockCoord.x == x && blockCoord.y == y && blockCoord.z == z) {
-					nmsTags.remove(i);
-					removedEntities.remove(k);
-					break;
-				}
-			}
-		}
+	private static void removeBlockEntities(List nmsTags, List<NbtCompound> tags, Set<BlockCoords> removedEntities) {
+//		for (int i = nmsTags.size() - 1; i >= 0; i--) {
+//			if (removedEntities.size() == 0) {
+//				break;
+//			}
+//
+//			NbtCompound tag = tags.get(i);
+//			int x = tag.getInteger("x");
+//			int y = tag.getInteger("y");
+//			int z = tag.getInteger("z");
+//
+//			for (int k = 0; k < removedEntities.size(); k++) {
+//				BlockCoords blockCoord = removedEntities.get(k);
+//
+//				if (blockCoord.x == x && blockCoord.y == y && blockCoord.z == z) {
+//					nmsTags.remove(i);
+//					removedEntities.remove(k);
+//					break;
+//				}
+//			}
+//		}
 	}
 
 	/*
