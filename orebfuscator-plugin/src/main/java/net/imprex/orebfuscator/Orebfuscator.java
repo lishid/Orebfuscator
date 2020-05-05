@@ -11,6 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
+import net.imprex.orebfuscator.obfuscation.BlockListener;
 import net.imprex.orebfuscator.obfuscation.Obfuscator;
 import net.imprex.orebfuscator.obfuscation.PacketListener;
 import net.imprex.orebfuscator.proximityhider.ProximityHider;
@@ -44,6 +45,7 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 
 			// Load obfuscater
 			this.obfuscator = new Obfuscator(this);
+			this.getServer().getPluginManager().registerEvents(new BlockListener(this), this);
 
 			// Load proximity hider
 			this.proximityHider = new ProximityHider(this);

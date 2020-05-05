@@ -59,7 +59,6 @@ public class ProtocolLibHook {
 		this.manager = ProtocolLibrary.getProtocolManager();
 	}
 
-	// TODO unregister on disable
 	@SuppressWarnings("rawtypes")
 	public void register() {
 		this.manager.addPacketListener(new PacketAdapter(this.orebfuscator, PacketType.Play.Server.MAP_CHUNK) {

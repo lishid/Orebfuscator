@@ -47,9 +47,8 @@ public class ProximityThread extends Thread {
 				World world = location.getWorld();
 
 				ProximityConfig proximityConfig = this.config.proximity(world);
-				ProximityWorldData proximityPlayer = this.proximityHider.getPlayer(player);
-
-				if (proximityPlayer == null || !proximityConfig.enabled() || !proximityPlayer.getWorld().equals(world)) {
+				ProximityPlayerData proximityPlayer = this.proximityHider.getPlayer(player);
+				if (proximityPlayer == null || proximityConfig == null || !proximityConfig.enabled() || !proximityPlayer.getWorld().equals(world)) {
 					continue;
 				}
 
@@ -108,6 +107,6 @@ public class ProximityThread extends Thread {
 	}
 
 	public void destroy() {
-		this.running.compareAndSet(this.running.get(), true);
+		this.running.set(false);
 	}
 }

@@ -9,7 +9,7 @@ import org.bukkit.World;
 
 import net.imprex.orebfuscator.util.BlockCoords;
 
-public class ProximityWorldData {
+public class ProximityPlayerData {
 
 	public static long getKey(int chunkX, int chunkZ) {
 		return (chunkZ & 0xffffffffL) << 32 | chunkX & 0xffffffffL;
@@ -18,7 +18,7 @@ public class ProximityWorldData {
 	private final World world;
 	private final Map<Long, Set<BlockCoords>> chunks = new ConcurrentHashMap<>();
 
-	public ProximityWorldData(World world) {
+	public ProximityPlayerData(World world) {
 		this.world = world;
 	}
 
@@ -27,17 +27,17 @@ public class ProximityWorldData {
 	}
 
 	public void putBlocks(int chunkX, int chunkZ, Set<BlockCoords> blocks) {
-		long key = ProximityWorldData.getKey(chunkX, chunkZ);
+		long key = ProximityPlayerData.getKey(chunkX, chunkZ);
 		this.chunks.put(key, new HashSet<>(blocks));
 	}
 
 	public Set<BlockCoords> getBlocks(int chunkX, int chunkZ) {
-		long key = ProximityWorldData.getKey(chunkX, chunkZ);
+		long key = ProximityPlayerData.getKey(chunkX, chunkZ);
 		return this.chunks.get(key);
 	}
 
 	public void removeChunk(int chunkX, int chunkZ) {
-		long key = ProximityWorldData.getKey(chunkX, chunkZ);
+		long key = ProximityPlayerData.getKey(chunkX, chunkZ);
 		this.chunks.remove(key);
 	}
 }

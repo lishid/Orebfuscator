@@ -39,6 +39,11 @@ public class OrebfuscatorBlockMask implements BlockMask {
 	}
 
 	@Override
+	public int mask(int blockId) {
+		return this.blockMask[blockId];
+	}
+
+	@Override
 	public int mask(int blockId, int y) {
 		short blockMask = this.blockMask[blockId];
 		if (OrebfuscatorProximityConfig.matchHideCondition(blockMask, y)) {
