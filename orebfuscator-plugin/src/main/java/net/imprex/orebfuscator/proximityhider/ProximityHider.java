@@ -18,12 +18,12 @@ import net.imprex.orebfuscator.util.BlockCoords;
 
 public class ProximityHider {
 
-	private final LoadingCache<Player, ProximityWorldData> playerData = CacheBuilder.newBuilder()
-			.build(new CacheLoader<Player, ProximityWorldData>() {
+	private final LoadingCache<Player, ProximityPlayerData> playerData = CacheBuilder.newBuilder()
+			.build(new CacheLoader<Player, ProximityPlayerData>() {
 
 				@Override
-				public ProximityWorldData load(Player player) throws Exception {
-					return new ProximityWorldData(player.getWorld());
+				public ProximityPlayerData load(Player player) throws Exception {
+					return new ProximityPlayerData(player.getWorld());
 				}
 			});
 
@@ -63,7 +63,10 @@ public class ProximityHider {
 	}
 
 	public void queuePlayer(Player player) {
-		this.queue.offerAndLock(player);
+		ProximityConfig proximityConfig = this.config.proximity(player.getWorld());
+		if (proximityConfig != null && proximityConfig.enabled()) {
+			this.queue.offerAndLock(player);
+		}
 	}
 
 	public void unlockPlayer(Player player) {
@@ -75,12 +78,12 @@ public class ProximityHider {
 		this.playerData.invalidate(player);
 	}
 
-	public ProximityWorldData getPlayer(Player player) {
+	public ProximityPlayerData getPlayer(Player player) {
 		try {
-			ProximityWorldData proximityWorldData = playerData.get(player);
+			ProximityPlayerData proximityWorldData = playerData.get(player);
 
 			if (proximityWorldData.getWorld() != player.getWorld()) {
-				proximityWorldData = new ProximityWorldData(player.getWorld());
+				proximityWorldData = new ProximityPlayerData(player.getWorld());
 				playerData.put(player, proximityWorldData);
 			}
 
@@ -92,14 +95,8 @@ public class ProximityHider {
 		return null;
 	}
 
-	public void addProximityBlocks(Player player, World world, int chunkX, int chunkZ, Set<BlockCoords> blocks) {
-		ProximityConfig proximityConfig = this.config.proximity(player.getWorld());
-
-		if (proximityConfig == null || !proximityConfig.enabled()) {
-			return;
-		}
-
-		ProximityWorldData worldData = this.getPlayer(player);
+	public void addProximityBlocks(Player player, int chunkX, int chunkZ, Set<BlockCoords> blocks) {
+		ProximityPlayerData worldData = this.getPlayer(player);
 
 		if (blocks.size() > 0) {
 			worldData.putBlocks(chunkX, chunkZ, blocks);
@@ -112,12 +109,6 @@ public class ProximityHider {
 
 	// TODO needs testing on teleport since I don't know if teleports get chunkunload packets
 	public void removeProximityChunks(Player player, World world, int chunkX, int chunkZ) {
-		ProximityConfig proximityConfig = this.config.proximity(player.getWorld());
-
-		if (proximityConfig == null || !proximityConfig.enabled()) {
-			return;
-		}
-
 		this.getPlayer(player).removeChunk(chunkX, chunkZ);
 	}
 
@@ -128,6 +119,7 @@ public class ProximityHider {
 
 		for (ProximityThread thread : this.queueThreads) {
 			if (thread != null) {
+				// TODO set thread null
 				thread.destroy();
 			}
 		}

@@ -7,5 +7,7 @@ public interface BlockMask {
 	public static final int BLOCK_MASK_TILEENTITY = 4;
 	public static final int BLOCK_MASK_PROXIMITY = 8;
 
+	int mask(int blockId);
+
 	int mask(int blockId, int y);
 }

@@ -86,7 +86,7 @@ public class PacketListener extends PacketAdapter {
 				nbtList.write(0, tileEntityList);
 			}
 
-			this.proximityHider.addProximityBlocks(player, world, chunkStruct.chunkX, chunkStruct.chunkZ, chunkEntry.getProximityBlocks());
+			this.proximityHider.addProximityBlocks(player, chunkStruct.chunkX, chunkStruct.chunkZ, chunkEntry.getProximityBlocks());
 		}
 
 //		ChunkData chunkData = new ChunkData();

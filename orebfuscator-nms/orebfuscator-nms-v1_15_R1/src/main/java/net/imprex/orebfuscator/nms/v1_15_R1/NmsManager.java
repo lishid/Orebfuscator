@@ -44,7 +44,7 @@ public class NmsManager extends AbstractNmsManager {
 		if (isChunkLoaded(worldServer, x >> 4, z >> 4) || loadChunk) {
 			// will load chunk if not loaded already
 			return worldServer.getType(new BlockPosition(x, y, z));
-		}//CraftWorld
+		}
 		return null;
 	}
 
