@@ -1,12 +1,14 @@
 package net.imprex.orebfuscator.nms.v1_15_R1;
 
 import java.util.BitSet;
+import java.util.Optional;
 
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_15_R1.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_15_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 import net.imprex.orebfuscator.config.CacheConfig;
@@ -19,7 +21,9 @@ import net.minecraft.server.v1_15_R1.Block;
 import net.minecraft.server.v1_15_R1.BlockPosition;
 import net.minecraft.server.v1_15_R1.EntityPlayer;
 import net.minecraft.server.v1_15_R1.IBlockData;
+import net.minecraft.server.v1_15_R1.IRegistry;
 import net.minecraft.server.v1_15_R1.MathHelper;
+import net.minecraft.server.v1_15_R1.MinecraftKey;
 import net.minecraft.server.v1_15_R1.Packet;
 import net.minecraft.server.v1_15_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_15_R1.TileEntity;
@@ -48,6 +52,15 @@ public class NmsManager extends AbstractNmsManager {
 		return null;
 	}
 
+	static int getBlockId(IBlockData blockData) {
+		if (blockData == null) {
+			return 0;
+		} else {
+			int id = Block.REGISTRY_ID.getId(blockData);
+			return id == -1 ? 0 : id;
+		}
+	}
+
 	private final int blockIdCaveAir;
 	private final BitSet blockAir;
 
@@ -56,8 +69,7 @@ public class NmsManager extends AbstractNmsManager {
 
 		for (IBlockData blockData : Block.REGISTRY_ID) {
 			Material material = CraftBlockData.fromData(blockData).getMaterial();
-			int id = Block.getCombinedId(blockData);
-			this.registerMaterialId(material, id);
+			this.registerMaterialId(material, getBlockId(blockData));
 		}
 
 		this.blockIdCaveAir = this.getMaterialIds(Material.CAVE_AIR).iterator().next();
@@ -77,6 +89,15 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public int getMaterialSize() {
 		return Block.REGISTRY_ID.a();
+	}
+
+	@Override
+	public Optional<Material> getMaterialByName(String name) {
+		Optional<Block> block = IRegistry.BLOCK.getOptional(new MinecraftKey(name));
+		if (block.isPresent()) {
+			return Optional.ofNullable(CraftMagicNumbers.getMaterial(block.get()));
+		}
+		return Optional.empty();
 	}
 
 	@Override
@@ -155,7 +176,7 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
 		IBlockData blockData = getBlockData(world, x, y, z, true);
-		return blockData != null ? Block.getCombinedId(blockData) : -1;
+		return blockData != null ? getBlockId(blockData) : -1;
 	}
 
 	@Override

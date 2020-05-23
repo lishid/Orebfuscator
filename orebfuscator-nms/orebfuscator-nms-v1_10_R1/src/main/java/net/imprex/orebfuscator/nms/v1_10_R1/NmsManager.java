@@ -2,6 +2,7 @@ package net.imprex.orebfuscator.nms.v1_10_R1;
 
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.Optional;
 
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -21,6 +22,7 @@ import net.minecraft.server.v1_10_R1.BlockPosition;
 import net.minecraft.server.v1_10_R1.EntityPlayer;
 import net.minecraft.server.v1_10_R1.IBlockData;
 import net.minecraft.server.v1_10_R1.MathHelper;
+import net.minecraft.server.v1_10_R1.MinecraftKey;
 import net.minecraft.server.v1_10_R1.Packet;
 import net.minecraft.server.v1_10_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_10_R1.TileEntity;
@@ -49,6 +51,15 @@ public class NmsManager extends AbstractNmsManager {
 		return null;
 	}
 
+	static int getBlockId(IBlockData blockData) {
+		if (blockData == null) {
+			return 0;
+		} else {
+			int id = Block.REGISTRY_ID.getId(blockData);
+			return id == -1 ? 0 : id;
+		}
+	}
+
 	private final int blockIdCaveAir;
 	private final BitSet blockAir;
 
@@ -58,8 +69,7 @@ public class NmsManager extends AbstractNmsManager {
 		for (Iterator<IBlockData> iterator = Block.REGISTRY_ID.iterator(); iterator.hasNext();) {
 			IBlockData blockData = iterator.next();
 			Material material = CraftMagicNumbers.getMaterial(blockData.getBlock());
-			int id = Block.getCombinedId(blockData);
-			this.registerMaterialId(material, id);
+			this.registerMaterialId(material, getBlockId(blockData));
 		}
 
 		this.blockIdCaveAir = this.getMaterialIds(Material.AIR).iterator().next();
@@ -80,6 +90,15 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public int getMaterialSize() {
 		return Block.REGISTRY_ID.a();
+	}
+
+	@Override
+	public Optional<Material> getMaterialByName(String name) {
+		MinecraftKey minecraftKey = new MinecraftKey(name);
+		if (Block.REGISTRY.d(minecraftKey)) {
+			return Optional.ofNullable(CraftMagicNumbers.getMaterial(Block.REGISTRY.get(minecraftKey)));
+		}
+		return Optional.empty();
 	}
 
 	@Override
@@ -156,7 +175,7 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public int loadChunkAndGetBlockId(World world, int x, int y, int z) {
 		IBlockData blockData = getBlockData(world, x, y, z, true);
-		return blockData != null ? Block.getCombinedId(blockData) : -1;
+		return blockData != null ? getBlockId(blockData) : -1;
 	}
 
 	@Override

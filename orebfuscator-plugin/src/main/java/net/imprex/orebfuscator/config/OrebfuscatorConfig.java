@@ -51,10 +51,6 @@ public class OrebfuscatorConfig implements Config {
 		this.plugin.reloadConfig();
 
 		this.serialize(this.plugin.getConfig());
-
-		NmsInstance.close();
-		NmsInstance.initialize(this);
-
 		this.initialize();
 	}
 
@@ -117,6 +113,9 @@ public class OrebfuscatorConfig implements Config {
 		} else {
 			OFCLogger.warn("config section 'cache' is missing, using default one");
 		}
+
+		NmsInstance.close();
+		NmsInstance.initialize(this);
 
 		List<ConfigurationSection> worldSectionList = ConfigParser.serializeSectionList(section, "world");
 		if (!worldSectionList.isEmpty()) {
@@ -196,6 +195,13 @@ public class OrebfuscatorConfig implements Config {
 	@Override
 	public BlockMask blockMask(World world) {
 		return this.worldToBlockMask.get(Objects.requireNonNull(world));
+	}
+
+	@Override
+	public boolean needsObfuscation(World world) {
+		WorldConfig worldConfig = this.world(world);
+		ProximityConfig proximityConfig = this.proximity(world);
+		return worldConfig != null && worldConfig.enabled() || proximityConfig != null && proximityConfig.enabled();
 	}
 
 	@Override
