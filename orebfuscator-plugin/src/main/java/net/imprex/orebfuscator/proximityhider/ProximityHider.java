@@ -107,7 +107,6 @@ public class ProximityHider {
 		this.queuePlayer(player);
 	}
 
-	// TODO needs testing on teleport since I don't know if teleports get chunkunload packets
 	public void removeProximityChunks(Player player, World world, int chunkX, int chunkZ) {
 		this.getPlayer(player).removeChunk(chunkX, chunkZ);
 	}

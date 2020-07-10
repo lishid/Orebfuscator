@@ -214,8 +214,12 @@ public class OrebfuscatorConfig implements Config {
 
 	@Override
 	public boolean proximityEnabled() {
-		// TODO check if at least one config is enabled
-		return this.proximityWorlds.size() != 0;
+		for (ProximityConfig proximityConfig : this.worldToProximityConfig.values()) {
+			if (proximityConfig.enabled()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

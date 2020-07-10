@@ -25,3 +25,4 @@ checkVersion 1.13
 checkVersion 1.13.2
 checkVersion 1.14.4
 checkVersion 1.15.1
+checkVersion 1.16.1

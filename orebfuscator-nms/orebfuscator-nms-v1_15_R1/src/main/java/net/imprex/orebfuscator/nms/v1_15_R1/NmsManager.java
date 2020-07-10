@@ -19,6 +19,8 @@ import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.minecraft.server.v1_15_R1.Block;
 import net.minecraft.server.v1_15_R1.BlockPosition;
+import net.minecraft.server.v1_15_R1.Chunk;
+import net.minecraft.server.v1_15_R1.ChunkProviderServer;
 import net.minecraft.server.v1_15_R1.EntityPlayer;
 import net.minecraft.server.v1_15_R1.IBlockData;
 import net.minecraft.server.v1_15_R1.IRegistry;
@@ -45,9 +47,12 @@ public class NmsManager extends AbstractNmsManager {
 
 	private static IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
 		WorldServer worldServer = world(world);
+		ChunkProviderServer chunkProviderServer = worldServer.getChunkProvider();
+
 		if (isChunkLoaded(worldServer, x >> 4, z >> 4) || loadChunk) {
 			// will load chunk if not loaded already
-			return worldServer.getType(new BlockPosition(x, y, z));
+			Chunk chunk = chunkProviderServer.getChunkAt(x >> 4, z >> 4, false);
+			return chunk != null ? chunk.getType(new BlockPosition(x, y, z)) : null;
 		}
 		return null;
 	}

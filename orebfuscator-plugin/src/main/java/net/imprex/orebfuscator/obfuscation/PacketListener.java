@@ -38,6 +38,8 @@ public class PacketListener extends PacketAdapter {
 		super(orebfuscator, PacketType.Play.Server.MAP_CHUNK);
 
 		this.protocolManager = ProtocolLibrary.getProtocolManager();
+		this.protocolManager.getAsynchronousManager();
+		// TODO async
 		this.protocolManager.addPacketListener(this);
 
 		this.config = orebfuscator.getOrebfuscatorConfig();

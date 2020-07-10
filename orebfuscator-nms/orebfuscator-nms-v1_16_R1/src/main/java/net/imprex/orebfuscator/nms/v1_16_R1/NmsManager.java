@@ -1,14 +1,14 @@
-package net.imprex.orebfuscator.nms.v1_11_R1;
+package net.imprex.orebfuscator.nms.v1_16_R1;
 
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.Optional;
 
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_11_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_11_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_11_R1.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_16_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_16_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 import net.imprex.orebfuscator.config.CacheConfig;
@@ -17,18 +17,19 @@ import net.imprex.orebfuscator.nms.AbstractBlockState;
 import net.imprex.orebfuscator.nms.AbstractNmsManager;
 import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
-import net.minecraft.server.v1_11_R1.Block;
-import net.minecraft.server.v1_11_R1.BlockPosition;
-import net.minecraft.server.v1_11_R1.Chunk;
-import net.minecraft.server.v1_11_R1.ChunkProviderServer;
-import net.minecraft.server.v1_11_R1.EntityPlayer;
-import net.minecraft.server.v1_11_R1.IBlockData;
-import net.minecraft.server.v1_11_R1.MathHelper;
-import net.minecraft.server.v1_11_R1.MinecraftKey;
-import net.minecraft.server.v1_11_R1.Packet;
-import net.minecraft.server.v1_11_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_11_R1.TileEntity;
-import net.minecraft.server.v1_11_R1.WorldServer;
+import net.minecraft.server.v1_16_R1.Block;
+import net.minecraft.server.v1_16_R1.BlockPosition;
+import net.minecraft.server.v1_16_R1.Chunk;
+import net.minecraft.server.v1_16_R1.ChunkProviderServer;
+import net.minecraft.server.v1_16_R1.EntityPlayer;
+import net.minecraft.server.v1_16_R1.IBlockData;
+import net.minecraft.server.v1_16_R1.IRegistry;
+import net.minecraft.server.v1_16_R1.MathHelper;
+import net.minecraft.server.v1_16_R1.MinecraftKey;
+import net.minecraft.server.v1_16_R1.Packet;
+import net.minecraft.server.v1_16_R1.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_16_R1.TileEntity;
+import net.minecraft.server.v1_16_R1.WorldServer;
 
 public class NmsManager extends AbstractNmsManager {
 
@@ -41,17 +42,17 @@ public class NmsManager extends AbstractNmsManager {
 	}
 
 	private static boolean isChunkLoaded(WorldServer world, int chunkX, int chunkZ) {
-		return world.getChunkProviderServer().isLoaded(chunkX, chunkZ);
+		return world.isChunkLoaded(chunkX, chunkZ);
 	}
 
 	private static IBlockData getBlockData(World world, int x, int y, int z, boolean loadChunk) {
 		WorldServer worldServer = world(world);
-		ChunkProviderServer chunkProviderServer = worldServer.getChunkProviderServer();
+		ChunkProviderServer chunkProviderServer = worldServer.getChunkProvider();
 
 		if (isChunkLoaded(worldServer, x >> 4, z >> 4) || loadChunk) {
 			// will load chunk if not loaded already
-			Chunk chunk = chunkProviderServer.getOrLoadChunkAt(x >> 4, z >> 4);
-			return chunk != null ? chunk.getBlockData(new BlockPosition(x, y, z)) : null;
+			Chunk chunk = chunkProviderServer.getChunkAt(x >> 4, z >> 4, false);
+			return chunk != null ? chunk.getType(new BlockPosition(x, y, z)) : null;
 		}
 		return null;
 	}
@@ -71,14 +72,13 @@ public class NmsManager extends AbstractNmsManager {
 	public NmsManager(Config config) {
 		super(config);
 
-		for (Iterator<IBlockData> iterator = Block.REGISTRY_ID.iterator(); iterator.hasNext();) {
-			IBlockData blockData = iterator.next();
-			Material material = CraftMagicNumbers.getMaterial(blockData.getBlock());
+		for (IBlockData blockData : Block.REGISTRY_ID) {
+			Material material = CraftBlockData.fromData(blockData).getMaterial();
 			this.registerMaterialId(material, getBlockId(blockData));
 		}
 
-		this.blockIdCaveAir = this.getMaterialIds(Material.AIR).iterator().next();
-		this.blockAir = this.materialsToBitSet(Material.AIR);
+		this.blockIdCaveAir = this.getMaterialIds(Material.CAVE_AIR).iterator().next();
+		this.blockAir = this.materialsToBitSet(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR);
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public int getBitsPerBlock() {
-		return MathHelper.d(Block.REGISTRY_ID.a());
+		return MathHelper.e(Block.REGISTRY_ID.a());
 	}
 
 	@Override
@@ -98,9 +98,9 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public Optional<Material> getMaterialByName(String name) {
-		MinecraftKey minecraftKey = new MinecraftKey(name);
-		if (Block.REGISTRY.d(minecraftKey)) {
-			return Optional.ofNullable(CraftMagicNumbers.getMaterial(Block.REGISTRY.get(minecraftKey)));
+		Optional<Block> block = IRegistry.BLOCK.getOptional(new MinecraftKey(name));
+		if (block.isPresent()) {
+			return Optional.ofNullable(CraftMagicNumbers.getMaterial(block.get()));
 		}
 		return Optional.empty();
 	}
@@ -113,11 +113,12 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public boolean isHoe(Material material) {
 		switch (material) {
-		case WOOD_HOE:
+		case WOODEN_HOE:
 		case STONE_HOE:
 		case IRON_HOE:
-		case GOLD_HOE:
+		case GOLDEN_HOE:
 		case DIAMOND_HOE:
+		case NETHERITE_HOE:
 			return true;
 
 		default:
@@ -139,6 +140,8 @@ public class NmsManager extends AbstractNmsManager {
 	public boolean canApplyPhysics(Material material) {
 		switch (material) {
 		case AIR:
+		case CAVE_AIR:
+		case VOID_AIR:
 		case FIRE:
 		case WATER:
 		case LAVA:
@@ -152,7 +155,7 @@ public class NmsManager extends AbstractNmsManager {
 	@Override
 	public void updateBlockTileEntity(Player player, BlockCoords blockCoord) {
 		EntityPlayer entityPlayer = player(player);
-		net.minecraft.server.v1_11_R1.World world = entityPlayer.getWorld();
+		WorldServer world = entityPlayer.getWorldServer();
 
 		TileEntity tileEntity = world.getTileEntity(new BlockPosition(blockCoord.x, blockCoord.y, blockCoord.z));
 		if (tileEntity == null) {

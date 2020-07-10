@@ -12,7 +12,7 @@ import com.comphenix.protocol.reflect.StructureModifier;
 
 import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
-import net.imprex.orebfuscator.config.WorldConfig;
+import net.imprex.orebfuscator.config.ProximityConfig;
 import net.imprex.orebfuscator.util.PermissionUtil;
 
 public class ProximityPacketListener extends PacketAdapter {
@@ -45,8 +45,8 @@ public class ProximityPacketListener extends PacketAdapter {
 		}
 
 		World world = player.getWorld();
-		WorldConfig worldConfig = config.world(world);
-		if (worldConfig == null || !worldConfig.enabled()) {
+		ProximityConfig proximityConfig = config.proximity(world);
+		if (proximityConfig == null || !proximityConfig.enabled()) {
 			return;
 		}
 
