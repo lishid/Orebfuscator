@@ -23,7 +23,6 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 	private boolean enabled;
 	private final List<World> worlds = new ArrayList<>();
 	private final Set<Material> hiddenBlocks = new HashSet<>();
-	private final Set<Material> darknessBlocks = new HashSet<>();
 
 	private final Map<Material, Integer> randomBlocks = new HashMap<>();
 	private final List<Integer> randomBlockIds = new ArrayList<>();
@@ -32,7 +31,7 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 	protected void initialize() {
 		this.randomMaterials.clear();
 		for (Entry<Material, Integer> entry : this.randomBlocks.entrySet()) {
-			int blockId = NmsInstance.get().getMaterialIds(entry.getKey()).iterator().next();
+			int blockId = NmsInstance.getMaterialIds(entry.getKey()).iterator().next();
 			this.randomMaterials.add(entry.getValue(), blockId);
 			this.randomBlockIds.add(blockId);
 		}
@@ -48,10 +47,9 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 			return;
 		}
 
-		this.serializeMaterialSet(section, this.darknessBlocks, "darknessBlocks");
 		this.serializeMaterialSet(section, this.hiddenBlocks, "hiddenBlocks");
-		if (this.darknessBlocks.isEmpty() && this.hiddenBlocks.isEmpty()) {
-			this.failSerialize(String.format("config section '%s' is missing 'darknessBlocks' and 'hiddenBlocks'",
+		if (this.hiddenBlocks.isEmpty()) {
+			this.failSerialize(String.format("config section '%s' is missing 'hiddenBlocks'",
 					section.getCurrentPath()));
 			return;
 		}
@@ -72,7 +70,7 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 		}
 
 		for (String name : materialNames) {
-			Optional<Material> material = NmsInstance.get().getMaterialByName(name);
+			Optional<Material> material = NmsInstance.getMaterialByName(name);
 
 			if (!material.isPresent()) {
 				OFCLogger.warn(String.format("config section '%s.%s' contains unknown block '%s'",
@@ -93,10 +91,6 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 		return hiddenBlocks;
 	}
 
-	public Set<Material> getDarknessBlocks() {
-		return darknessBlocks;
-	}
-
 	@Override
 	public boolean enabled() {
 		return this.enabled;
@@ -105,11 +99,6 @@ public class OrebfuscatorWorldConfig implements WorldConfig {
 	@Override
 	public List<World> worlds() {
 		return Collections.unmodifiableList(this.worlds);
-	}
-
-	@Override
-	public boolean darknessBlocksEnabled() {
-		return this.darknessBlocks.size() != 0;
 	}
 
 	@Override

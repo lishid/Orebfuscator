@@ -90,12 +90,11 @@ public abstract class AbstractRegionFileCache<T> {
 		this.lock.writeLock().lock();
 		try {
 			t = this.regionFiles.remove(path);
+			if (t != null) {
+				this.closeRegionFile(t);
+			}
 		} finally {
 			this.lock.writeLock().unlock();
-		}
-
-		if (t != null) {
-			this.closeRegionFile(t);
 		}
 	}
 

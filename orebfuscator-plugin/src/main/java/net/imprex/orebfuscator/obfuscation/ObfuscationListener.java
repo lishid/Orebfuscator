@@ -31,7 +31,6 @@ import net.imprex.orebfuscator.config.BlockMask;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
 import net.imprex.orebfuscator.nms.BlockStateHolder;
-import net.imprex.orebfuscator.nms.NmsManager;
 import net.imprex.orebfuscator.util.ChunkPosition;
 import net.imprex.orebfuscator.util.PermissionUtil;
 
@@ -65,7 +64,6 @@ public class ObfuscationListener implements Listener {
 		}
 
 		String worldName = world.getName();
-		NmsManager nmsManager = NmsInstance.get();
 		BlockMask blockMask = this.config.blockMask(world);
 
 		Set<BlockStateHolder> updateBlocks = new HashSet<>();
@@ -78,7 +76,7 @@ public class ObfuscationListener implements Listener {
 				int y = block.getY();
 				int z = block.getZ();
 
-				BlockStateHolder blockState = nmsManager.getBlockState(world, x, y, z);
+				BlockStateHolder blockState = NmsInstance.getBlockState(world, x, y, z);
 				if (blockState != null) {
 					getAdjacentBlocks(updateBlocks, world, blockMask, blockState, updateRadius);
 					invalidChunks.add(new ChunkPosition(worldName, x >> 4, z >> 4));
@@ -109,17 +107,16 @@ public class ObfuscationListener implements Listener {
 		}
 
 		if (depth-- > 0) {
-			NmsManager nmsManager = NmsInstance.get();
 			int x = blockState.getX();
 			int y = blockState.getY();
 			int z = blockState.getZ();
 
-			getAdjacentBlocks(updateBlocks, world, blockMask, nmsManager.getBlockState(world, x + 1, y, z), depth);
-			getAdjacentBlocks(updateBlocks, world, blockMask, nmsManager.getBlockState(world, x - 1, y, z), depth);
-			getAdjacentBlocks(updateBlocks, world, blockMask, nmsManager.getBlockState(world, x, y + 1, z), depth);
-			getAdjacentBlocks(updateBlocks, world, blockMask, nmsManager.getBlockState(world, x, y - 1, z), depth);
-			getAdjacentBlocks(updateBlocks, world, blockMask, nmsManager.getBlockState(world, x, y, z + 1), depth);
-			getAdjacentBlocks(updateBlocks, world, blockMask, nmsManager.getBlockState(world, x, y, z - 1), depth);
+			getAdjacentBlocks(updateBlocks, world, blockMask, NmsInstance.getBlockState(world, x + 1, y, z), depth);
+			getAdjacentBlocks(updateBlocks, world, blockMask, NmsInstance.getBlockState(world, x - 1, y, z), depth);
+			getAdjacentBlocks(updateBlocks, world, blockMask, NmsInstance.getBlockState(world, x, y + 1, z), depth);
+			getAdjacentBlocks(updateBlocks, world, blockMask, NmsInstance.getBlockState(world, x, y - 1, z), depth);
+			getAdjacentBlocks(updateBlocks, world, blockMask, NmsInstance.getBlockState(world, x, y, z + 1), depth);
+			getAdjacentBlocks(updateBlocks, world, blockMask, NmsInstance.getBlockState(world, x, y, z - 1), depth);
 		}
 	}
 
@@ -174,7 +171,7 @@ public class ObfuscationListener implements Listener {
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.useInteractedBlock() != Result.DENY
 				&& event.getItem() != null && event.getItem().getType() != null
-				&& NmsInstance.get().isHoe(event.getItem().getType())) {
+				&& NmsInstance.isHoe(event.getItem().getType())) {
 			this.onUpdate(event.getClickedBlock());
 		}
 	}

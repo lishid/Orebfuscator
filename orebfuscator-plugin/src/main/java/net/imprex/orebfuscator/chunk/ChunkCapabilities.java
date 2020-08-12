@@ -1,26 +1,44 @@
 package net.imprex.orebfuscator.chunk;
 
-public class ChunkCapabilities {
+import net.imprex.orebfuscator.util.MinecraftVersion;
 
-	public static boolean hasLightArray = false;
-	public static boolean hasBlockCount = false;
-	public static boolean hasDirectPaletteZeroLength = false;
-	public static boolean hasSimpleVarBitBuffer = false;
+public final class ChunkCapabilities {
 
-	public static void hasLightArray() {
-		hasLightArray = true;
+	// hasSimpleVarBitBuffer >= 1.16
+	// hasBlockCount >= 1.14
+	// hasDirectPaletteZeroLength < 1.13
+	// hasLight < 1.14
+
+	private static boolean hasSimpleVarBitBuffer = MinecraftVersion.getMinorVersion() >= 16;
+	private static boolean hasBlockCount = MinecraftVersion.getMinorVersion() >= 14;
+	private static boolean hasDirectPaletteZeroLength = MinecraftVersion.getMinorVersion() < 13;
+	private static boolean hasLightArray = MinecraftVersion.getMinorVersion() < 14;
+
+	private ChunkCapabilities() {
 	}
 
-	public static void hasBlockCount() {
-		hasBlockCount = true;
+	public static boolean hasSimpleVarBitBuffer() {
+		return hasSimpleVarBitBuffer;
 	}
 
-	public static void hasDirectPaletteZeroLength() {
-		hasDirectPaletteZeroLength = true;
+	public static boolean hasBlockCount() {
+		return hasBlockCount;
 	}
 
-	public static void hasSimpleVarBitBuffer() {
-		hasSimpleVarBitBuffer = true;
+	public static boolean hasDirectPaletteZeroLength() {
+		return hasDirectPaletteZeroLength;
+	}
+
+	public static boolean hasLightArray() {
+		return hasLightArray;
+	}
+
+	public static int getExtraBytes(ChunkStruct chunkStruct) {
+		int extraBytes = ChunkCapabilities.hasLightArray() ? 2048 : 0;
+		if (chunkStruct.isOverworld) {
+			extraBytes *= 2;
+		}
+		return extraBytes;
 	}
 
 	public static VarBitBuffer createVarBitBuffer(int bitsPerEntry, int size) {

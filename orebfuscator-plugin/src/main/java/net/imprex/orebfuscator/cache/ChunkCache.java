@@ -6,6 +6,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import org.bukkit.Bukkit;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalNotification;
@@ -41,6 +43,11 @@ public class ChunkCache {
 				.removalListener(this::onRemoval).build();
 
 		this.serializer = new ChunkCacheSerializer();
+
+		if (this.cacheConfig.enabled() && this.cacheConfig.deleteRegionFilesAfterAccess() > 0) {
+			Bukkit.getScheduler().runTaskTimerAsynchronously(orebfuscator, new CacheCleanTask(orebfuscator), 0,
+					3_600_000L);
+		}
 	}
 
 	private void onRemoval(RemovalNotification<ChunkPosition, ChunkCacheEntry> notification) {

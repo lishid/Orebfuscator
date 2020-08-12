@@ -13,7 +13,7 @@ public class MaterialUtil {
 	static {
 		for (Material material : Material.values()) {
 			if (material.isBlock() && !material.isOccluding()) {
-				for (int id : NmsInstance.get().getMaterialIds(material)) {
+				for (int id : NmsInstance.getMaterialIds(material)) {
 					TRANSPARENT_BLOCKS.set(id);
 				}
 			}

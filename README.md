@@ -21,22 +21,21 @@ ProximityHider is a feature that hides chests that are far from players.
 - Hide hidden chests and furnaces until a player can see it.
 
 ### Links
-- **[Discord](https://chat.wuffy.eu)**
 - **[Orebfuscator](https://www.spigotmc.org/resources/orebfuscator.22818/)**
 - **[ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997)**
 
 ## IMPORTANT
 
 ### Requirements:
-- Java 1.6 / 1.7 / 1.8
-- Spigot/PaperSpigot and any other fork of CraftBukkit! (1.9 through 1.14.*)
-- ProtocolLib (4.0 or better)
+- Java 8 or higher
+- Spigot/PaperSpigot and any other fork of CraftBukkit (1.9 or higher)
+- ProtocolLib 4.0 or higher
 
 ### Configurate
-1. Download [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997)
-2. Download [Orebfuscator](https://github.com/Imprex-Development/Orebfuscator/releases/latest)
-3. Restart your minecraft server
-4. That was it.
+1. Download [ProtocolLib](https://github.com/dmulloy2/ProtocolLib/releases)
+2. Download [Orebfuscator](https://github.com/Imprex-Development/Orebfuscator/releases)
+3. Put both in your *plugins* directory
+4. Start your server and configure orebfuscator to your liking
 
 ## Developer
 
@@ -46,23 +45,20 @@ ProximityHider is a feature that hides chests that are far from players.
 3. Click "Import..."
 4. Maven -> Existing Maven Projects
 5. Select the downloaded repo
-6. Finished
 
 ## Build
 1. Click right click on the Orebfuscator-repo folder and select "Run as" -> "Maven Build..."
 2. Put into Goals this "clean compile package -pl Plugin -Dorebfuscator-version=5.0.0 --also-make"
 3. Click Run
 4. Your jar will be builded under the folder "target"
-5. Finished
 
 ## Release a new version
-1. git tag **version**
+1. git tag **version** -m "**description**"
 2. git push origin **version**
-3. Finished
 
 ## License:
 
-Significantly reworked by Imprex-Development to support v1.14 and higher Minecraft version's; these portions as permissible:
+Almost completely rewritten by Imprex-Development to support v1.14 and higher Minecraft version's; these portions as permissible:
 Copyright (C) 2020 by Imprex-Development. All rights reserved.
 
 Released under the same license as original.

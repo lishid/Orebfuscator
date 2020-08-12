@@ -25,7 +25,7 @@ public class ChunkSection {
 				this.bitsPerBlock = Math.max(4, bitsPerBlock);
 				this.palette = new IndirectPalette(this.bitsPerBlock, this);
 			} else {
-				this.bitsPerBlock = NmsInstance.get().getBitsPerBlock();
+				this.bitsPerBlock = NmsInstance.getBitsPerBlock();
 				this.palette = new DirectPalette();
 			}
 
@@ -59,11 +59,11 @@ public class ChunkSection {
 	public void setBlock(int index, int blockId) {
 		int prevBlockId = this.getBlock(index);
 
-		if (!NmsInstance.get().isAir(prevBlockId)) {
+		if (!NmsInstance.isAir(prevBlockId)) {
 			--this.blockCount;
 		}
 
-		if (!NmsInstance.get().isAir(blockId)) {
+		if (!NmsInstance.isAir(blockId)) {
 			++this.blockCount;
 		}
 
@@ -80,7 +80,7 @@ public class ChunkSection {
 	}
 
 	public void write(ByteBuf buffer) {
-		if (ChunkCapabilities.hasBlockCount) {
+		if (ChunkCapabilities.hasBlockCount()) {
 			buffer.writeShort(this.blockCount);
 		}
 
@@ -95,7 +95,7 @@ public class ChunkSection {
 	}
 
 	public int[] read(ByteBuf buffer) {
-		if (ChunkCapabilities.hasBlockCount) {
+		if (ChunkCapabilities.hasBlockCount()) {
 			this.blockCount = buffer.readShort();
 		}
 

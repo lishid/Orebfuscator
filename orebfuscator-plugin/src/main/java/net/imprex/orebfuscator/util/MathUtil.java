@@ -72,7 +72,7 @@ public class MathUtil {
 			if (lx == bx && ly == by && lz == bz) {
 				return true; // we've reached our starting block, don't test it.
 			}
-			BlockStateHolder between = NmsInstance.get().getBlockState(world, (int) lx, (int) ly, (int) lz);
+			BlockStateHolder between = NmsInstance.getBlockState(world, (int) lx, (int) ly, (int) lz);
 			if (between != null && !MaterialUtil.isTransparent(between.getBlockId())) {
 				return false; // fail on first hit, this ray is "blocked"
 			}

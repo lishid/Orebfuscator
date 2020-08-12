@@ -77,7 +77,7 @@ public class ConfigParser {
 		}
 
 		for (String name : materialSection.getKeys(false)) {
-			Optional<Material> material = NmsInstance.get().getMaterialByName(name);
+			Optional<Material> material = NmsInstance.getMaterialByName(name);
 
 			if (!material.isPresent()) {
 				OFCLogger.warn(String.format("config section '%s.%s' contains unknown block '%s'",

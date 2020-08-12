@@ -16,14 +16,14 @@ public class DirectPalette implements Palette {
 
 	@Override
 	public void read(ByteBuf buffer) {
-		if (ChunkCapabilities.hasDirectPaletteZeroLength) {
+		if (ChunkCapabilities.hasDirectPaletteZeroLength()) {
 			ByteBufUtil.readVarInt(buffer);
 		}
 	}
 
 	@Override
 	public void write(ByteBuf buffer) {
-		if (ChunkCapabilities.hasDirectPaletteZeroLength) {
+		if (ChunkCapabilities.hasDirectPaletteZeroLength()) {
 			ByteBufUtil.writeVarInt(buffer, 0);
 		}
 	}

@@ -51,7 +51,7 @@ public class NmsManager extends AbstractNmsManager {
 		if (isChunkLoaded(worldServer, x >> 4, z >> 4) || loadChunk) {
 			// will load chunk if not loaded already
 			Chunk chunk = chunkProviderServer.getOrLoadChunkAt(x >> 4, z >> 4);
-			return chunk != null ? chunk.getBlockData(new BlockPosition(x, y, z)) : null;
+			return chunk != null ? chunk.a(x, y, z) : null;
 		}
 		return null;
 	}
@@ -101,6 +101,14 @@ public class NmsManager extends AbstractNmsManager {
 		MinecraftKey minecraftKey = new MinecraftKey(name);
 		if (Block.REGISTRY.d(minecraftKey)) {
 			return Optional.ofNullable(CraftMagicNumbers.getMaterial(Block.REGISTRY.get(minecraftKey)));
+		}
+		return Optional.empty();
+	}
+
+	public Optional<String> getNameByMaterial(Material material) {
+		MinecraftKey key = Block.REGISTRY.b(CraftMagicNumbers.getBlock(material));
+		if (key != null) {
+			return Optional.of(key.toString());
 		}
 		return Optional.empty();
 	}

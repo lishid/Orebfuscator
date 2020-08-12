@@ -10,7 +10,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.imprex.orebfuscator.cache.CacheCleanTask;
 import net.imprex.orebfuscator.cache.ChunkCache;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.obfuscation.ObfuscationListener;
@@ -44,7 +43,6 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 
 			// Load chunk cache	
 			this.chunkCache = new ChunkCache(this);
-			this.getServer().getScheduler().runTaskTimerAsynchronously(this, new CacheCleanTask(this), 0, 3_600_000L);
 
 			// Load obfuscater
 			this.obfuscator = new Obfuscator(this);

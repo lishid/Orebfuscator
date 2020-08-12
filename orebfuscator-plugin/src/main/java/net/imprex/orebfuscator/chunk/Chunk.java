@@ -9,12 +9,7 @@ import io.netty.buffer.Unpooled;
 public class Chunk implements AutoCloseable {
 
 	public static Chunk fromChunkStruct(ChunkStruct chunkStruct) {
-		int extraBytes = ChunkCapabilities.hasLightArray ? 2048 : 0;
-		if (chunkStruct.isOverworld) {
-			extraBytes *= 2;
-		}
-
-		return new Chunk(chunkStruct, extraBytes);
+		return new Chunk(chunkStruct, ChunkCapabilities.getExtraBytes(chunkStruct));
 	}
 
 	private final int chunkX;

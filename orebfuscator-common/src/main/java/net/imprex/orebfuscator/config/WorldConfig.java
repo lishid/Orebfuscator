@@ -10,8 +10,6 @@ public interface WorldConfig {
 	
 	List<World> worlds();
 
-	boolean darknessBlocksEnabled();
-
 	List<Integer> randomBlocks();
 
 	int randomBlockId();

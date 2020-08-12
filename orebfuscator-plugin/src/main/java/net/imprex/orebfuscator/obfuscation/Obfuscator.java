@@ -82,7 +82,6 @@ public class Obfuscator {
 					int z = baseZ + (index >> 4 & 15);
 
 					boolean obfuscateFlag = (obfuscateBits & BlockMask.BLOCK_MASK_OBFUSCATE) != 0;
-					boolean darknessFlag = (obfuscateBits & BlockMask.BLOCK_MASK_DARKNESS) != 0;
 					boolean tileEntityFlag = (obfuscateBits & BlockMask.BLOCK_MASK_TILEENTITY) != 0;
 					boolean proximityFlag = (obfuscateBits & BlockMask.BLOCK_MASK_PROXIMITY) != 0;
 
@@ -107,13 +106,6 @@ public class Obfuscator {
 							blockData = worldConfig.randomBlockId();
 						}
 						chunkSection.setBlock(index, blockData);
-					}
-
-					// Check if the block should be obfuscated because of the darkness
-					if (!obfuscate && darknessFlag && worldConfig.darknessBlocksEnabled()
-							&& !areAjacentBlocksBright(world, x, y, z, 1)) {
-						chunkSection.setBlock(index, NmsInstance.get().getCaveAirBlockId());
-						obfuscate = true;
 					}
 
 					// remove obfuscated tile entities
@@ -141,7 +133,7 @@ public class Obfuscator {
 		if (check) {
 			int blockId = chunk.getBlock(x, y, z);
 			if (blockId == -1) {
-				blockId = NmsInstance.get().loadChunkAndGetBlockId(world, x, y, z);
+				blockId = NmsInstance.loadChunkAndGetBlockId(world, x, y, z);
 			}
 			if (blockId >= 0 && MaterialUtil.isTransparent(blockId)) {
 				return true;
@@ -161,7 +153,7 @@ public class Obfuscator {
 	}
 
 	public static boolean areAjacentBlocksBright(World world, int x, int y, int z, int depth) {
-		if (NmsInstance.get().getBlockLightLevel(world, x, y, z) > 0) {
+		if (NmsInstance.getBlockLightLevel(world, x, y, z) > 0) {
 			return true;
 		}
 

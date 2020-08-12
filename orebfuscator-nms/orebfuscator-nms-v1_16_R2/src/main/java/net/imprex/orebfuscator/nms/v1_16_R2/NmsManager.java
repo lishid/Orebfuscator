@@ -1,14 +1,14 @@
-package net.imprex.orebfuscator.nms.v1_14_R1;
+package net.imprex.orebfuscator.nms.v1_16_R2;
 
 import java.util.BitSet;
 import java.util.Optional;
 
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_14_R1.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_14_R1.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_16_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R2.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_16_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R2.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 import net.imprex.orebfuscator.config.CacheConfig;
@@ -17,19 +17,19 @@ import net.imprex.orebfuscator.nms.AbstractBlockState;
 import net.imprex.orebfuscator.nms.AbstractNmsManager;
 import net.imprex.orebfuscator.nms.AbstractRegionFileCache;
 import net.imprex.orebfuscator.util.BlockCoords;
-import net.minecraft.server.v1_14_R1.Block;
-import net.minecraft.server.v1_14_R1.BlockPosition;
-import net.minecraft.server.v1_14_R1.Chunk;
-import net.minecraft.server.v1_14_R1.ChunkProviderServer;
-import net.minecraft.server.v1_14_R1.EntityPlayer;
-import net.minecraft.server.v1_14_R1.IBlockData;
-import net.minecraft.server.v1_14_R1.IRegistry;
-import net.minecraft.server.v1_14_R1.MathHelper;
-import net.minecraft.server.v1_14_R1.MinecraftKey;
-import net.minecraft.server.v1_14_R1.Packet;
-import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_14_R1.TileEntity;
-import net.minecraft.server.v1_14_R1.WorldServer;
+import net.minecraft.server.v1_16_R2.Block;
+import net.minecraft.server.v1_16_R2.BlockPosition;
+import net.minecraft.server.v1_16_R2.Chunk;
+import net.minecraft.server.v1_16_R2.ChunkProviderServer;
+import net.minecraft.server.v1_16_R2.EntityPlayer;
+import net.minecraft.server.v1_16_R2.IBlockData;
+import net.minecraft.server.v1_16_R2.IRegistry;
+import net.minecraft.server.v1_16_R2.MathHelper;
+import net.minecraft.server.v1_16_R2.MinecraftKey;
+import net.minecraft.server.v1_16_R2.Packet;
+import net.minecraft.server.v1_16_R2.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_16_R2.TileEntity;
+import net.minecraft.server.v1_16_R2.WorldServer;
 
 public class NmsManager extends AbstractNmsManager {
 
@@ -88,7 +88,7 @@ public class NmsManager extends AbstractNmsManager {
 
 	@Override
 	public int getBitsPerBlock() {
-		return MathHelper.d(Block.REGISTRY_ID.a());
+		return MathHelper.e(Block.REGISTRY_ID.a());
 	}
 
 	@Override
@@ -101,6 +101,14 @@ public class NmsManager extends AbstractNmsManager {
 		Optional<Block> block = IRegistry.BLOCK.getOptional(new MinecraftKey(name));
 		if (block.isPresent()) {
 			return Optional.ofNullable(CraftMagicNumbers.getMaterial(block.get()));
+		}
+		return Optional.empty();
+	}
+
+	public Optional<String> getNameByMaterial(Material material) {
+		MinecraftKey key = IRegistry.BLOCK.getKey(CraftMagicNumbers.getBlock(material));
+		if (key != null) {
+			return Optional.of(key.toString());
 		}
 		return Optional.empty();
 	}
@@ -118,6 +126,7 @@ public class NmsManager extends AbstractNmsManager {
 		case IRON_HOE:
 		case GOLDEN_HOE:
 		case DIAMOND_HOE:
+		case NETHERITE_HOE:
 			return true;
 
 		default:

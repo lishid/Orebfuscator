@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -20,11 +18,10 @@ import org.bukkit.plugin.Plugin;
 
 import net.imprex.orebfuscator.NmsInstance;
 import net.imprex.orebfuscator.Orebfuscator;
+import net.imprex.orebfuscator.util.MinecraftVersion;
 import net.imprex.orebfuscator.util.OFCLogger;
 
 public class OrebfuscatorConfig implements Config {
-
-	private static final Pattern NMS_PATTERN = Pattern.compile("v(\\d+)_(\\d+)_R\\d");
 
 	private static final int CONFIG_VERSION = 1;
 
@@ -62,13 +59,7 @@ public class OrebfuscatorConfig implements Config {
 
 		if (Files.notExists(path)) {
 			try {
-				Matcher matcher = NMS_PATTERN.matcher(NmsInstance.SERVER_VERSION);
-
-				if (!matcher.find()) {
-					throw new RuntimeException("Can't parse server version " + NmsInstance.SERVER_VERSION);
-				}
-
-				String configVersion = matcher.group(1) + "." + matcher.group(2);
+				String configVersion = MinecraftVersion.getMajorVersion() + "." + MinecraftVersion.getMinorVersion();
 
 				if (Files.notExists(dataFolder)) {
 					Files.createDirectories(dataFolder);
@@ -86,7 +77,7 @@ public class OrebfuscatorConfig implements Config {
 	private byte[] calculateHash(Path path) {
 		try {
 			MessageDigest md5Digest = MessageDigest.getInstance("MD5");
-			md5Digest.update(NmsInstance.SERVER_VERSION.getBytes(StandardCharsets.UTF_8));
+			md5Digest.update(MinecraftVersion.getNmsVersion().getBytes(StandardCharsets.UTF_8));
 			return md5Digest.digest(Files.readAllBytes(path));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -157,12 +148,6 @@ public class OrebfuscatorConfig implements Config {
 			}
 		}
 
-		for (World world : Bukkit.getWorlds()) {
-			if (!this.worldToWorldConfig.containsKey(world)) {
-				OFCLogger.warn("world " + world.getName() + " is missing a world config");
-			}
-		}
-
 		for (OrebfuscatorProximityConfig proximityConfig : this.proximityWorlds) {
 			proximityConfig.initialize();
 			for (World world : proximityConfig.worlds()) {
@@ -174,6 +159,7 @@ public class OrebfuscatorConfig implements Config {
 			}
 		}
 
+		// TODO handle dynamic world loading
 		for (World world : Bukkit.getWorlds()) {
 			if (!this.worldToWorldConfig.containsKey(world)) {
 				OFCLogger.warn("world " + world.getName() + " is missing a world config");

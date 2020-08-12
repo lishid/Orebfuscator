@@ -23,11 +23,8 @@ public class CacheCleanTask implements Runnable {
 	@Override
 	public void run() {
 		long deleteAfterMillis = this.cacheConfig.deleteRegionFilesAfterAccess();
-		if (!this.cacheConfig.enabled() || deleteAfterMillis <= 0) {
-			return;
-		}
+		AbstractRegionFileCache<?> regionFileCache = NmsInstance.getRegionFileCache();
 
-		AbstractRegionFileCache<?> regionFileCache = NmsInstance.get().getRegionFileCache();
 		try {
 			Files.walkFileTree(this.cacheConfig.baseDirectory(), new SimpleFileVisitor<Path>() {
 

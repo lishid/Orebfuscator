@@ -8,15 +8,12 @@ import net.imprex.orebfuscator.NmsInstance;
 
 public class OrebfuscatorBlockMask implements BlockMask {
 
-	private final short[] blockMask = new short[NmsInstance.get().getMaterialSize()];
+	private final short[] blockMask = new short[NmsInstance.getMaterialSize()];
 
 	public OrebfuscatorBlockMask(OrebfuscatorWorldConfig worldConfig, OrebfuscatorProximityConfig proximityConfig) {
 		if (worldConfig != null && worldConfig.enabled()) {
 			for (Material material : worldConfig.getHiddenBlocks()) {
 				this.setBlockMask(material, BLOCK_MASK_OBFUSCATE);
-			}
-			for (Material material : worldConfig.getDarknessBlocks()) {
-				this.setBlockMask(material, BLOCK_MASK_DARKNESS);
 			}
 		}
 		if (proximityConfig != null && proximityConfig.enabled()) {
@@ -27,10 +24,10 @@ public class OrebfuscatorBlockMask implements BlockMask {
 	}
 
 	public void setBlockMask(Material material, int mask) {
-		for (int blockId : NmsInstance.get().getMaterialIds(material)) {
+		for (int blockId : NmsInstance.getMaterialIds(material)) {
 			int blockMask = this.blockMask[blockId] | mask;
 
-			if (NmsInstance.get().isTileEntity(blockId)) {
+			if (NmsInstance.isTileEntity(blockId)) {
 				blockMask |= BLOCK_MASK_TILEENTITY;
 			}
 

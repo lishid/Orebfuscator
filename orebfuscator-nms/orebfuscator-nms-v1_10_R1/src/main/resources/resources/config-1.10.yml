@@ -16,15 +16,11 @@ world:
   - worlds:
       - world
     enabled: true
-    darknessBlocks:
-      - chest
-      - ender_chest
-      - trapped_chest
-      - mob_spawner
     hiddenBlocks:
       - chest
       - ender_chest
       - trapped_chest
+      - mob_spawner
       - emerald_ore
       - diamond_ore
       - gold_ore
@@ -52,15 +48,11 @@ world:
   - worlds:
       - world_nether
     enabled: true
-    darknessBlocks:
-      - chest
-      - ender_chest
-      - trapped_chest
-      - mob_spawner
     hiddenBlocks:
       - chest
       - ender_chest
       - trapped_chest
+      - mob_spawner
       - netherrack
       - quartz_ore
     randomBlocks:
@@ -69,15 +61,11 @@ world:
   - worlds:
       - world_the_end
     enabled: true
-    darknessBlocks:
-      - chest
-      - ender_chest
-      - trapped_chest
-      - mob_spawner
     hiddenBlocks:
       - chest
       - ender_chest
       - trapped_chest
+      - mob_spawner
     randomBlocks:
       end_stone: 1
       end_bricks: 1

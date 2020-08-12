@@ -51,7 +51,7 @@ public class NmsManager extends AbstractNmsManager {
 		if (isChunkLoaded(worldServer, x >> 4, z >> 4) || loadChunk) {
 			// will load chunk if not loaded already
 			Chunk chunk = chunkProviderServer.getOrLoadChunkAt(x >> 4, z >> 4);
-			return chunk != null ? chunk.getBlockData(new BlockPosition(x, y, z)) : null;
+			return chunk != null ? chunk.a(x, y, z) : null;
 		}
 		return null;
 	}

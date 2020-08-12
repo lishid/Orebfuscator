@@ -14,11 +14,11 @@ public class ChunkCacheSerializer {
 	private static final int CACHE_VERSION = 1;
 
 	private DataInputStream createInputStream(ChunkPosition key) throws IOException {
-		return NmsInstance.get().getRegionFileCache().createInputStream(key);
+		return NmsInstance.getRegionFileCache().createInputStream(key);
 	}
 
 	private DataOutputStream createOutputStream(ChunkPosition key) throws IOException {
-		return NmsInstance.get().getRegionFileCache().createOutputStream(key);
+		return NmsInstance.getRegionFileCache().createOutputStream(key);
 	}
 
 	public ChunkCacheEntry read(ChunkPosition key) throws IOException {
