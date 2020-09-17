@@ -91,6 +91,10 @@ public class NmsInstance {
 		return instance.getMaterialByName(name);
 	}
 
+	public static Optional<String> getNameByMaterial(Material material) {
+		return instance.getNameByMaterial(material);
+	}
+
 	public static Set<Integer> getMaterialIds(Material material) {
 		return instance.getMaterialIds(material);
 	}
