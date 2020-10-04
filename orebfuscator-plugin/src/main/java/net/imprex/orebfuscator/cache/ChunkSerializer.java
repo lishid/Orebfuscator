@@ -6,23 +6,24 @@ import java.io.IOException;
 import java.util.Collection;
 
 import net.imprex.orebfuscator.NmsInstance;
+import net.imprex.orebfuscator.obfuscation.ObfuscatedChunk;
 import net.imprex.orebfuscator.util.BlockCoords;
 import net.imprex.orebfuscator.util.ChunkPosition;
 
-public class ChunkCacheSerializer {
+public class ChunkSerializer {
 
 	private static final int CACHE_VERSION = 1;
 
-	private DataInputStream createInputStream(ChunkPosition key) throws IOException {
+	private static DataInputStream createInputStream(ChunkPosition key) throws IOException {
 		return NmsInstance.getRegionFileCache().createInputStream(key);
 	}
 
-	private DataOutputStream createOutputStream(ChunkPosition key) throws IOException {
+	private static DataOutputStream createOutputStream(ChunkPosition key) throws IOException {
 		return NmsInstance.getRegionFileCache().createOutputStream(key);
 	}
 
-	public ChunkCacheEntry read(ChunkPosition key) throws IOException {
-		try (DataInputStream dataInputStream = this.createInputStream(key)) {
+	public static ObfuscatedChunk read(ChunkPosition key) throws IOException {
+		try (DataInputStream dataInputStream = createInputStream(key)) {
 			if (dataInputStream != null) {
 				// check if cache entry has right version and if chunk is present
 				if (dataInputStream.readInt() != CACHE_VERSION || !dataInputStream.readBoolean()) {
@@ -35,7 +36,7 @@ public class ChunkCacheSerializer {
 				byte[] data = new byte[dataInputStream.readInt()];
 				dataInputStream.readFully(data);
 
-				ChunkCacheEntry chunkCacheEntry = new ChunkCacheEntry(hash, data);
+				ObfuscatedChunk chunkCacheEntry = new ObfuscatedChunk(hash, data);
 
 				Collection<BlockCoords> proximityBlocks = chunkCacheEntry.getProximityBlocks();
 				for (int i = dataInputStream.readInt(); i > 0; i--) {
@@ -56,8 +57,8 @@ public class ChunkCacheSerializer {
 	}
 
 	// TODO consider size limit for cache since RegionFile before 1.14 have a hard limit of 256 * 4kb 
-	public void write(ChunkPosition key, ChunkCacheEntry value) throws IOException {
-		try (DataOutputStream dataOutputStream = this.createOutputStream(key)) {
+	public static void write(ChunkPosition key, ObfuscatedChunk value) throws IOException {
+		try (DataOutputStream dataOutputStream = createOutputStream(key)) {
 			dataOutputStream.writeInt(CACHE_VERSION);
 
 			if (value != null) {

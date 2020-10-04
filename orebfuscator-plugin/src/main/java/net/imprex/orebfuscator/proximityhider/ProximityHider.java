@@ -51,14 +51,13 @@ public class ProximityHider {
 			if (this.queueThreads[i] == null) {
 				ProximityThread thread = new ProximityThread(this, this.orebfuscator);
 				thread.setDaemon(true);
-				thread.setName("OFC - ProximityHider Thread - #" + i);
 				thread.start();
 				this.queueThreads[i] = thread;
 			}
 		}
 	}
 
-	public Player pollPlayer() {
+	public Player pollPlayer() throws InterruptedException {
 		return this.queue.poll();
 	}
 
@@ -115,6 +114,9 @@ public class ProximityHider {
 		if (!this.running.compareAndSet(true, false)) {
 			throw new IllegalStateException("proximity hider isn't running");
 		}
+
+		this.queue.clear();
+		this.playerData.invalidateAll();
 
 		for (ProximityThread thread : this.queueThreads) {
 			if (thread != null) {

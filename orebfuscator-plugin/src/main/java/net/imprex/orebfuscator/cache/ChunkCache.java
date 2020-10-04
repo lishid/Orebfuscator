@@ -1,10 +1,11 @@
 package net.imprex.orebfuscator.cache;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import org.bukkit.Bukkit;
 
@@ -17,6 +18,7 @@ import com.google.common.hash.Hashing;
 
 import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.CacheConfig;
+import net.imprex.orebfuscator.obfuscation.ObfuscatedChunk;
 import net.imprex.orebfuscator.util.ChunkPosition;
 
 public class ChunkCache {
@@ -30,19 +32,30 @@ public class ChunkCache {
 		return hasher.hash().asBytes();
 	}
 
+	private final Orebfuscator orebfuscator;
 	private final CacheConfig cacheConfig;
 
-	private final Cache<ChunkPosition, ChunkCacheEntry> cache;
-	private final ChunkCacheSerializer serializer;
+	private final Cache<ChunkPosition, ObfuscatedChunk> cache;
+	private final AsyncChunkSerializer serializer;
+
+	private final ExecutorService cacheExecutor;
 
 	public ChunkCache(Orebfuscator orebfuscator) {
+		this.orebfuscator = orebfuscator;
 		this.cacheConfig = orebfuscator.getOrebfuscatorConfig().cache();
+
+		this.cacheExecutor = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+				pool -> {
+			        ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+			        worker.setName("ofc-cache-pool-" + worker.getPoolIndex());
+			        return worker;
+				}, null, true);
 
 		this.cache = CacheBuilder.newBuilder().maximumSize(this.cacheConfig.maximumSize())
 				.expireAfterAccess(this.cacheConfig.expireAfterAccess(), TimeUnit.MILLISECONDS)
 				.removalListener(this::onRemoval).build();
 
-		this.serializer = new ChunkCacheSerializer();
+		this.serializer = new AsyncChunkSerializer(orebfuscator);
 
 		if (this.cacheConfig.enabled() && this.cacheConfig.deleteRegionFilesAfterAccess() > 0) {
 			Bukkit.getScheduler().runTaskTimerAsynchronously(orebfuscator, new CacheCleanTask(orebfuscator), 0,
@@ -50,69 +63,58 @@ public class ChunkCache {
 		}
 	}
 
-	private void onRemoval(RemovalNotification<ChunkPosition, ChunkCacheEntry> notification) {
+	private void onRemoval(RemovalNotification<ChunkPosition, ObfuscatedChunk> notification) {
 		if (notification.wasEvicted()) {
-			try {
-				this.serializer.write(notification.getKey(), notification.getValue());
-			} catch (IOException e) {
-				e.printStackTrace();
+			this.serializer.write(notification.getKey(), notification.getValue());
+		}
+	}
+
+	public CompletableFuture<ObfuscatedChunk> get(ChunkCacheRequest request) {
+		CompletableFuture<ObfuscatedChunk> future = new CompletableFuture<>();
+		this.cacheExecutor.execute(() -> {
+			ChunkPosition key = request.getKey();
+
+			ObfuscatedChunk cacheChunk = this.cache.getIfPresent(key);
+			if (request.isValid(cacheChunk)) {
+				future.complete(cacheChunk);
+				return;
 			}
-		}
-	}
 
-	private ChunkCacheEntry load(ChunkPosition key) {
-		try {
-			return this.serializer.read(key);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+			// check if disk cache entry is present and valid
+			this.serializer.read(key).thenAcceptAsync(diskChunk -> {
+				if (request.isValid(diskChunk)) {
+					this.cache.put(key, diskChunk);
+					future.complete(diskChunk);
+					return;
+				}
 
-	public ChunkCacheEntry get(ChunkPosition key, byte[] hash,
-			Function<ChunkPosition, ChunkCacheEntry> mappingFunction) {
-		Objects.requireNonNull(mappingFunction);
-
-		// check if live cache entry is present and valid
-		ChunkCacheEntry cacheEntry = this.cache.getIfPresent(key);
-		if (cacheEntry != null && Arrays.equals(cacheEntry.getHash(), hash)) {
-			return cacheEntry;
-		}
-
-		// check if disk cache entry is present and valid
-		cacheEntry = this.load(key);
-		if (cacheEntry != null && Arrays.equals(cacheEntry.getHash(), hash)) {
-			this.cache.put(key, Objects.requireNonNull(cacheEntry));
-			return cacheEntry;
-		}
-
-		// create new entry no valid ones found
-		cacheEntry = mappingFunction.apply(key);
-		this.cache.put(key, Objects.requireNonNull(cacheEntry));
-		return cacheEntry;
+				// create new entry no valid ones found
+				request.obfuscate().thenAcceptAsync(chunk -> {
+					this.cache.put(key, Objects.requireNonNull(chunk));
+					future.complete(chunk);
+				}, this.cacheExecutor);
+			}, this.cacheExecutor);
+		});
+		return future;
 	}
 
 	public void invalidate(ChunkPosition key) {
-		this.cache.invalidate(key);
-		try {
+		if (this.orebfuscator.isMainThread()) {
+			this.cacheExecutor.execute(() -> {
+				this.invalidate(key);
+			});
+		} else {
+			this.cache.invalidate(key);
 			this.serializer.write(key, null);
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 
-	public void invalidateAll(boolean save) {
-		if (save) {
-			this.cache.asMap().entrySet().removeIf(entry -> {
-				try {
-					this.serializer.write(entry.getKey(), entry.getValue());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				return true;
-			});
-		} else {
-			this.cache.invalidateAll();
-		}
+	public void close() {
+		this.cache.asMap().entrySet().removeIf(entry -> {
+			this.serializer.write(entry.getKey(), entry.getValue());
+			return true;
+		});
+		this.cacheExecutor.shutdown();
+		this.serializer.close();
 	}
 }

@@ -22,6 +22,10 @@ import net.imprex.orebfuscator.util.OFCLogger;
 
 public class Orebfuscator extends JavaPlugin implements Listener {
 
+	public static final ThreadGroup THREAD_GROUP = new ThreadGroup("ofc");
+
+	private final Thread mainThread = Thread.currentThread();
+
 	private OrebfuscatorConfig config;
 	private ChunkCache chunkCache;
 	private Obfuscator obfuscator;
@@ -71,8 +75,8 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 
 	@Override
 	public void onDisable() {
-		this.chunkCache.invalidateAll(true);
-		NmsInstance.close();
+		this.chunkCache.close();
+		this.config.store();
 
 		this.packetListener.unregister();
 
@@ -83,6 +87,8 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 
 		this.getServer().getScheduler().cancelTasks(this);
 
+
+		NmsInstance.close();
 		this.config = null;
 	}
 
@@ -93,6 +99,10 @@ public class Orebfuscator extends JavaPlugin implements Listener {
 			HandlerList.unregisterAll(listener);
 			Bukkit.getPluginManager().disablePlugin(this);
 		}
+	}
+
+	public boolean isMainThread() {
+		return Thread.currentThread() == this.mainThread;
 	}
 
 	public OrebfuscatorConfig getOrebfuscatorConfig() {
