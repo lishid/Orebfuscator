@@ -121,7 +121,7 @@ public class ProximityHider {
 		for (ProximityThread thread : this.queueThreads) {
 			if (thread != null) {
 				// TODO set thread null
-				thread.destroy();
+				thread.close();
 			}
 		}
 	}

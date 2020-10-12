@@ -112,7 +112,7 @@ public class ProximityThread extends Thread {
 		}
 	}
 
-	public void destroy() {
+	public void close() {
 		this.running.set(false);
 		this.interrupt();
 	}

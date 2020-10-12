@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>net.imprex</groupId>
 		<artifactId>orebfuscator-nms</artifactId>
-		<version>${orebfuscator.version}</version>
+		<version>${revision}</version>
 	</parent>
 
 	<artifactId>orebfuscator-nms-v1_14_R1</artifactId>
@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>net.imprex</groupId>
 			<artifactId>orebfuscator-nms-api</artifactId>
-			<version>${orebfuscator.version}</version>
+			<version>${revision}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

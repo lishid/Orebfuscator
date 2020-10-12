@@ -48,9 +48,11 @@ public class IndirectPalette implements Palette {
 
 	@Override
 	public void read(ByteBuf buffer) {
-		int size = ByteBufUtil.readVarInt(buffer);
+		this.size = ByteBufUtil.readVarInt(buffer);
 		for (int i = 0; i < size; i++) {
-			this.fromBlockId(ByteBufUtil.readVarInt(buffer));
+			int blockId = ByteBufUtil.readVarInt(buffer);
+			this.indexToBlock[i] = blockId;
+			this.blockToIndex[blockId] = (byte) i;
 		}
 	}
 
