@@ -22,7 +22,7 @@ public class ProximityListener implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		this.proximityHider.queuePlayer(event.getPlayer());
+		this.proximityHider.queuePlayerUpdate(event.getPlayer());
 	}
 
 	@EventHandler
@@ -34,7 +34,7 @@ public class ProximityListener implements Listener {
 	public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
 		Player player = event.getPlayer();
 
-		this.proximityHider.queuePlayer(player);
+		this.proximityHider.queuePlayerUpdate(player);
 	}
 
 	@EventHandler
@@ -43,16 +43,16 @@ public class ProximityListener implements Listener {
 			return;
 		}
 
-		this.proximityHider.queuePlayer(event.getPlayer());
+		this.proximityHider.queuePlayerUpdate(event.getPlayer());
 	}
 
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
-		this.proximityHider.queuePlayer(event.getPlayer());
+		this.proximityHider.queuePlayerUpdate(event.getPlayer());
 	}
 
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
-		this.proximityHider.queuePlayer(event.getPlayer());
+		this.proximityHider.queuePlayerUpdate(event.getPlayer());
 	}
 }

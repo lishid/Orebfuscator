@@ -1,35 +1,19 @@
 package net.imprex.orebfuscator.proximityhider;
 
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.bukkit.World;
 import org.bukkit.entity.Player;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 
 import net.imprex.orebfuscator.Orebfuscator;
 import net.imprex.orebfuscator.config.OrebfuscatorConfig;
 import net.imprex.orebfuscator.config.ProximityConfig;
-import net.imprex.orebfuscator.util.BlockCoords;
 
 public class ProximityHider {
-
-	private final LoadingCache<Player, ProximityPlayerData> playerData = CacheBuilder.newBuilder()
-			.build(new CacheLoader<Player, ProximityPlayerData>() {
-
-				@Override
-				public ProximityPlayerData load(Player player) throws Exception {
-					return new ProximityPlayerData(player.getWorld());
-				}
-			});
 
 	private final Orebfuscator orebfuscator;
 	private final OrebfuscatorConfig config;
 
+	private final ProximityPlayerManager dataManager = new ProximityPlayerManager(this);
 	private final ProximityQueue queue = new ProximityQueue();
 
 	private final AtomicBoolean running = new AtomicBoolean();
@@ -42,85 +26,53 @@ public class ProximityHider {
 		this.queueThreads = new ProximityThread[this.config.general().proximityHiderRunnerSize()];
 	}
 
+	public ProximityPlayerManager getPlayerManager() {
+		return dataManager;
+	}
+
+	ProximityQueue getQueue() {
+		return queue;
+	}
+
+	public boolean isInProximityWorld(Player player) {
+		ProximityConfig proximityConfig = this.config.proximity(player.getWorld());
+		return proximityConfig != null && proximityConfig.enabled();
+	}
+
+	public void queuePlayerUpdate(Player player) {
+		if (this.isInProximityWorld(player)) {
+			this.queue.offerAndLock(player);
+		}
+	}
+
+	public void removePlayer(Player player) {
+		this.queue.remove(player);
+		this.dataManager.remove(player);
+	}
+
 	public void start() {
 		if (!this.running.compareAndSet(false, true)) {
 			throw new IllegalStateException("proximity hider already running");
 		}
 
 		for (int i = 0; i < this.queueThreads.length; i++) {
-			if (this.queueThreads[i] == null) {
-				ProximityThread thread = new ProximityThread(this, this.orebfuscator);
-				thread.setDaemon(true);
-				thread.start();
-				this.queueThreads[i] = thread;
-			}
+			ProximityThread thread = new ProximityThread(this, this.orebfuscator);
+			thread.setDaemon(true);
+			thread.start();
+			this.queueThreads[i] = thread;
 		}
 	}
 
-	public Player pollPlayer() throws InterruptedException {
-		return this.queue.poll();
-	}
-
-	public void queuePlayer(Player player) {
-		ProximityConfig proximityConfig = this.config.proximity(player.getWorld());
-		if (proximityConfig != null && proximityConfig.enabled()) {
-			this.queue.offerAndLock(player);
-		}
-	}
-
-	public void unlockPlayer(Player player) {
-		this.queue.unlock(player);
-	}
-
-	public void removePlayer(Player player) {
-		this.queue.remove(player);
-		this.playerData.invalidate(player);
-	}
-
-	public ProximityPlayerData getPlayer(Player player) {
-		try {
-			ProximityPlayerData proximityWorldData = playerData.get(player);
-
-			if (proximityWorldData.getWorld() != player.getWorld()) {
-				proximityWorldData = new ProximityPlayerData(player.getWorld());
-				playerData.put(player, proximityWorldData);
-			}
-
-			return proximityWorldData;
-		} catch (ExecutionException e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
-
-	public void addProximityBlocks(Player player, int chunkX, int chunkZ, Set<BlockCoords> blocks) {
-		ProximityPlayerData worldData = this.getPlayer(player);
-
-		if (blocks.size() > 0) {
-			worldData.putBlocks(chunkX, chunkZ, blocks);
-		} else {
-			worldData.removeChunk(chunkX, chunkZ);
-		}
-
-		this.queuePlayer(player);
-	}
-
-	public void removeProximityChunks(Player player, World world, int chunkX, int chunkZ) {
-		this.getPlayer(player).removeChunk(chunkX, chunkZ);
-	}
-
-	public void destroy() {
+	public void close() {
 		if (!this.running.compareAndSet(true, false)) {
 			throw new IllegalStateException("proximity hider isn't running");
 		}
 
 		this.queue.clear();
-		this.playerData.invalidateAll();
+		this.dataManager.clear();
 
 		for (ProximityThread thread : this.queueThreads) {
 			if (thread != null) {
-				// TODO set thread null
 				thread.close();
 			}
 		}
