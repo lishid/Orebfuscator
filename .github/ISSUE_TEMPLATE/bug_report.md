@@ -4,6 +4,11 @@ about: For reporting code or game bugs produced by ofc!
 
 ---
 
+<!--
+Please make sure to first check our common issues page before creating a new issue:
+https://github.com/Imprex-Development/Orebfuscator/wiki/Common-Issues
+-->
+
 **Please fill out the following information:**
 
 * Server Version: <!-- use "/version" command for server version -->
