@@ -19,6 +19,7 @@ import net.imprex.orebfuscator.config.ProximityConfig;
 import net.imprex.orebfuscator.config.WorldConfig;
 import net.imprex.orebfuscator.util.BlockPos;
 import net.imprex.orebfuscator.util.MaterialUtil;
+import net.imprex.orebfuscator.util.HeightAccessor;
 
 public class Obfuscator {
 
@@ -46,6 +47,7 @@ public class Obfuscator {
 		World world = request.getKey().getWorld();
 		byte[] hash = request.getHash();
 		ChunkStruct chunkStruct = request.getChunkStruct();
+		HeightAccessor heightAccessor = HeightAccessor.get(world);
 
 		BlockMask blockMask = this.config.blockMask(world);
 		WorldConfig worldConfig = this.config.world(world);
@@ -65,7 +67,7 @@ public class Obfuscator {
 					continue;
 				}
 
-				final int baseY = sectionIndex * 16;
+				final int baseY = heightAccessor.getMinBuildHeight() + (sectionIndex << 4);
 				for (int index = 0; index < 4096; index++) {
 					int blockData = chunkSection.getBlock(index);
 
@@ -120,7 +122,7 @@ public class Obfuscator {
 
 	// returns first block below given position that wouldn't be obfuscated in any way at given position
 	private int getBlockBelow(BlockMask blockMask, Chunk chunk, int x, int y, int z) {
-		for (int targetY = y - 1; targetY > 0; targetY--) {
+		for (int targetY = y - 1; targetY > chunk.getHeightAccessor().getMinBuildHeight(); targetY--) {
 			int blockData = chunk.getBlock(x, targetY, z);
 			if (blockData != -1 && BlockMask.isEmpty(blockMask.mask(blockData, y))) {
 				return blockData;
@@ -135,7 +137,7 @@ public class Obfuscator {
 
 	private boolean areAjacentBlocksTransparent(Chunk chunk, World world, int x, int y, int z, boolean check,
 			int depth) {
-		if (y >= world.getMaxHeight() || y < 0) {
+		if (y >= world.getMaxHeight() || y < chunk.getHeightAccessor().getMinBuildHeight()) {
 			return true;
 		}
 

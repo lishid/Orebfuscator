@@ -1,6 +1,6 @@
 package net.imprex.orebfuscator.config;
 
-import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.Material;
 
@@ -17,7 +17,7 @@ public class OrebfuscatorBlockMask implements BlockMask {
 		return EMPTY_MASK;
 	}
 
-	private final short[] blockMask = new short[NmsInstance.getMaterialSize()];
+	private final int[] blockMask = new int[NmsInstance.getMaterialSize()];
 
 	private OrebfuscatorBlockMask(OrebfuscatorWorldConfig worldConfig, OrebfuscatorProximityConfig proximityConfig) {
 		if (worldConfig != null && worldConfig.enabled()) {
@@ -26,7 +26,7 @@ public class OrebfuscatorBlockMask implements BlockMask {
 			}
 		}
 		if (proximityConfig != null && proximityConfig.enabled()) {
-			for (Map.Entry<Material, Short> entry : proximityConfig.hiddenBlocks().entrySet()) {
+			for (Entry<Material, Integer> entry : proximityConfig.hiddenBlocks().entrySet()) {
 				this.setBlockMask(entry.getKey(), entry.getValue());
 			}
 		}
@@ -40,7 +40,7 @@ public class OrebfuscatorBlockMask implements BlockMask {
 				blockMask |= FLAG_TILE_ENTITY;
 			}
 
-			this.blockMask[blockId] = (short) blockMask;
+			this.blockMask[blockId] = blockMask;
 		}
 	}
 
@@ -51,7 +51,7 @@ public class OrebfuscatorBlockMask implements BlockMask {
 
 	@Override
 	public int mask(int blockId, int y) {
-		short blockMask = this.blockMask[blockId];
+		int blockMask = this.blockMask[blockId];
 		if (HideCondition.match(blockMask, y)) {
 			blockMask |= FLAG_PROXIMITY;
 		}

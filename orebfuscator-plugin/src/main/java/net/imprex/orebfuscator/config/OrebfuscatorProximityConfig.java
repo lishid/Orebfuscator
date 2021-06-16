@@ -23,9 +23,9 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 
 	private final List<String> worlds = new ArrayList<>();
 
-	private short defaultBlockFlags = (short) (HideCondition.MATCH_ALL | BlockMask.FLAG_USE_BLOCK_BELOW);
+	private int defaultBlockFlags = (HideCondition.MATCH_ALL | BlockMask.FLAG_USE_BLOCK_BELOW);
 
-	private Map<Material, Short> hiddenBlocks = new LinkedHashMap<>();
+	private Map<Material, Integer> hiddenBlocks = new LinkedHashMap<>();
 
 	private Map<Material, Integer> randomBlocks = new LinkedHashMap<>();
 	private WeightedRandom<Integer> randomMaterials = new WeightedRandom<>();
@@ -84,7 +84,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 		section.set("defaults.above", HideCondition.getAbove(this.defaultBlockFlags));
 		section.set("defaults.useBlockBelow", BlockMask.isUseBlockBelowBitSet(this.defaultBlockFlags));
 
-		this.deserializeHiddenBlocks(section, this.hiddenBlocks, "hiddenBlocks");
+		this.deserializeHiddenBlocks(section, "hiddenBlocks");
 		ConfigParser.deserializeRandomMaterialList(section, randomBlocks, "randomBlocks");
 	}
 
@@ -103,7 +103,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 				continue;
 			}
 
-			short blockFlags = this.defaultBlockFlags;
+			int blockFlags = this.defaultBlockFlags;
 			if (materialSection.isInt(name + ".y") && materialSection.isBoolean(name + ".above")) {
 				blockFlags = HideCondition.remove(blockFlags);
 				blockFlags |= HideCondition.create(materialSection.getInt(name + ".y"),
@@ -122,9 +122,9 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 		}
 	}
 
-	private void deserializeHiddenBlocks(ConfigurationSection section, Map<Material, Short> hiddenBlocks, String path) {
+	private void deserializeHiddenBlocks(ConfigurationSection section, String path) {
 		ConfigurationSection parentSection = section.createSection(path);
-		for (Entry<Material, Short> entry : this.hiddenBlocks.entrySet()) {
+		for (Entry<Material, Integer> entry : this.hiddenBlocks.entrySet()) {
 			Material material = entry.getKey();
 			Optional<String> optional = NmsInstance.getNameByMaterial(material);
 
@@ -135,7 +135,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 			}
 
 			ConfigurationSection childSection = parentSection.createSection(optional.get());
-			short blockFlags = entry.getValue();
+			int blockFlags = entry.getValue();
 			if (!HideCondition.equals(blockFlags, this.defaultBlockFlags)) {
 				childSection.set("y", HideCondition.getY(blockFlags));
 				childSection.set("above", HideCondition.getAbove(blockFlags));
@@ -197,7 +197,7 @@ public class OrebfuscatorProximityConfig implements ProximityConfig {
 	}
 
 	@Override
-	public Map<Material, Short> hiddenBlocks() {
+	public Map<Material, Integer> hiddenBlocks() {
 		return this.hiddenBlocks;
 	}
 

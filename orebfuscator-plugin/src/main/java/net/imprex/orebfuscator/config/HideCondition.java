@@ -1,39 +1,54 @@
 package net.imprex.orebfuscator.config;
 
+/**
+ * Only use MSBs (24 bit) for HideCondition
+ * 16 bit y | 1 bit above flag | 1 present bit
+ */
 public class HideCondition {
 
-	public static final short MATCH_ALL = HideCondition.create(0, true);
+	public static final int MATCH_ALL = HideCondition.create(Short.MIN_VALUE, true);
 
-	public static short create(int y, boolean above) {
-		return (short) ((y & 0xFF) << 8 | (above ? 0x80 : 0x00));
+	public static int clampY(int y) {
+		return Math.min(Short.MAX_VALUE, Math.max(Short.MIN_VALUE, y));
 	}
 
-	public static short remove(short hideCondition) {
-		return (short) (hideCondition & 0x7F);
+	public static int create(int y, boolean above) {
+		return (clampY(y) << 16 | (above ? 0xC000 : 0x4000));
 	}
 
-	public static boolean isMatchAll(short hideCondition) {
-		return (hideCondition & 0xFF80) == MATCH_ALL;
+	public static int remove(int hideCondition) {
+		return hideCondition & 0xFFF;
 	}
 
-	public static boolean equals(short a, short b) {
-		return (a & 0xFF80) == (b & 0xFF80);
+	private static int extractHideCondition(int hideCondition) {
+		return hideCondition & 0xFFFFF000;
 	}
 
-	public static boolean match(short hideCondition, int y) {
-		int expectedY = hideCondition >> 8;
-		if ((hideCondition & 0x80) != 0) {
-			return expectedY < y;
-		} else {
-			return expectedY > y;
+	public static boolean equals(int a, int b) {
+		return extractHideCondition(a) == extractHideCondition(b);
+	}
+
+	public static boolean match(int hideCondition, int y) {
+		if (isPresent(hideCondition)) {
+			int expectedY = getY(hideCondition);
+			if (getAbove(hideCondition)) {
+				return expectedY < y;
+			} else {
+				return expectedY > y;
+			}
 		}
+		return false;
 	}
 
-	public static int getY(short hideCondition) {
-		return hideCondition >> 8;
+	public static boolean isPresent(int hideCondition) {
+		return (hideCondition & 0x4000) != 0;
 	}
 
-	public static boolean getAbove(short hideCondition) {
-		return (hideCondition & 0x80) != 0;
+	public static int getY(int hideCondition) {
+		return (short) (hideCondition >> 16);
+	}
+
+	public static boolean getAbove(int hideCondition) {
+		return (hideCondition & 0x8000) != 0;
 	}
 }

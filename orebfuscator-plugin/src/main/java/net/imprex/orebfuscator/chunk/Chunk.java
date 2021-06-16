@@ -5,6 +5,7 @@ import java.util.Arrays;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
+import net.imprex.orebfuscator.util.HeightAccessor;
 
 public class Chunk implements AutoCloseable {
 
@@ -17,7 +18,8 @@ public class Chunk implements AutoCloseable {
 
 	private final int extraBytes;
 
-	private final ChunkSectionHolder[] sections = new ChunkSectionHolder[16];
+	private final HeightAccessor heightAccessor;
+	private final ChunkSectionHolder[] sections;
 
 	private final ByteBuf inputBuffer;
 	private final ByteBuf outputBuffer;
@@ -28,11 +30,14 @@ public class Chunk implements AutoCloseable {
 
 		this.extraBytes = extraBytes;
 
+		this.heightAccessor = HeightAccessor.get(chunkStruct.world);
+		this.sections = new ChunkSectionHolder[this.heightAccessor.getSectionCount()];
+
 		this.inputBuffer = Unpooled.wrappedBuffer(chunkStruct.data);
 		this.outputBuffer = PooledByteBufAllocator.DEFAULT.heapBuffer(chunkStruct.data.length);
 
-		for (int sectionIndex = 0; sectionIndex < 16; sectionIndex++) {
-			if ((chunkStruct.primaryBitMask & (1 << sectionIndex)) != 0) {
+		for (int sectionIndex = 0; sectionIndex < this.sections.length; sectionIndex++) {
+			if (chunkStruct.sectionMask.get(sectionIndex)) {
 				this.sections[sectionIndex] = new ChunkSectionHolder();
 			}
 		}
@@ -40,6 +45,10 @@ public class Chunk implements AutoCloseable {
 
 	public int getSectionCount() {
 		return this.sections.length;
+	}
+
+	public HeightAccessor getHeightAccessor() {
+		return heightAccessor;
 	}
 
 	public ChunkSection getSection(int index) {
@@ -51,9 +60,8 @@ public class Chunk implements AutoCloseable {
 	}
 
 	public int getBlock(int x, int y, int z) {
-		int chunkY = y >> 4;
 		if (x >> 4 == this.chunkX && z >> 4 == this.chunkZ) {
-			ChunkSectionHolder chunkSection = this.sections[chunkY];
+			ChunkSectionHolder chunkSection = this.sections[this.heightAccessor.getSectionIndex(y)];
 			if (chunkSection != null) {
 				return chunkSection.data[ChunkSection.positionToIndex(x & 0xF, y & 0xF, z & 0xF)];
 			}

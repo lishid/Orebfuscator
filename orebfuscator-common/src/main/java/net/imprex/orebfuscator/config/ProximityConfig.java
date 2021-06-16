@@ -26,7 +26,7 @@ public interface ProximityConfig {
 	boolean useFastGazeCheck();
 	void useFastGazeCheck(boolean fastGaze);
 
-	Map<Material, Short> hiddenBlocks();
+	Map<Material, Integer> hiddenBlocks();
 
 	Map<Material, Integer> randomBlocks();
 

@@ -4,17 +4,23 @@ import net.imprex.orebfuscator.util.MinecraftVersion;
 
 public final class ChunkCapabilities {
 
+	// hasDynamicHeight >= 1.17
 	// hasSimpleVarBitBuffer >= 1.16
 	// hasBlockCount >= 1.14
 	// hasDirectPaletteZeroLength < 1.13
 	// hasLight < 1.14
 
+	private static boolean hasDynamicHeight = MinecraftVersion.getMinorVersion() >= 17;
 	private static boolean hasSimpleVarBitBuffer = MinecraftVersion.getMinorVersion() >= 16;
 	private static boolean hasBlockCount = MinecraftVersion.getMinorVersion() >= 14;
 	private static boolean hasDirectPaletteZeroLength = MinecraftVersion.getMinorVersion() < 13;
 	private static boolean hasLightArray = MinecraftVersion.getMinorVersion() < 14;
 
 	private ChunkCapabilities() {
+	}
+
+	public static boolean hasDynamicHeight() {
+		return hasDynamicHeight;
 	}
 
 	public static boolean hasSimpleVarBitBuffer() {

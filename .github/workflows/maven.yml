@@ -20,13 +20,19 @@ jobs:
     - name: BuildTools cache
       uses: actions/cache@v2
       with:
-        path: ~/.m2/repository/org/spigotmc/spigot
-        key: ${{ runner.os }}-maven-${{ hashFiles('./.github/workflows/buildtools.sh') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
-    - name: BuildTools
+        path: ~/.m2/repository/org/spigotmc
+        key: ${{ runner.os }}-maven-${{ secrets.CACHE_VERSION }}-${{ hashFiles('./.github/workflows/buildtools.sh') }}
+    - name: BuildTools Java 8
       run: |
-        sh ./.github/workflows/buildtools.sh
+        sh ./.github/workflows/buildtools.sh java-8
+    - name: Set up JDK 16
+      uses: actions/setup-java@v2
+      with:
+        java-version: '16'
+        distribution: 'adopt'
+    - name: BuildTools Java 16
+      run: |
+        sh ./.github/workflows/buildtools.sh java-16
     - name: Build
       run: |
         mvn clean package -pl orebfuscator-plugin -B --also-make "-Drevision=$(git describe --tags `git rev-list --tags --max-count=1`)"
