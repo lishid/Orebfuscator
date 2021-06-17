@@ -46,7 +46,3 @@ jobs:
         artifacts: "dist/*"
         name: Release ${{ env.RELEASE_VERSION }}
         token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish to GitHub Packages
-      run: mvn -pl orebfuscator-api --also-make -Drevision=$RELEASE_VERSION --batch-mode deploy
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
