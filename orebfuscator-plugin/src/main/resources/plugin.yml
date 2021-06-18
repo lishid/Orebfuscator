@@ -13,7 +13,7 @@ loadbefore: [ProtocolLib]
 
 load: POSTWORLD
 
-description: 'High-Performance Anti X-Ray'
+description: "High-Performance Anti X-Ray"
 
 permissions:
   orebfuscator.admin:
